@@ -104,3 +104,39 @@ export async function deleteSMS(params) {
     }
   );
 }
+
+export async function fetchFilterList(params) {
+  return request(
+    organizationRoleLevel
+      ? `${HZERO_MSG}/v1/${organizationId}/sms-filters`
+      : `${HZERO_MSG}/v1/sms-filters`,
+    {
+      method: 'GET',
+      query: params,
+    }
+  );
+}
+
+export async function updateFilter(params) {
+  return request(
+    organizationRoleLevel
+      ? `${HZERO_MSG}/v1/${organizationId}/sms-filters`
+      : `${HZERO_MSG}/v1/sms-filters`,
+    {
+      method: 'POST',
+      body: params,
+    }
+  );
+}
+
+export async function deleteFilter(params) {
+  return request(
+    organizationRoleLevel
+      ? `${HZERO_MSG}/v1/${organizationId}/sms-filters`
+      : `${HZERO_MSG}/v1/sms-filters`,
+    {
+      method: 'DELETE',
+      body: params,
+    }
+  );
+}

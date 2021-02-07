@@ -84,9 +84,9 @@ const tableFields = [
 ];
 
 // 查询from
-const formDS = {
+const formDS = () => ({
   fields: fromFields,
-};
+});
 
 // 管理化table DS
 function tableDS(formRecord) {

@@ -5,10 +5,9 @@
  * @author: zhaotong <tong.zhao@hand-china.com>
  * @copyright Copyright (c) 2019, Hands
  */
-
 import request from 'utils/request';
 import { HZERO_PLATFORM } from 'utils/config';
-import { getCurrentOrganizationId } from 'utils/utils';
+import { getCurrentOrganizationId, parseParameters } from 'utils/utils';
 
 const headerArr = `${process.env.CUST_HEADER}`.split('#');
 const headers =
@@ -94,6 +93,38 @@ export async function querySelfValidator(params = {}) {
 }
 export async function saveSelfValidator(params = {}) {
   return request(`${HZERO_PLATFORM}/v1/${getCurrentOrganizationId()}/unit-config/condition-valid`, {
+    body: params,
+    method: 'POST',
+  });
+}
+/**
+ * 查询同模型同类型的个性化单元
+ */
+export async function querySameModelUnit(params = {}) {
+  const query = parseParameters(params);
+  return request(`${HZERO_PLATFORM}/v1/${getCurrentOrganizationId()}/lovs/sql/data`, {
+    method: 'GET',
+    query,
+  });
+}
+/**
+ * 从 现有单元 修复(复制) (租户级)个性化字段 至 其他(新增)单元
+ */
+export async function copyFiled(params = {}) {
+  return request(
+    `${HZERO_PLATFORM}/v1/${getCurrentOrganizationId()}/unit-config/batch-copy/config-field`,
+    {
+      body: params,
+      method: 'POST',
+    }
+  );
+}
+
+/**
+ * 租户个性化保存单元配置头
+ */
+export async function saveUnitConfigHeader(params = {}) {
+  return request(`${HZERO_PLATFORM}/v1/${getCurrentOrganizationId()}/unit-config/save-header`, {
     body: params,
     method: 'POST',
   });

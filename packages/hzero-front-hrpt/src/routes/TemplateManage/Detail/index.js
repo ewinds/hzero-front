@@ -14,6 +14,7 @@ import { filter, isEmpty, isUndefined } from 'lodash';
 import { Bind } from 'lodash-decorators';
 
 import { Content, Header } from 'components/Page';
+import TLEditor from 'components/TLEditor';
 import Switch from 'components/Switch';
 import Lov from 'components/Lov';
 
@@ -155,7 +156,7 @@ export default class Detail extends Component {
           dispatch({
             type: 'templateManage/createTemplateManage', // 新增逻辑
             payload: { ...values },
-          }).then(res => {
+          }).then((res) => {
             if (res) {
               notification.success();
               dispatch(
@@ -172,7 +173,7 @@ export default class Detail extends Component {
               ...header,
               ...values,
             },
-          }).then(res => {
+          }).then((res) => {
             if (res) {
               notification.success();
               this.handleSearch();
@@ -221,7 +222,7 @@ export default class Detail extends Component {
     dispatch({
       type: 'templateManage/createTemplateLine',
       payload: { ...values, templateId: id, tenantId: header.tenantId },
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
         this.handleCancelTemplateLine();
@@ -239,7 +240,7 @@ export default class Detail extends Component {
     dispatch({
       type: 'templateManage/fetchTemplateLineDetail',
       payload: { templateDtlId: record.templateDtlId },
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         this.setState({
           templateLineDrawerVisible: true,
@@ -262,7 +263,7 @@ export default class Detail extends Component {
     dispatch({
       type: 'templateManage/editTemplateLine',
       payload: { ...lineDetail, ...values, templateId: id, tenantId: header.tenantId },
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
         this.handleCancelTemplateLine();
@@ -292,7 +293,7 @@ export default class Detail extends Component {
     const { templateLineSelectedRowKeys } = this.state;
     const newParameters = filter(
       content,
-      item => templateLineSelectedRowKeys.indexOf(item.templateDtlId) >= 0
+      (item) => templateLineSelectedRowKeys.indexOf(item.templateDtlId) >= 0
     );
     Modal.confirm({
       title: intl.get('hzero.common.message.confirm.remove').d('确定删除选中数据？'),
@@ -300,7 +301,7 @@ export default class Detail extends Component {
         dispatch({
           type: 'templateManage/deleteTemplateLine',
           payload: { newParameters },
-        }).then(res => {
+        }).then((res) => {
           if (res) {
             notification.success();
             this.fetchTemplateLine(linePagination);
@@ -413,7 +414,13 @@ export default class Detail extends Component {
                   },
                 ],
                 initialValue: header.templateName,
-              })(<Input />)}
+              })(
+                <TLEditor
+                  label={intl.get('entity.template.name').d('模板名称')}
+                  field="templateName"
+                  token={header ? header._token : null}
+                />
+              )}
             </Form.Item>
           </Col>
         </Row>
@@ -441,12 +448,12 @@ export default class Detail extends Component {
                     allowClear
                     onChange={
                       !isUndefined(match.params.id)
-                        ? val => this.changeTemplateTypeCode(val)
+                        ? (val) => this.changeTemplateTypeCode(val)
                         : undefined
                     }
                   >
                     {templateTypeCode &&
-                      templateTypeCode.map(item => (
+                      templateTypeCode.map((item) => (
                         <Option key={item.value} value={item.value}>
                           {item.meaning}
                         </Option>

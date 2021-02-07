@@ -33,7 +33,7 @@ function Rule(props) {
     },
   } = props;
 
-  const fetchRuleList = params => {
+  const fetchRuleList = (params) => {
     const filterForm = handleBindRef(filterFormRef);
     const filterValue = filterForm.getFieldsValue();
     dispatch({
@@ -52,18 +52,18 @@ function Rule(props) {
     fetchRuleList({ page: {} });
   };
 
-  const handleBindRef = ref => {
+  const handleBindRef = (ref) => {
     if (ref.current) {
       return ref.current;
     }
     return {};
   };
 
-  const handlePagination = page => {
+  const handlePagination = (page) => {
     fetchRuleList({ page });
   };
 
-  const showEditor = record => {
+  const showEditor = (record) => {
     if (record.ruleId !== undefined) {
       dispatch({
         type: 'customize/fetchRuleDetail',
@@ -86,11 +86,11 @@ function Rule(props) {
     });
   };
 
-  const handleOk = data => {
+  const handleOk = (data) => {
     dispatch({
       type: `customize/${data.ruleId === undefined ? 'createRule' : 'updateRule'}`,
       payload: data,
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         hideEditor();
         fetchRuleList();
@@ -99,11 +99,11 @@ function Rule(props) {
     });
   };
 
-  const deleteRule = record => {
+  const deleteRule = (record) => {
     dispatch({
       type: 'customize/deleteRule',
       payload: record,
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         fetchRuleList();
         notification.success();
@@ -118,7 +118,7 @@ function Rule(props) {
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
       },
-      onClick: e => {
+      onClick: (e) => {
         const { target } = e;
         if (target.style.whiteSpace === 'normal') {
           target.style.whiteSpace = 'nowrap';
@@ -163,7 +163,7 @@ function Rule(props) {
       render: yesOrNoRender,
     },
     {
-      title: intl.get('hpfm.customize.model.customize.rule.enableFlag').d('启用'),
+      title: intl.get('hzero.common.status.enable').d('启用'),
       dataIndex: 'enabledFlag',
       width: 120,
       render: enableRender,
@@ -188,7 +188,7 @@ function Rule(props) {
                 ]}
                 onClick={() => showEditor(record)}
               >
-                {intl.get('hzero.common.button.rule.edit').d('编辑')}
+                {intl.get('hzero.common.button.edit').d('编辑')}
               </ButtonPermission>
             ),
             len: 2,

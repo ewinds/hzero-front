@@ -67,9 +67,11 @@ export interface RoutersConfigItem {
 /**
  * 路由配置项
  */
+// @ts-ignore
 export type RouterConfig = RouterConfigItem | RoutersConfigItem;
 
 /**
  * 路由配置
  */
+// @ts-ignore
 export type RoutersConfig = RouterConfig[];

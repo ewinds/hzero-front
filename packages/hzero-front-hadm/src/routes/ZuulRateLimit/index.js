@@ -225,7 +225,7 @@ export default class ZuulRateLimit extends Component {
         width: 150,
       },
       {
-        title: intl.get(`hadm.zuulRateLimit.model.zuulRateLimit.remark`).d('说明'),
+        title: intl.get('hzero.common.explain').d('说明'),
         dataIndex: 'remark',
         width: 150,
       },

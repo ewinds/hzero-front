@@ -31,7 +31,7 @@ const currentTenantId = getCurrentOrganizationId();
 function getCodeTag(value, code = []) {
   let result;
   if (value && !isEmpty(code)) {
-    const codeList = code.filter(n => n.value === value);
+    const codeList = code.filter((n) => n.value === value);
     if (!isEmpty(codeList)) {
       result = codeList[0].tag;
     }
@@ -48,12 +48,12 @@ function assignResourceLevel(
   let newOptions = options;
   const parentRoleAssignLevelTag = Number(getCodeTag(parentRoleAssignLevel, options));
   // if (roleDatasource.tenantId !== 0) {
-  newOptions = options.filter(o => o.value !== 'site');
+  newOptions = options.filter((o) => o.value !== 'site');
   // } else {
   //   newOptions = options.filter(o => o.value === 'site');
   // }
 
-  return newOptions.filter(o => Number(o.tag) >= parentRoleAssignLevelTag);
+  return newOptions.filter((o) => Number(o.tag) >= parentRoleAssignLevelTag);
   // roleDatasource.tenantId !== recordOrganizationId
   // ? newOptions.filter(o => Number(o.tag) >= parentRoleAssignLevelTag)
   // newOptions;
@@ -90,7 +90,7 @@ export default class Members extends PureComponent {
   }
 
   onDrawerClose() {
-    const { close = e => e } = this.props;
+    const { close = (e) => e } = this.props;
     this.setState({
       dataSource: [],
       selectedRows: [],
@@ -109,14 +109,14 @@ export default class Members extends PureComponent {
 
   @Bind()
   onTableChange(pagination) {
-    const { getFieldsValue = e => e } = this.queryForm;
+    const { getFieldsValue = (e) => e } = this.queryForm;
     const { current = 1, pageSize = 10 } = pagination;
     this.fetchDataSource({ ...getFieldsValue(), page: current - 1, size: pageSize });
   }
 
   fetchDataSource(params = {}) {
-    const { handleFetchData = e => e } = this.props;
-    handleFetchData({ page: 0, size: 10, ...params }).then(res => {
+    const { handleFetchData = (e) => e } = this.props;
+    handleFetchData({ page: 0, size: 10, ...params }).then((res) => {
       if (res) {
         const { dataSource, pagination } = res;
         this.setState({
@@ -157,7 +157,7 @@ export default class Members extends PureComponent {
       item.assignLevel = 'org';
     }
 
-    if (currentTenantId !== 0 && VERSION_IS_OP) {
+    if (String(currentTenantId) !== '0' && VERSION_IS_OP) {
       item.organizationId = roleDatasource.tenantId;
       item.tenantName = roleDatasource.tenantName;
       item.assignLevel = 'organization';
@@ -174,19 +174,19 @@ export default class Members extends PureComponent {
 
   deleteRow() {
     const { selectedRows, dataSource, pagination } = this.state;
-    const { handleDelete = e => e, roleDatasource = {} } = this.props;
+    const { handleDelete = (e) => e, roleDatasource = {} } = this.props;
     const { current, pageSize } = pagination;
-    const { getFieldsValue = e => e } = this.queryForm;
-    const data = selectedRows.filter(o => isInteger(Number(o.key)));
+    const { getFieldsValue = (e) => e } = this.queryForm;
+    const data = selectedRows.filter((o) => isInteger(Number(o.key)));
     this.setState({
       dataSource: pullAllBy(
         [...dataSource],
-        selectedRows.filter(o => !isInteger(Number(o.key)), 'key')
+        selectedRows.filter((o) => !isInteger(Number(o.key)), 'key')
       ),
     });
     if (!isEmpty(data)) {
       handleDelete(
-        data.map(n => ({
+        data.map((n) => ({
           memberId: n.id,
           roleId: roleDatasource.id,
         })),
@@ -205,17 +205,17 @@ export default class Members extends PureComponent {
 
   @Bind()
   save() {
-    const { handleSave = e => e, roleDatasource } = this.props;
+    const { handleSave = (e) => e, roleDatasource } = this.props;
     const { dataSource = [], editingRows = [] } = this.state;
     const tableRowForms = this.tableRowForms
-      .map(o => {
-        const item = editingRows.find(n => o.key === n.key);
+      .map((o) => {
+        const item = editingRows.find((n) => o.key === n.key);
         return !isEmpty(item) ? { ...o, rowData: item } : false;
       })
       .filter(Boolean);
     Promise.all(
       tableRowForms.map(
-        o =>
+        (o) =>
           new Promise((resolve, rejcet) => {
             const { validateFields = () => {} } = o.row || {};
             validateFields((error, values) => {
@@ -229,8 +229,8 @@ export default class Members extends PureComponent {
       )
     )
       .then((result = []) => {
-        const data = dataSource.map(n => {
-          const newItem = result.find(o => o.key === n.key);
+        const data = dataSource.map((n) => {
+          const newItem = result.find((o) => o.key === n.key);
           const item = !isEmpty(newItem) ? newItem : n;
           const { id, assignLevel, assignLevelValue } = item;
           return {
@@ -250,7 +250,7 @@ export default class Members extends PureComponent {
           });
         }
       })
-      .catch(e => {
+      .catch((e) => {
         window.console.warn(e);
       });
     // if (!isEmpty(dataSource.filter(o => !isEmpty(o.error)))) {
@@ -263,22 +263,22 @@ export default class Members extends PureComponent {
   }
 
   getColumns(defaultColumns) {
-    const { roleDatasource, resourceLevel, handleFetchHrunitsTree = e => e } = this.props;
+    const { roleDatasource, resourceLevel, handleFetchHrunitsTree = (e) => e } = this.props;
     const { editingRows, dataSource = [] } = this.state;
     const saveBtnTarget = this.saveBtn;
-    const setRecord = newRecored => {
+    const setRecord = (newRecored) => {
       this.setState({
-        dataSource: dataSource.map(o => (o.key === newRecored.key ? newRecored : o)),
+        dataSource: dataSource.map((o) => (o.key === newRecored.key ? newRecored : o)),
       });
     };
-    const getColumn = defaultColumn => {
+    const getColumn = (defaultColumn) => {
       const { dataIndex, title } = defaultColumn;
       return dataIndex !== 'realName' && dataIndex !== 'tenantName'
         ? {
             ...defaultColumn,
             render: (text, record) => {
               const isUpdate = isInteger(Number(record.key));
-              const editing = !isEmpty(editingRows.filter(o => o.key === record.key));
+              const editing = !isEmpty(editingRows.filter((o) => o.key === record.key));
               const editable =
                 defaultColumn.className === 'editable-cell' ||
                 defaultColumn.className === 'editable-cell-operation';
@@ -296,7 +296,7 @@ export default class Members extends PureComponent {
                 saveBtnTarget,
                 editable,
                 editing: isColumnEdited[dataIndex],
-                currentEditingRow: find(editingRows, o => o.key === record.key),
+                currentEditingRow: find(editingRows, (o) => o.key === record.key),
                 roleTenantId: roleDatasource.tenantId,
                 roleTenantName: roleDatasource.tenantName,
                 setRecord,
@@ -322,10 +322,11 @@ export default class Members extends PureComponent {
 
               return (
                 <EditableContext.Consumer>
-                  {form =>
+                  {(form) =>
+                    // eslint-disable-next-line no-nested-ternary
                     defaultColumn.className === 'editable-cell' ? (
                       <EditableCell form={form} {...editableCellProps} />
-                    ) : !isEmpty(editingRows.filter(o => o.key === record.key)) ? (
+                    ) : !isEmpty(editingRows.filter((o) => o.key === record.key)) ? (
                       <a onClick={this.cancel.bind(this, record, form)}>
                         {isInteger(Number(record.key))
                           ? intl.get(`hzero.common.button.cancel`).d('取消')
@@ -335,20 +336,21 @@ export default class Members extends PureComponent {
                       <a onClick={this.edit.bind(this, record, form)}>
                         {intl.get(`hzero.common.button.edit`).d('编辑')}
                       </a>
-                    )}
+                    )
+                  }
                 </EditableContext.Consumer>
               );
             },
           }
         : defaultColumn;
     };
-    return defaultColumns.map(n => getColumn(n));
+    return defaultColumns.map((n) => getColumn(n));
   }
 
   @Bind()
   assignRowData(newRecored) {
     const { dataSource = [] } = this.state;
-    const newDataSource = dataSource.map(o =>
+    const newDataSource = dataSource.map((o) =>
       o.key === newRecored.key ? { ...o, ...newRecored } : o
     );
     this.setState({
@@ -372,7 +374,7 @@ export default class Members extends PureComponent {
         render: (text, record) => record.realName,
       },
       !VERSION_IS_OP &&
-        currentTenantId === 0 && {
+        String(currentTenantId) === '0' && {
           title: intl.get(`hiam.roleManagement.model.roleManagement.tenant`).d('所属租户'),
           dataIndex: 'tenantName',
         },
@@ -399,11 +401,11 @@ export default class Members extends PureComponent {
       },
     ].filter(Boolean);
 
-    return defaultColumns.map(n => ({
+    return defaultColumns.map((n) => ({
       ...n,
-      onCell: record => {
+      onCell: (record) => {
         const isUpdate = isInteger(Number(record.key));
-        const editing = !isEmpty(editingRows.filter(o => o.key === record.key));
+        const editing = !isEmpty(editingRows.filter((o) => o.key === record.key));
         const isColumnEdited = {
           id: editing && !isUpdate,
           assignLevel: editing, // editing && record.organizationId !== 0,
@@ -420,7 +422,7 @@ export default class Members extends PureComponent {
             whiteSpace: 'nowrap',
           },
           assignRowData: this.assignRowData,
-          onClick: e => {
+          onClick: (e) => {
             const { target } = e;
             if (target.style.whiteSpace === 'normal') {
               target.style.whiteSpace = 'nowrap';
@@ -464,7 +466,7 @@ export default class Members extends PureComponent {
     const operators = [
       {
         key: 'cancel',
-        ele: !isEmpty(editingRows.filter(o => o.key === record.key)) ? (
+        ele: !isEmpty(editingRows.filter((o) => o.key === record.key)) ? (
           <a onClick={() => this.cancel(record)}>
             {isInteger(Number(record.key))
               ? intl.get(`hzero.common.button.cancel`).d('取消')
@@ -474,7 +476,8 @@ export default class Members extends PureComponent {
           <a onClick={() => this.edit(record)}>{intl.get(`hzero.common.button.edit`).d('编辑')}</a>
         ),
         len: 2,
-        title: !isEmpty(editingRows.filter(o => o.key === record.key))
+        // eslint-disable-next-line no-nested-ternary
+        title: !isEmpty(editingRows.filter((o) => o.key === record.key))
           ? isInteger(Number(record.key))
             ? intl.get(`hzero.common.button.cancel`).d('取消')
             : intl.get(`hzero.common.button.clean`).d('清除')
@@ -495,12 +498,12 @@ export default class Members extends PureComponent {
   @Bind()
   cancel(record) {
     const { dataSource, editingRows } = this.state;
-    const defaultItem = editingRows.find(o => o.key === record.key);
+    const defaultItem = editingRows.find((o) => o.key === record.key);
     this.setState({
       dataSource: isInteger(record.key)
-        ? dataSource.map(n => (n.key === defaultItem.key ? defaultItem : n))
-        : dataSource.filter(o => o.key !== record.key),
-      editingRows: editingRows.filter(o => o.key !== record.key),
+        ? dataSource.map((n) => (n.key === defaultItem.key ? defaultItem : n))
+        : dataSource.filter((o) => o.key !== record.key),
+      editingRows: editingRows.filter((o) => o.key !== record.key),
     });
   }
 
@@ -508,7 +511,7 @@ export default class Members extends PureComponent {
   onTableRow(record = {}) {
     const { editableRowKey = [] } = this.props;
     return {
-      onRef: node => {
+      onRef: (node) => {
         this.setTableRowForms(node, record);
       },
       contextProvider: EditableContext.Provider,
@@ -549,7 +552,7 @@ export default class Members extends PureComponent {
         dataIndex: 'id',
       },
       !VERSION_IS_OP &&
-        currentTenantId === 0 && {
+        String(currentTenantId) === '0' && {
           title: intl.get(`hiam.roleManagement.model.roleManagement.tenant`).d('所属租户'),
           dataIndex: 'tenantName',
           width: 200,
@@ -589,7 +592,7 @@ export default class Members extends PureComponent {
           </Button>
           {!isEmpty(editingRows) && (
             <Button
-              ref={node => {
+              ref={(node) => {
                 this.saveBtn = node;
               }}
               id="saveBtn"
@@ -605,7 +608,7 @@ export default class Members extends PureComponent {
     };
 
     const queryFormProps = {
-      ref: node => {
+      ref: (node) => {
         this.queryForm = node;
       },
       prompt,
@@ -633,7 +636,7 @@ export default class Members extends PureComponent {
       scroll: { x: tableScrollWidth(tableColumns) },
       loading: processing.query || processing.save,
       rowSelection: {
-        selectedRowKeys: selectedRows.map(n => n.key),
+        selectedRowKeys: selectedRows.map((n) => n.key),
         onChange: this.onTableSelectedRowChange,
       },
       onChange: this.onTableChange,

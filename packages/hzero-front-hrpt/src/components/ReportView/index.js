@@ -169,7 +169,6 @@ export default class ReportView extends React.Component {
 
   /**
    * 渲染图表
-   * @param {string} type
    */
   @Bind()
   renderChart(type) {

@@ -8,13 +8,15 @@
  */
 import qs from 'querystring';
 import request from 'utils/request';
-import { HZERO_IAM, HZERO_PLATFORM } from 'utils/config';
 import {
   getCurrentOrganizationId,
   parseParameters,
   filterNullValueObject,
   isTenantRoleLevel,
 } from 'utils/utils';
+import { getEnvConfig } from 'utils/iocUtils';
+
+const { HZERO_IAM, HZERO_PLATFORM } = getEnvConfig();
 
 const tenantId = getCurrentOrganizationId();
 const organizationRoleLevel = isTenantRoleLevel();
@@ -44,6 +46,16 @@ function enableStatus(status) {
 const secGrp = organizationRoleLevel
   ? `v1/${tenantId}/sec-grp-role-assign`
   : `v1/sec-grp-role-assign`;
+
+/**
+ * 获取表单数据
+ * @param {Number} organizationId 租户id
+ */
+export async function fetchPasswordPolicyList() {
+  return request(`${HZERO_IAM}/v1/${tenantId}/password-policies/query`, {
+    method: 'GET',
+  });
+}
 
 /**
  * 查询值集
@@ -590,7 +602,7 @@ export async function queryCurrentRole() {
  */
 export async function queryCreatedSubroles(params = {}) {
   const query = filterNullValueObject(parseParameters(params));
-  return request(`${HZERO_IAM}/hzero/v1/roles/self/manageable-roles`, {
+  return request(`${HZERO_IAM}/hzero/v2/roles/self/manageable-roles`, {
     query,
   });
 }
@@ -1043,5 +1055,32 @@ export async function cancelShieldSecGrpPermission(payload) {
   const queryString = qs.stringify(rest);
   return request(`${HZERO_IAM}/${secGrp}/${roleId}/${secGrpId}/cancel-shield?${queryString}`, {
     method: 'POST',
+  });
+}
+
+export async function fetchUserList(params) {
+  return request(
+    organizationRoleLevel
+      ? `${HZERO_IAM}/hzero/v1/${tenantId}/users/paging/all`
+      : `${HZERO_IAM}/hzero/v1/users/paging/all`,
+    {
+      method: 'GET',
+      query: params,
+    }
+  );
+}
+
+export async function fetchClientList(params) {
+  return request(`${HZERO_IAM}/v1/clients/paging/all`, {
+    method: 'GET',
+    query: params,
+  });
+}
+
+export async function fetchTreeRole(params) {
+  const param = filterNullValueObject(parseParameters(params));
+  return request(`${HZERO_IAM}/hzero/v2/roles/self/manageable-roles/tree`, {
+    method: 'GET',
+    query: { ...param },
   });
 }

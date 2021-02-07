@@ -72,7 +72,7 @@ export default class QueryForm extends Component {
             <Col span={6}>
               <FormItem>
                 <Button onClick={this.handleFormReset}>
-                  {intl.get('hzero.common.status.reset').d('重置')}
+                  {intl.get('hzero.common.button.reset').d('重置')}
                 </Button>
                 <Button
                   htmlType="submit"
@@ -80,7 +80,7 @@ export default class QueryForm extends Component {
                   style={{ marginLeft: 8 }}
                   onClick={this.handleFormSearch}
                 >
-                  {intl.get('hzero.common.status.search').d('查询')}
+                  {intl.get('hzero.common.button.search').d('查询')}
                 </Button>
               </FormItem>
             </Col>
@@ -103,7 +103,7 @@ export default class QueryForm extends Component {
             >
               {getFieldDecorator('templateLevelCode')(
                 <Select allowClear>
-                  {dataTenantLevel.map(item => (
+                  {dataTenantLevel.map((item) => (
                     <Select.Option key={item.value} value={item.value}>
                       {item.meaning}
                     </Select.Option>
@@ -125,10 +125,10 @@ export default class QueryForm extends Component {
           <Col {...FORM_COL_4_LAYOUT} className={SEARCH_COL_CLASSNAME}>
             <FormItem>
               <Button onClick={this.handleFormReset}>
-                {intl.get('hzero.common.status.reset').d('重置')}
+                {intl.get('hzero.common.button.reset').d('重置')}
               </Button>
               <Button htmlType="submit" type="primary" onClick={this.handleFormSearch}>
-                {intl.get('hzero.common.status.search').d('查询')}
+                {intl.get('hzero.common.button.search').d('查询')}
               </Button>
             </FormItem>
           </Col>

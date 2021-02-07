@@ -152,7 +152,7 @@ export default class Drawer extends React.Component {
             <Col>
               <Form.Item
                 {...MODAL_FORM_ITEM_LAYOUT}
-                label={intl.get(`hfile.serverUpload.model.serverUpload.enableFlag`).d('启用')}
+                label={intl.get('hzero.common.status.enable').d('启用')}
               >
                 {form.getFieldDecorator('enabledFlag', {
                   initialValue: enabledFlag === 0 ? enabledFlag : 1,

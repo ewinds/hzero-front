@@ -116,7 +116,14 @@ class LovModal extends React.Component {
   @Bind()
   queryData(pagination = {}) {
     const filter = this.props.form.getFieldsValue();
-    const { queryUrl, pageSize, lovCode, lovTypeCode, queryFields = [] } = this.props.lov;
+    const {
+      queryUrl,
+      pageSize,
+      lovCode,
+      lovTypeCode,
+      requestMethod = '',
+      queryFields = [],
+    } = this.props.lov;
     const { queryParams = {} } = this.props;
     let nowQueryParams = queryParams || {};
     if (isFunction(nowQueryParams)) {
@@ -176,13 +183,14 @@ class LovModal extends React.Component {
     }
 
     const url = getUrl(queryUrl, queryParams);
+    const method = lovTypeCode === 'URL' ? requestMethod : '';
 
     this.setState(
       {
         loading: true,
       },
       () => {
-        queryLovData(url, params)
+        queryLovData(url, params, method)
           .then((res) => {
             if (getResponse(res)) {
               this.dataFilter(res);
@@ -333,7 +341,7 @@ class LovModal extends React.Component {
       scroll: {
         x: tableScrollWidth(tableFields),
         // eslint-disable-next-line no-nested-ternary
-        y: isUndefined(height) ? 'calc(100vh - 401px)' : height > 498 ? height - 98 : 400,
+        y: isUndefined(height) ? undefined : height > 498 ? height - 98 : 400,
       },
       onRow: (record, index) => ({
         onDoubleClick: () => this.handleRowDoubleClick(record, index),

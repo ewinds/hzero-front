@@ -58,6 +58,7 @@ class DefaultMenu extends React.PureComponent {
       menus: computeMenusRet, // 菜单
       leafMenus: computeLeafMenusRet, // 三级菜单
       prevActiveTabKey: activeTabKey, // 存储上一次的 activeTabKey
+      prevMenuQuickIndex: undefined, // 存储上一次的 menuQuickIndex
       prevMenus: menus, // 存储上一次的 menus
       activeMenu: null, // 当前激活的 一级菜单
       hoverMenu: null, // 当前hover的 一级菜单
@@ -65,8 +66,8 @@ class DefaultMenu extends React.PureComponent {
   }
 
   static getDerivedStateFromProps(nextProps, prevState) {
-    const { activeTabKey, menus } = nextProps;
-    const { prevActiveTabKey, prevMenus } = prevState;
+    const { activeTabKey, menus, menuQuickIndex } = nextProps;
+    const { prevActiveTabKey, prevMenus, prevMenuQuickIndex } = prevState;
     const nextState = {};
     if (prevMenus !== menus) {
       if (isEmpty(menus)) {
@@ -78,7 +79,13 @@ class DefaultMenu extends React.PureComponent {
         // 叶子节点 和 新的菜单
         nextState.leafMenus = computeLeafMenusRet;
         nextState.menus = computeMenusRet;
-        nextState.activeMenus = computeActiveMenus(nextState.leafMenus, activeTabKey);
+        if (menuQuickIndex && menuQuickIndex !== prevMenuQuickIndex) {
+          nextState.activeMenus = computeMenusRet.filter((item) => {
+            return item.quickIndex === menuQuickIndex;
+          });
+        } else {
+          nextState.activeMenus = computeActiveMenus(nextState.leafMenus, activeTabKey);
+        }
       }
       nextState.prevMenus = menus;
     }
@@ -171,6 +178,7 @@ export default connect(({ global = {} }) => ({
   language: global.language,
   menus: global.menu,
   menuLoad: global.menuLoad,
+  menuQuickIndex: global.menuQuickIndex,
   activeTabKey: global.activeTabKey,
   tabs: global.tabs,
 }))(DefaultMenu);

@@ -6,7 +6,7 @@
  * @copyright Copyright (c) 2018, Hand
  */
 import React, { PureComponent } from 'react';
-import { Icon, Table } from 'hzero-ui';
+import { Icon, Table, Popconfirm } from 'hzero-ui';
 
 import Icons from 'components/Icons';
 import { Button as ButtonPermission } from 'components/Permission';
@@ -38,7 +38,7 @@ export default class List extends PureComponent {
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
       },
-      onClick: e => {
+      onClick: (e) => {
         const { target } = e;
         if (target.style.whiteSpace === 'normal') {
           target.style.whiteSpace = 'nowrap';
@@ -50,20 +50,47 @@ export default class List extends PureComponent {
   }
 
   operationRender(text, record) {
-    // 租户级应该能看到他的菜单挂载到了哪个目录下了，但是，需要限制，租户层功能只能看到标准菜单，但是不能做任何更改（没有任何操作按钮）
-    if (tenantRoleLevel && record.customFlag === 0) {
-      return null;
-    }
     const {
       path,
       processingEnableRow,
       processing = {},
-      handleEdit = e => e,
-      handleEnable = e => e,
-      handleEditPermissionSet = e => e,
-      onCreate = e => e,
-      onCopy = e => e,
+      handleEdit = (e) => e,
+      handleEnable = (e) => e,
+      handleEditPermissionSet = (e) => e,
+      onCreate = (e) => e,
+      onCopy = (e) => e,
+      handleDelete = (e) => e,
     } = this.props;
+    // 租户级应该能看到他的菜单挂载到了哪个目录下了，但是，需要限制，租户层功能只能看到标准菜单，但是不能做任何更改（没有任何操作按钮）
+    // changeLog:
+    // FIXME: 租户级可以在平台菜单下进行新建客制化菜单
+    if (tenantRoleLevel && record.customFlag === 0) {
+      const operators = [];
+      if (record.type === 'root' || record.type === 'dir') {
+        operators.push({
+          key: 'create',
+          ele: (
+            <ButtonPermission
+              type="text"
+              permissionList={[
+                {
+                  code: `${path}.button.createList`,
+                  type: 'button',
+                  meaning: '菜单配置-列表新建',
+                },
+              ]}
+              onClick={() => onCreate(record, true)}
+            >
+              {intl.get(`${commonPrompt}.button.create`).d('新建')}
+            </ButtonPermission>
+          ),
+          len: 2,
+          title: intl.get(`${commonPrompt}.button.create`).d('新建'),
+        });
+      }
+
+      return operatorRender(operators, record, { limit: 3 });
+    }
     const operators = [];
     if (record.type === 'root' || record.type === 'dir') {
       operators.push({
@@ -210,6 +237,33 @@ export default class List extends PureComponent {
         </ButtonPermission>
       ),
     });
+    if (!record.enabledFlag && ((tenantRoleLevel && record.customFlag === 1) || !tenantRoleLevel)) {
+      operators.push({
+        key: 'delete',
+        ele: (
+          <Popconfirm
+            title={intl.get('hzero.common.message.confirm.delete').d('是否删除此条记录？')}
+            onConfirm={() => handleDelete(record)}
+          >
+            <ButtonPermission
+              type="text"
+              permissionList={[
+                {
+                  code: `${path}.button.delete`,
+                  type: 'button',
+                  meaning: '菜单配置-删除',
+                },
+              ]}
+            >
+              {intl.get('hzero.common.button.delete').d('删除')}
+            </ButtonPermission>
+          </Popconfirm>
+        ),
+        len: 2,
+        title: intl.get('hzero.common.button.delete').d('删除'),
+      });
+    }
+
     return operatorRender(operators, record, { limit: 3 });
   }
 
@@ -225,10 +279,10 @@ export default class List extends PureComponent {
       processingEnableRow,
       levelCode = [],
       menuTypeList = [],
-      expandClick = e => e,
+      expandClick = (e) => e,
       ...others
     } = this.props;
-    const filteredMenuTypeList = menuTypeList.filter(item => item.value !== 'ps');
+    const filteredMenuTypeList = menuTypeList.filter((item) => item.value !== 'ps');
     const columns = [
       {
         title: intl.get(`${modelPrompt}.name`).d('目录/菜单'),
@@ -250,7 +304,7 @@ export default class List extends PureComponent {
         title: intl.get(`${modelPrompt}.icon`).d('图标'),
         width: 60,
         dataIndex: 'icon',
-        render: code => <Icons type={code} size={14} style={menuIconStyle} />,
+        render: (code) => <Icons type={code} size={14} style={menuIconStyle} />,
       },
       {
         title: intl.get(`${modelPrompt}.code`).d('编码'),
@@ -261,11 +315,11 @@ export default class List extends PureComponent {
         title: intl.get(`${modelPrompt}.level`).d('层级'),
         dataIndex: 'level',
         width: 80,
-        render: text => {
+        render: (text) => {
           let levelMeaning = '';
           levelCode
-            .filter(o => o.value !== 'org')
-            .forEach(element => {
+            .filter((o) => o.value !== 'org')
+            .forEach((element) => {
               if (text === element.value) {
                 levelMeaning = element.meaning;
               }
@@ -277,9 +331,10 @@ export default class List extends PureComponent {
         title: intl.get(`${modelPrompt}.menuType`).d('类型'),
         dataIndex: 'type',
         width: 120,
-        render: value => {
-          const statusList = filteredMenuTypeList.map(item => ({
+        render: (value) => {
+          const statusList = filteredMenuTypeList.map((item) => ({
             status: item.value,
+            // eslint-disable-next-line no-nested-ternary
             color: item.value === 'root' ? 'blue' : item.value === 'dir' ? 'green' : 'orange',
             text: item.meaning,
           }));

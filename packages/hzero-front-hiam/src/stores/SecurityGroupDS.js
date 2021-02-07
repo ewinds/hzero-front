@@ -82,7 +82,7 @@ const secGrpDS = () => ({
       maxLength: 60,
     },
     {
-      name: 'levelMeaning',
+      name: 'secGrpLevelMeaning',
       label: intl.get('hiam.securityGroup.model.securityGroup.level').d('层级'),
       type: 'string',
     },
@@ -199,7 +199,7 @@ const secGrpDetailDS = (id) => ({
       required: true,
     },
     {
-      name: 'levelMeaning',
+      name: 'secGrpLevelMeaning',
       label: intl.get('hiam.securityGroup.model.securityGroup.level').d('层级'),
       type: 'string',
     },
@@ -282,9 +282,7 @@ const visitPermissionDS = (secGrpId) => ({
     { name: 'id', type: 'number' },
     {
       name: 'name',
-      label: intl
-        .get(`hiam.roleManagement.model.roleManagement.permissionSetName`)
-        .d('权限层级名称'),
+      label: intl.get(`hiam.roleManagement.model.roleManagement.permissionName`).d('权限名称'),
       type: 'string',
     },
     {

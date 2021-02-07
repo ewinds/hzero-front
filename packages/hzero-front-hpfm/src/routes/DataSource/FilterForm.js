@@ -113,7 +113,7 @@ export default class FilterForm extends Component {
                 </Button>
               )}
               <Button data-code="reset" onClick={this.handleFormReset}>
-                {intl.get('hzero.common.status.reset').d('重置')}
+                {intl.get('hzero.common.button.reset').d('重置')}
               </Button>
               <Button
                 data-code="search"
@@ -121,7 +121,7 @@ export default class FilterForm extends Component {
                 htmlType="submit"
                 onClick={this.handleSearch}
               >
-                {intl.get('hzero.common.status.search').d('查询')}
+                {intl.get('hzero.common.button.search').d('查询')}
               </Button>
             </Form.Item>
           </Col>
@@ -136,7 +136,7 @@ export default class FilterForm extends Component {
             >
               {getFieldDecorator('dsPurposeCode')(
                 <Select style={{ width: '100%' }} allowClear>
-                  {purposeType.map(item => (
+                  {purposeType.map((item) => (
                     <Select.Option key={item.value} value={item.value}>
                       {item.meaning}
                     </Select.Option>

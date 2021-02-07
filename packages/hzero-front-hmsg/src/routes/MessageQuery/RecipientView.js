@@ -61,7 +61,7 @@ export default class RecipientView extends React.PureComponent {
             type="primary"
             onClick={onOk}
           >
-            {intl.get('hzero.common.button.sure').d('确定')}
+            {intl.get('hzero.common.button.ok').d('确定')}
           </ButtonPermission>
         }
       >

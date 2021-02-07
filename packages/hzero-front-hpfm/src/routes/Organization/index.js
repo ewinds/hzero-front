@@ -93,6 +93,7 @@ export default class Organization extends React.Component {
       linePagination,
       unitsQueryLineLoading,
       groupName,
+      dispatch,
     } = this.props;
     const { curTab } = this.state;
     return (
@@ -143,6 +144,7 @@ export default class Organization extends React.Component {
                 forbidLineLoading={forbidLineLoading}
                 enabledLineLoading={enabledLineLoading}
                 unitType={unitType}
+                dispatch={dispatch}
               />
             </Tabs.TabPane>
             <Tabs.TabPane

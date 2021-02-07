@@ -207,7 +207,7 @@ class Guider {
         this.handleClose();
       } else {
         const { option: { fixed } = {} } = nextStep;
-        const { onNext = e => e } = steps[currentStep];
+        const { onNext = (e) => e } = steps[currentStep];
         onNext();
         this.reset();
         this.currentStep = currentStep + 1;
@@ -226,7 +226,7 @@ class Guider {
         this.handleClose();
       } else {
         const { option: { fixed } = {} } = lastStep;
-        const { onLast = e => e } = steps[currentStep];
+        const { onLast = (e) => e } = steps[currentStep];
         onLast();
         this.reset();
         this.currentStep = currentStep - 1;
@@ -243,7 +243,7 @@ class Guider {
     this.reset(true);
     const { currentStep, steps } = this;
     if (steps[currentStep]) {
-      const { onClose = e => e } = steps[currentStep];
+      const { onClose = (e) => e } = steps[currentStep];
       onClose();
     }
   }
@@ -282,16 +282,16 @@ class Guider {
         {showButtons && (
           <>
             <Button onClick={this.handleClose}>
-              {intl.get('hzero.common.model.button.close').d('关闭')}
+              {intl.get('hzero.common.button.close').d('关闭')}
             </Button>
             {!isFirst && (
               <Button onClick={this.handleLast}>
-                {intl.get('hzero.common.model.button.previous').d('上一步')}
+                {intl.get('hzero.common.button.previous').d('上一步')}
               </Button>
             )}
             {!isLast && (
               <Button onClick={this.handleNext}>
-                {intl.get('hzero.common.model.button.next').d('下一步')}
+                {intl.get('hzero.common.button.next').d('下一步')}
               </Button>
             )}
           </>
@@ -389,12 +389,12 @@ class Guider {
   highLight(selector, index = 0) {
     setTimeout(() => {
       this.GetElementAndDetail(selector)
-        .then(res => {
+        .then((res) => {
           // if (res) {
           const { overlayPadding, allowClose, opacity, backgroundColor } = this.options;
           const { steps } = this;
 
-          const { option = {}, onHighlighted = e => e, popover: popoverOption } = steps[index];
+          const { option = {}, onHighlighted = (e) => e, popover: popoverOption } = steps[index];
           const { position = {}, element } = res;
 
           this.currentElement = element;
@@ -513,11 +513,9 @@ class Guider {
           const div3 = document.createElement('div');
           div3.style.position = 'absolute';
           div3.style.width = `${width + requiredPadding + selfWidth}px`;
-          div3.style.height = `calc(100% - ${position.bottom -
-            overlayPadding -
-            offsetY -
-            selfHeight -
-            scrollTop}px)`;
+          div3.style.height = `calc(100% - ${
+            position.bottom - overlayPadding - offsetY - selfHeight - scrollTop
+          }px)`;
           div3.style.top = `${position.bottom + overlayPadding + offsetY + selfHeight}px`;
           div3.style.left = `${position.left - overlayPadding + offsetX}px`;
           div3.style.opacity = opacity;
@@ -526,11 +524,9 @@ class Guider {
 
           const div4 = document.createElement('div');
           div4.style.position = 'absolute';
-          div4.style.width = `${window.outerWidth -
-            position.right -
-            overlayPadding -
-            offsetX -
-            selfWidth}px`;
+          div4.style.width = `${
+            window.outerWidth - position.right - overlayPadding - offsetX - selfWidth
+          }px`;
           div4.style.height = `100%`;
           div4.style.top = `0px`;
           div4.style.left = `${position.right + overlayPadding + offsetX + selfWidth}px`;
@@ -570,14 +566,14 @@ class Guider {
     this.isActivated = true;
     const { steps } = this;
     if (isArray(steps)) {
-      const { option: { fixed = false } = {}, onStart = e => e } = steps[0];
+      const { option: { fixed = false } = {}, onStart = (e) => e } = steps[0];
       onStart();
       this.currentStep = 0;
       this.isLast = steps.length < 2;
       this.fixed = fixed;
       this.highLight(steps[0].element);
     } else {
-      const { option: { fixed = false } = {}, onStart = e => e } = steps;
+      const { option: { fixed = false } = {}, onStart = (e) => e } = steps;
       onStart();
       this.currentStep = 0;
       this.fixed = fixed;

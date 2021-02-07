@@ -92,3 +92,53 @@ export async function fetchMessageDetail(params) {
     }
   );
 }
+
+/**
+ * 查询分配公司/租户列表
+ * @async
+ * @function queryConfig
+ * @param {Object} params - 查询参数
+ */
+export async function fetchDistribute(paramsValue) {
+  const { domainId, params } = paramsValue;
+  return request(
+    `${HZERO_IAM}/v1/${isTenantRoleLevel() ? `${organizationId}/` : ''}domain-assigns/${domainId}`,
+    {
+      method: 'GET',
+      query: params,
+    }
+  );
+}
+
+/**
+ * 保存分配租户/公司
+ * @async
+ * @function createConfig
+ * @param {Object} params - 查询参数
+ */
+export async function saveDistribute(params) {
+  const { domainId, body } = params;
+  return request(
+    `${HZERO_IAM}/v1/${isTenantRoleLevel() ? `${organizationId}/` : ''}domain-assigns/${domainId}`,
+    {
+      method: 'POST',
+      body,
+    }
+  );
+}
+/**
+ * 删除分配租户/公司
+ * @async
+ * @function createConfig
+ * @param {Object} params - 查询参数
+ */
+export async function deleteDistribute(params) {
+  const { domainId, body } = params;
+  return request(
+    `${HZERO_IAM}/v1/${isTenantRoleLevel() ? `${organizationId}/` : ''}domain-assigns/${domainId}`,
+    {
+      method: 'DELETE',
+      body,
+    }
+  );
+}

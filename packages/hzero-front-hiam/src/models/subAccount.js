@@ -3,8 +3,11 @@
  * @author WY <yang.wang06@hand-china.com>
  */
 
-import { getResponse, createPagination } from 'utils/utils';
+import { isUndefined } from 'lodash';
+
+import { getResponse, createPagination, setSession } from 'utils/utils';
 import { queryMapIdpValue, getPublicKey } from 'hzero-front/lib/services/api'; // 相对路径
+import notification from 'utils/notification';
 import {
   subAccountQueryPage, // 查询子账户-分页
   subAccountPasswordUpdate, // 修改别人的密码
@@ -12,6 +15,7 @@ import {
   subAccountUserRolesQuery, // 查询可分配角色
   subAccountCurrentUserRoles, // 查询当前用户已分配角色
   subAccountQuery, // 查询详情
+  queryLabelList,
   subAccountCreate, // 新建
   subAccountUpdate, // 更新
   subAccountUserUnlock, // 解锁
@@ -22,6 +26,8 @@ import {
   deleteUserGroup,
   queryDimension,
   queryEmployee,
+  postCaptcha,
+  resetPassword,
 } from '../services/subAccountService';
 import { getPasswordRule } from '../services/commonService';
 
@@ -37,6 +43,7 @@ export default {
     dimensionList: [],
     employeeList: [],
     employeePagination: {},
+    labelList: [],
   },
   effects: {
     // 初始化 值集 这类在页面生存周期不会变的变量
@@ -90,7 +97,9 @@ export default {
         yield put({
           type: 'updateState',
           payload: {
-            passwordTipMsg: res,
+            passwordTipMsg: isUndefined(payload.forceCodeVerify)
+              ? res
+              : { ...res, forceCodeVerify: payload.forceCodeVerify },
           },
         });
       }
@@ -130,6 +139,18 @@ export default {
       const { userId } = payload;
       const subAccountDetail = yield call(subAccountQuery, userId);
       return getResponse(subAccountDetail);
+    },
+    // 获取授权类型信息
+    *queryLabelList({ payload }, { call, put }) {
+      const res = yield call(queryLabelList, payload);
+      if (res && !res.failed) {
+        yield put({
+          type: 'updateState',
+          payload: {
+            labelList: res,
+          },
+        });
+      }
     },
     *createSubAccount({ payload }, { call }) {
       const res = yield call(subAccountCreate, payload);
@@ -198,6 +219,28 @@ export default {
           },
         });
       }
+    },
+    // 发送验证码
+    *postCaptcha({ payload }, { call }) {
+      const captchaField = 'captchaKey';
+      const res = getResponse(yield call(postCaptcha, payload));
+      const validCodeLimitTimeStart = new Date().getTime();
+      // 60秒限制
+      const validCodeLimitTimeEnd = validCodeLimitTimeStart + 60000;
+      if (res) {
+        notification.success({ message: res.message });
+        if (captchaField) {
+          setSession(`sub-account-phone`, res[captchaField] || 0);
+        }
+        return { validCodeLimitTimeEnd, validCodeSendLimitFlag: true };
+      } else {
+        return { validCodeLimitTimeEnd: 0, validCodeSendLimitFlag: false };
+      }
+    },
+    // 重置密码
+    *resetPassword({ payload }, { call }) {
+      const res = getResponse(yield call(resetPassword, payload));
+      return res;
     },
   },
   reducers: {

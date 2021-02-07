@@ -131,6 +131,12 @@ export default class Drawer extends PureComponent {
                     name: intl.get('entity.organization.name').d('组织名称'),
                   }),
                 },
+                {
+                  max: 240,
+                  message: intl.get('hzero.common.validation.max', {
+                    max: 240,
+                  }),
+                },
               ],
               initialValue: itemData.unitName,
             })(

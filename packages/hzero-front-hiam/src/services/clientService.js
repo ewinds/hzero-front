@@ -119,9 +119,12 @@ export async function updateClient(params) {
  * @param {!Number} currentOrganizationId 租户id
  */
 export async function subAccountOrgRoleQueryAll(payload) {
-  return request(`${HZERO_IAM}/hzero/v1/roles/self/user-assignable-roles`, {
+  return request(`${HZERO_IAM}/hzero/v2/roles/self/assignable-roles`, {
     method: 'GET',
-    query: payload,
+    query: {
+      ...payload,
+      memberType: 'client',
+    },
   });
 }
 

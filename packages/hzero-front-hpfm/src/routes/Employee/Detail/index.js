@@ -132,7 +132,7 @@ export default class Detail extends Component {
           newCursorList = newCursorList.filter((o) => newCursorList.indexOf(o) !== 0);
           m.children = m.children ? this.findAndSetNodeProps(m.children, newCursorList, data) : [];
         } else {
-          m = { ...data, INDENT_INDEX: undefined, children: m.children };
+          m = data;
         }
       }
       return m;

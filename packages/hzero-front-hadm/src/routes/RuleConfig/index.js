@@ -18,7 +18,7 @@ import intl from 'utils/intl';
 
 import { initDS } from '../../stores/ruleConfigDS';
 
-@formatterCollections({ code: ['hadm.ruleConfig'] })
+@formatterCollections({ code: ['hadm.ruleConfig', 'hadm.common'] })
 export default class ruleConfig extends React.Component {
   initDs = new DataSet(initDS());
 

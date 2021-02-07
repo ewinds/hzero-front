@@ -105,6 +105,12 @@ export default class DetailForm extends React.Component {
                     name: intl.get('hpfm.valueList.model.line.meaning').d('含义'),
                   }),
                 },
+                {
+                  max: 240,
+                  message: intl.get('hzero.common.validation.max', {
+                    max: 240,
+                  }),
+                },
               ],
               initialValue: meaning,
             })(

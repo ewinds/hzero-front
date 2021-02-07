@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Layout } from 'hzero-ui';
 import { isEmpty, map } from 'lodash';
-import { Bind, memoize } from 'lodash-decorators';
+import { Bind } from 'lodash-decorators';
 import DocumentTitle from 'react-document-title';
 import { connect } from 'dva';
 import { Switch, Route, Redirect } from 'dva/router';
@@ -18,6 +18,7 @@ import {
   getCurrentOrganizationId,
   getCurrentRole,
   getCurrentLanguage,
+  getSystemName,
 } from 'utils/utils';
 import { tabListen } from 'utils/menuTab';
 import NotFound from '../routes/Exception/404';
@@ -158,15 +159,6 @@ class PublicLayout extends React.Component {
     return redirect;
   };
 
-  @memoize
-  getRedirectData(menu) {
-    const redirectData = this.props.redirectData || [{ from: '/', to: '/workplace' }];
-    menu.forEach((item) => {
-      getRedirect(item, redirectData);
-    });
-    return redirectData;
-  }
-
   render() {
     const {
       currentUser,
@@ -175,12 +167,14 @@ class PublicLayout extends React.Component {
       menu = [],
       activeTabKey,
       tabs,
+      language,
     } = this.props;
-
-    const redirectData = this.getRedirectData(menu);
-
+    const redirectData = [{ from: '/', to: '/workplace' }]; // 根目录需要跳转到工作台
+    menu.forEach((item) => {
+      getRedirect(item, redirectData);
+    });
     const bashRedirect = this.getBashRedirect();
-
+    const systemName = getSystemName(language);
     const layout = (
       <Layout style={{ height: '100vh', overflow: 'hidden' }}>
         <Switch>
@@ -208,7 +202,7 @@ class PublicLayout extends React.Component {
       </Layout>
     );
 
-    return <DocumentTitle title={currentUser.title || ''}>{layout}</DocumentTitle>;
+    return <DocumentTitle title={systemName || currentUser.title || ''}>{layout}</DocumentTitle>;
   }
 }
 

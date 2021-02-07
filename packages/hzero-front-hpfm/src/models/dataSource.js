@@ -10,9 +10,6 @@ import {
   fetchDataSourceList,
   createDataSource,
   editDataSource,
-  addService,
-  fetchServiceList,
-  deleteService,
   handleTestDataSource,
   getDbPoolParams,
   getDriverClass,
@@ -27,7 +24,6 @@ export default {
     dataSourceData: {}, // 查询数据列表
     detaSourceDetail: {}, // 数据源详情数据
     datasourceId: undefined, // 数据源id
-    tenantData: {}, // 租户列表
     dbPoolParams: {}, // 连接池参数数据
     dataSourceClassList: [], // 数据库分类值集
     dataSourceTypeList: [], // 数据库类型值集
@@ -138,32 +134,6 @@ export default {
     // 编辑保存
     *editDataSource({ payload }, { call }) {
       const result = yield call(editDataSource, { ...payload });
-      return getResponse(result);
-    },
-    // 查询服务
-    *fetchServiceList({ payload }, { call, put }) {
-      const { page = 0, size = 10, ...params } = payload;
-      const res = yield call(fetchServiceList, { page, size, ...params });
-      const list = getResponse(res);
-      if (list) {
-        yield put({
-          type: 'updateState',
-          payload: {
-            tenantData: list,
-          },
-        });
-      }
-    },
-
-    // 添加服务
-    *addService({ payload }, { call }) {
-      const result = yield call(addService, payload);
-      return getResponse(result);
-    },
-
-    // 删除服务
-    *deleteService({ payload }, { call }) {
-      const result = yield call(deleteService, { ...payload });
       return getResponse(result);
     },
 

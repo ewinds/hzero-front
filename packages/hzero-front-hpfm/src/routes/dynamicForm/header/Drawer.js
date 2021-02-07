@@ -150,7 +150,7 @@ export default class Drawer extends React.PureComponent {
               ],
             })(
               <Select disabled={isEditing}>
-                {configGroupList.map(config => (
+                {configGroupList.map((config) => (
                   <Option key={config.value} value={config.value}>
                     {config.meaning}
                   </Option>
@@ -180,10 +180,7 @@ export default class Drawer extends React.PureComponent {
               />
             )}
           </Form.Item>
-          <Form.Item
-            {...formLayout}
-            label={intl.get('hpfm.dynamicForm.header.enableFlag').d('启用')}
-          >
+          <Form.Item {...formLayout} label={intl.get('hzero.common.status.enable').d('启用')}>
             {getFieldDecorator('enabledFlag', {
               initialValue: formHeaderId ? enabledFlag : 1,
             })(<Switch />)}

@@ -84,7 +84,7 @@ const TraceLog = (props = {}) => {
               });
             }}
           >
-            {intl.get('hzero.common.status.detail').d('查看详情')}
+            {intl.get('hzero.common.button.detail').d('查看详情')}
           </a>
         </span>
       ),

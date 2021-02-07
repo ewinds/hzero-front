@@ -21,6 +21,7 @@ function transformMenu(menu: OriginMenu): MenuItem {
     name: menu.name,
     // icon: menu.icon, // menu shouldn't have icon
     key: `${menu.type}-${menu.id}`,
+    quickIndex: menu.quickIndex,
   };
 }
 
@@ -33,6 +34,7 @@ function transformDir(menu: OriginMenu): MenuItem {
     name: menu.name,
     icon: menu.icon,
     key: `${menu.type}-${menu.id}`,
+    quickIndex: menu.quickIndex,
   };
 }
 
@@ -57,7 +59,8 @@ function transformIfNeedExpand(menu: OriginMenu): MenuItem {
 
 export function useMenu(
   menus?: OriginMenu[],
-  activeTabKey?: string
+  activeTabKey?: string,
+  menuQuickIndex?: string
 ): {
   mainMenus: MenuItem[];
   activeMenu?: MenuItem;
@@ -79,7 +82,7 @@ export function useMenu(
               const children: MenuItem[] = [];
               travelTree(
                 item.children,
-                c => {
+                (c) => {
                   if (isMenu(c) || c.path) {
                     children.push({ ...transformMenu(c), parent: dir });
                   }
@@ -96,7 +99,7 @@ export function useMenu(
           // 将所有二级菜单放到 同根目录名的目录中
           const newChildren: MenuItem[] = [];
           const aggregateGrandson: MenuItem[] = [];
-          root.children.forEach(sItem => {
+          root.children.forEach((sItem) => {
             if (!sItem.children || sItem.children.length === 0) {
               aggregateGrandson.push(sItem);
             } else {
@@ -128,10 +131,16 @@ export function useMenu(
     if (!activeTabKey) {
       return undefined;
     }
+
     let activeMenuItem: MenuItem | undefined;
+    if (menuQuickIndex && activeTabKey === '/workplace') {
+      [activeMenuItem] = mainMenus.filter((item) => {
+        return item.quickIndex === menuQuickIndex;
+      });
+    }
     travelTree(
       mainMenus,
-      item => {
+      (item) => {
         if (isMenu(item)) {
           if (!item.pathToRegexp) {
             if (isLink(item)) {

@@ -194,7 +194,7 @@ export default class PreferenceInfo extends React.Component {
           {form.getFieldDecorator('language', {
             initialValue: userInfo.language,
           })(
-            <Select style={itemContentStyle}>
+            <Select style={itemContentStyle} allowClear>
               {Object.values(languageMap).map((item) => (
                 <Select.Option key={item.code} value={item.code}>
                   {item.name}

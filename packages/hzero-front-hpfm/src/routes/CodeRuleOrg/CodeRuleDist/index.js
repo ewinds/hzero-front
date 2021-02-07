@@ -15,6 +15,7 @@ import queryString from 'query-string';
 
 import Lov from 'components/Lov';
 import Switch from 'components/Switch';
+import TLEditor from 'components/TLEditor';
 import { Content, Header } from 'components/Page';
 import { Button as ButtonPermission } from 'components/Permission';
 
@@ -73,7 +74,7 @@ function optionComponent(test, component, otherComponent) {
  * @reactProps {Object} tenantId - 租户编号
  * @return React.element
  */
-const EditModal = Form.create({ fieldNameProp: null })(props => {
+const EditModal = Form.create({ fieldNameProp: null })((props) => {
   const {
     editModalVisible,
     codes,
@@ -122,12 +123,12 @@ const EditModal = Form.create({ fieldNameProp: null })(props => {
         isCurrentTenant
           ? null
           : [
-            <Button key="cancel" onClick={cancelHandle}>
-              {intl.get('hzero.common.button.cancel').d('取消')}
-            </Button>,
-            <Button key="on" loading={loading} type="primary" onClick={okHandle}>
-              {intl.get('hzero.common.button.ok').d('确定')}
-            </Button>,
+              <Button key="cancel" onClick={cancelHandle}>
+                {intl.get('hzero.common.button.cancel').d('取消')}
+              </Button>,
+              <Button key="on" loading={loading} type="primary" onClick={okHandle}>
+                {intl.get('hzero.common.button.ok').d('确定')}
+              </Button>,
             ]
       }
     >
@@ -151,14 +152,14 @@ const EditModal = Form.create({ fieldNameProp: null })(props => {
                   ],
                 })(
                   <Select
-                    onChange={value => {
+                    onChange={(value) => {
                       form.resetFields(['levelValue']);
                       onShowCompany(value);
                     }}
                     disabled={!!levelCode}
                   >
                     {UNITTYPE.map(
-                      c =>
+                      (c) =>
                         c.value !== 'GLOBAL' && (
                           <Option key={c.value} value={c.value}>
                             {c.meaning}
@@ -435,7 +436,7 @@ export default class CodeRuleDist extends PureComponent {
         ...keyValue,
         organizationId,
       },
-    }).then(response => {
+    }).then((response) => {
       if (response) {
         notification.success();
         this.handleEditModal(false);
@@ -459,7 +460,7 @@ export default class CodeRuleDist extends PureComponent {
           selectedRows,
           organizationId,
         },
-      }).then(response => {
+      }).then((response) => {
         if (response) {
           notification.success();
           this.refreshLine();
@@ -590,7 +591,7 @@ export default class CodeRuleDist extends PureComponent {
             ...fieldsValue,
             organizationId,
           },
-        }).then(response => {
+        }).then((response) => {
           if (response) {
             this.refreshLine();
             notification.success();
@@ -648,7 +649,7 @@ export default class CodeRuleDist extends PureComponent {
       path,
     } = match;
     const { getFieldDecorator } = this.props.form;
-    const { ruleCode, ruleName, description, level, tenantId } = head;
+    const { ruleCode, ruleName, description, level, tenantId, _token } = head;
     const basePath = match.path.substring(0, match.path.indexOf('/dist'));
     const { selectedRows, modalVisible, editRecordData, editModalVisible, company } = this.state;
     // 当前租户是否和数据中的租户对应
@@ -657,9 +658,9 @@ export default class CodeRuleDist extends PureComponent {
     const { access_token: accessToken } = queryString.parse(search.substring(1));
     const columns = this.handlecolumns();
     const rowSelection = {
-      selectedRowKeys: selectedRows.map(n => n.ruleDistId),
+      selectedRowKeys: selectedRows.map((n) => n.ruleDistId),
       onChange: this.onSelectChange,
-      getCheckboxProps: record => ({
+      getCheckboxProps: (record) => ({
         disabled: isCurrentTenant || record.levelValue === 'GLOBAL' || record.enabledFlag === 1,
       }),
     };
@@ -728,7 +729,13 @@ export default class CodeRuleDist extends PureComponent {
                   >
                     {getFieldDecorator('ruleName', {
                       initialValue: ruleName,
-                    })(<Input />)}
+                    })(
+                      <TLEditor
+                        label={intl.get('hpfm.codeRule.model.codeRule.ruleName').d('规则名称')}
+                        field="ruleName"
+                        token={_token}
+                      />
+                    )}
                   </FormItem>
                 </Col>
               </Row>

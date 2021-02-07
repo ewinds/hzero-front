@@ -7,7 +7,6 @@
  */
 
 import React, { Component } from 'react';
-import { Button } from 'hzero-ui';
 import { connect } from 'dva';
 import { routerRedux } from 'dva/router';
 import { Bind } from 'lodash-decorators';
@@ -15,12 +14,13 @@ import { isEmpty, isUndefined } from 'lodash';
 import moment from 'moment';
 
 import { Header, Content } from 'components/Page';
-
+import { Button as ButtonPermission } from 'components/Permission';
 import formatterCollections from 'utils/intl/formatterCollections';
 import intl from 'utils/intl';
 import notification from 'utils/notification';
 import { filterNullValueObject, getCurrentOrganizationId, isTenantRoleLevel } from 'utils/utils';
 import { DEFAULT_DATE_FORMAT } from 'utils/constants';
+import { openTab, closeTab } from 'utils/menuTab';
 
 import ListTable from './ListTable';
 import PermissionAssign from './PermissionAssign';
@@ -285,6 +285,20 @@ export default class List extends Component {
   }
 
   /**
+   * u-report编辑器
+   */
+  @Bind()
+  async handleUReportEditor(record) {
+    await closeTab('/hrpt/report-definition/u-report');
+    openTab({
+      key: `/hrpt/report-definition/u-report`,
+      search: { id: record.reportUuid },
+      title: 'hzero.common.title.reportEditor',
+      closable: true,
+    });
+  }
+
+  /**
    * render
    * @returns React.element
    */
@@ -308,6 +322,7 @@ export default class List extends Component {
         permissionsList = [],
         permissionsPagination,
       },
+      match: { path },
     } = this.props;
     const {
       permissionVisible = false,
@@ -321,6 +336,7 @@ export default class List extends Component {
       onRef: this.handleBindRef,
     };
     const listProps = {
+      path,
       pagination,
       tenantRoleLevel,
       tenantId,
@@ -332,6 +348,7 @@ export default class List extends Component {
       onDelete: this.handleDeleteContent,
       onChange: this.handleSearch,
       onMenuRoute: this.handleMenuRoute,
+      onUReportEditor: this.handleUReportEditor,
     };
     const permissionsProps = {
       currentReportData,
@@ -360,9 +377,20 @@ export default class List extends Component {
     return (
       <>
         <Header title={intl.get('hrpt.reportDefinition.view.message.title').d('报表定义')}>
-          <Button icon="plus" type="primary" onClick={this.handleAddDefinition}>
+          <ButtonPermission
+            permissionList={[
+              {
+                code: `${path}.button.create`,
+                type: 'button',
+                meaning: '报表定义-新建',
+              },
+            ]}
+            type="primary"
+            onClick={this.handleAddDefinition}
+            icon="plus"
+          >
             {intl.get('hzero.common.button.create').d('新建')}
-          </Button>
+          </ButtonPermission>
         </Header>
         <Content>
           <div className="table-list-search">

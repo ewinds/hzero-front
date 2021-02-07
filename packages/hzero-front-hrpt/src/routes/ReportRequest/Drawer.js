@@ -49,7 +49,7 @@ export default class JobGroupForm extends React.PureComponent {
     return (
       <Modal
         destroyOnClose
-        title={intl.get('hrpt.common.view.title.detail').d('详情')}
+        title={intl.get('hzero.common.view.title.detail').d('详情')}
         visible={visible}
         wrapClassName="ant-modal-sidebar-right"
         transitionName="move-right"

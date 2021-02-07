@@ -24,79 +24,59 @@ class List extends PureComponent {
 
   @Bind()
   optionsRender(text, record) {
-    const { handleAction = (e) => e, tenantRoleLevel, path } = this.props;
+    const { handleAction = (e) => e, tenantRoleLevel, path, currentRole } = this.props;
+    const {
+      enableRoleAllocate,
+      enableRoleInherit,
+      enableRolePermission,
+      adminFlag,
+      id,
+    } = currentRole;
+
     const operators = [];
-    // assignedFlag   4 分配标志        -> 创建角色
-    // adminFlag      2 管理标志
-    // haveAdminFlag  1 有父级角色标志
-    const branch =
-      (record.assignedFlag === 1 ? 4 : 0) +
-      (record.adminFlag === 1 ? 2 : 0) +
-      (record.haveAdminFlag === 1 ? 1 : 0);
-    const flag = false;
-    // 创建角色
-    // const createRoleBtn = {
-    //   key: 'create',
-    //   ele: (
-    //     <ButtonPermission
-    //       type="text"
-    //       permissionList={[
-    //         {
-    //           code: `${path}.button.roleCreate`,
-    //           type: 'button',
-    //           meaning: '角色管理-创建角色',
-    //         },
-    //       ]}
-    //       onClick={() => handleAction('create', record)}
-    //     >
-    //       {intl.get('hiam.roleManagement.view.button.roleCreate').d('创建角色')}
-    //     </ButtonPermission>
-    //   ),
-    //   len: 4,
-    //   title: intl.get('hiam.roleManagement.view.button.roleCreate').d('创建角色'),
-    // };
+    const assignMemberBtn = (enableRoleAllocate || id !== record.id) &&
+      !record.tplRoleFlag && {
+        key: 'assign-members',
+        ele: (
+          <ButtonPermission
+            type="text"
+            permissionList={[
+              {
+                code: `${path}.button.members`,
+                type: 'button',
+                meaning: '角色管理-分配用户',
+              },
+            ]}
+            onClick={() => handleAction('editMembers', record)}
+          >
+            {intl.get(`hiam.roleManagement.view.title.members`).d('分配用户')}
+          </ButtonPermission>
+        ),
+        len: 4,
+        title: intl.get(`hiam.roleManagement.view.title.members`).d('分配用户'),
+      };
     // 分配用户
-    const assignMemberBtn = {
-      key: 'assign-members',
-      ele: (
-        <ButtonPermission
-          type="text"
-          permissionList={[
-            {
-              code: `${path}.button.members`,
-              type: 'button',
-              meaning: '角色管理-分配用户',
-            },
-          ]}
-          onClick={() => handleAction('editMembers', record)}
-        >
-          {intl.get(`hiam.roleManagement.view.title.members`).d('分配用户')}
-        </ButtonPermission>
-      ),
-      len: 4,
-      title: intl.get(`hiam.roleManagement.view.title.members`).d('分配用户'),
-    };
-    // 分配用户
-    const assignClientBtn = {
-      key: 'assign-client',
-      ele: (
-        <ButtonPermission
-          type="text"
-          permissionList={[
-            {
-              code: `${path}.button.clients`,
-              type: 'button',
-              meaning: '角色管理-分配客户端',
-            },
-          ]}
-          onClick={() => handleAction('editClients', record)}
-        >
-          {intl.get(`hiam.roleManagement.view.title.clients`).d('分配客户端')}
-        </ButtonPermission>
-      ),
-      len: 5,
-      title: intl.get(`hiam.roleManagement.view.title.clients`).d('分配客户端'),
-    };
+    const assignClientBtn = (enableRoleAllocate || id !== record.id) &&
+      !record.tplRoleFlag && {
+        key: 'assign-client',
+        ele: (
+          <ButtonPermission
+            type="text"
+            permissionList={[
+              {
+                code: `${path}.button.clients`,
+                type: 'button',
+                meaning: '角色管理-分配客户端',
+              },
+            ]}
+            onClick={() => handleAction('editClients', record)}
+          >
+            {intl.get(`hiam.roleManagement.view.title.clients`).d('分配客户端')}
+          </ButtonPermission>
+        ),
+        len: 5,
+        title: intl.get(`hiam.roleManagement.view.title.clients`).d('分配客户端'),
+      };
     // 分配权限
     const assignPermission = {
       key: 'assign-permissions',
@@ -140,7 +120,7 @@ class List extends PureComponent {
       title: intl.get(`hzero.common.button.copy`).d('复制'),
     };
     // 继承
-    const inheritBtn = record.inheritable === 1 && {
+    const inheritBtn = enableRoleInherit && {
       key: 'inherit',
       ele: (
         <ButtonPermission
@@ -207,7 +187,7 @@ class List extends PureComponent {
         : intl.get(`hzero.common.status.enable`).d('启用'),
     };
     // 工作台配置-分配卡片
-    const cardBtn = {
+    const cardBtn = enableRolePermission && {
       key: 'assign-role',
       ele: (
         <ButtonPermission
@@ -228,7 +208,7 @@ class List extends PureComponent {
       title: intl.get(`hiam.roleManagement.view.title.assignCards`).d('工作台配置'),
     };
     // 维护数据权限
-    const dataPermissionBtn = {
+    const dataPermissionBtn = enableRolePermission && {
       key: 'editPermission',
       ele: (
         <ButtonPermission
@@ -250,7 +230,7 @@ class List extends PureComponent {
     };
 
     // 字段权限维护-Api字段权限维护-角色
-    const fieldPermissionBtn = {
+    const fieldPermissionBtn = enableRolePermission && {
       key: 'field-permission-maintain',
       ele: (
         <ButtonPermission
@@ -293,48 +273,35 @@ class List extends PureComponent {
       title: intl.get('hiam.roleManagement.view.button.secGrp').d('分配安全组'),
     };
 
-    /* eslint-disable no-fallthrough */
-    switch (branch) {
-      case 6:
-        // 分配&管理
-        if (flag) {
-          operators.push(
-            // createRoleBtn,
-            assignMemberBtn,
-            assignClientBtn
-          );
-        } else {
-          operators.push(
-            // createRoleBtn,
-            copyBtn,
-            inheritBtn,
-            assignMemberBtn,
-            assignClientBtn
-          );
-        }
+    if (adminFlag === 0) {
+      return null;
+    }
 
-        break;
-      case 7:
-      //   // 分配&管理&父级管理角色
-      //   operators.push(createRoleBtn);
-      case 5:
-      // 分配&父级管理角色
-      case 1:
-        // 父级管理角色
-        if (flag) {
-          operators.push(editBtn, enableBtn, assignMemberBtn, assignClientBtn);
-        } else {
-          operators.push(copyBtn, inheritBtn, editBtn, enableBtn, assignMemberBtn, assignClientBtn);
-        }
-        if (record.enabled) {
-          // 角色启用
-          operators.push(assignPermission, secGrpBtn);
-        }
-        break;
-      case 4:
-      // 分配
-      default:
-        return null;
+    let operatorLimit = 4;
+    if (id !== record.id) {
+      if (
+        record.code !== 'role/site/default/administrator' &&
+        record.code !== 'role/organization/default/administrator'
+      ) {
+        operators.push(copyBtn, inheritBtn);
+      }
+      operators.push(
+        editBtn,
+        enableBtn,
+        assignMemberBtn,
+        assignClientBtn,
+        assignPermission,
+        secGrpBtn
+      );
+    } else {
+      if (
+        record.code !== 'role/site/default/administrator' &&
+        record.code !== 'role/organization/default/administrator'
+      ) {
+        operators.push(copyBtn);
+      }
+      operators.push(assignMemberBtn, assignClientBtn);
+      operatorLimit = 3;
     }
     /* eslint-enable no-fallthrough */
 
@@ -347,10 +314,6 @@ class List extends PureComponent {
     }
 
     // 只有 `创建角色`,`复制`,`继承`,`编辑` 在外面 其他的操作都在 操作下拉菜单中
-    let operatorLimit = 4;
-    if (branch === 6) {
-      operatorLimit = 3;
-    }
     const newOperators = operators.filter(Boolean);
     return operatorRender(newOperators, record, { limit: operatorLimit });
   }
@@ -402,11 +365,6 @@ class List extends PureComponent {
           width: 150,
         },
       {
-        dataIndex: 'inheritedRoleName',
-        title: intl.get(`hiam.roleManagement.model.roleManagement.inheritedRole`).d('继承自'),
-        width: 150,
-      },
-      {
         dataIndex: 'enabled',
         title: intl.get(`hzero.common.status`).d('状态'),
         width: 90,
@@ -416,10 +374,15 @@ class List extends PureComponent {
             text={
               record.enabled
                 ? intl.get(`hzero.common.status.enable`).d('启用')
-                : intl.get(`hiam.roleManagement.view.title.disable`).d('禁用')
+                : intl.get('hzero.common.button.disable').d('禁用')
             }
           />
         ),
+      },
+      {
+        dataIndex: 'inheritedRoleName',
+        title: intl.get(`hiam.roleManagement.model.roleManagement.inheritedRole`).d('继承自'),
+        width: 150,
       },
       // {
       //   dataIndex: 'assignedFlag',
@@ -456,12 +419,11 @@ class List extends PureComponent {
       {
         dataIndex: 'createdUserName',
         title: intl.get('hiam.roleManagement.model.roleManagement.createdUserName').d('创建人'),
-        width: 200,
       },
-      {
-        dataIndex: 'levelPath',
-        title: intl.get('hiam.roleManagement.model.roleManagement.levelPath').d('角色路径'),
-      },
+      // {
+      //   dataIndex: 'levelPath',
+      //   title: intl.get('hiam.roleManagement.model.roleManagement.levelPath').d('角色路径'),
+      // },
       {
         key: 'operator',
         title: intl.get('hzero.common.button.action').d('操作'),

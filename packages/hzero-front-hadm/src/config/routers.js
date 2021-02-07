@@ -230,4 +230,10 @@ module.exports = [
       },
     ],
   },
+  // 应用市场配置页面
+  {
+    path: '/hadm/client-config',
+    component: () => import('../routes/MarketClient/ClientConfig'),
+    models: [],
+  },
 ];

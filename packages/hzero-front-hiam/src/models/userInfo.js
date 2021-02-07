@@ -18,6 +18,7 @@ import {
   userInfoUpdatePassword,
   userInfoValidatePre,
   userInfoPostOldPhoneCaptcha,
+  userInfoVerifyPhoneCaptcha,
   userInfoValidateUnCheckedPhone,
   userInfoPostOldEmailCaptcha,
   userInfoValidateUnCheckedEmail,
@@ -470,6 +471,7 @@ export default {
             userInfo: {
               ...userInfo,
               reminderFlag: popoutReminderFlag,
+              popoutReminderFlag,
             },
           },
         });
@@ -550,6 +552,11 @@ export default {
           needCacheValidTime = true;
           service = userInfoPostOldEmailCaptcha;
           field = 'email';
+          break;
+        case 'verifyPhone':
+          needCacheValidTime = true;
+          service = userInfoVerifyPhoneCaptcha;
+          field = 'phone';
           break;
         case 'oldPhone':
         default:
@@ -687,8 +694,23 @@ export default {
     },
     // 更新密码
     *updatePassword({ payload }, { call, put }) {
-      const { password, originalPassword, userInfo = {} } = payload;
-      const res = yield call(userInfoUpdatePassword, { password, originalPassword });
+      const {
+        password,
+        originalPassword,
+        userInfo = {},
+        phone,
+        captcha,
+        captchaKey,
+        businessScope,
+      } = payload;
+      const res = yield call(userInfoUpdatePassword, {
+        password,
+        originalPassword,
+        phone,
+        captcha,
+        captchaKey,
+        businessScope,
+      });
       if (res && !res.failed) {
         yield put({
           type: 'updateState',
@@ -721,10 +743,8 @@ export default {
 
     // 验证并绑定手机号
     *validateUnCheckedPhone({ payload }, { call, put }) {
-      const { captchaKey, captcha, userInfo, businessScope } = payload;
-      const res = getResponse(
-        yield call(userInfoValidateUnCheckedPhone, { captchaKey, captcha, businessScope })
-      );
+      const { captchaKey, captcha, userInfo } = payload;
+      const res = getResponse(yield call(userInfoValidateUnCheckedPhone, { captchaKey, captcha }));
       if (res) {
         notification.success({ message: res.message });
         yield put({

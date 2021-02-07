@@ -36,6 +36,8 @@ export interface LovProps {
   onCancel?: any;
   isDbc2Sbc?: boolean;
   placeholder?: string;
+  publicMode?: boolean;
+  maskClosable?: boolean;
 }
 
 export default class Lov extends React.Component<LovProps, any> {
@@ -207,6 +209,7 @@ export default class Lov extends React.Component<LovProps, any> {
       disabled = false,
       onClick = (e) => e,
       lovOptions: { valueField: customValueField, displayField: customDisplayField } = {} as any,
+      publicMode = false,
     } = this.props;
     if (disabled || this.loading) return; // 节流
 
@@ -218,7 +221,7 @@ export default class Lov extends React.Component<LovProps, any> {
       modalVisible: true,
       lovModalKey: uuid(),
     });
-    queryLov({ viewCode, tenantId })
+    queryLov({ viewCode, tenantId, publicMode })
       .then((oriLov) => {
         const lov = { ...oriLov };
         if (customValueField) {
@@ -228,7 +231,7 @@ export default class Lov extends React.Component<LovProps, any> {
           lov.displayField = customDisplayField;
         }
         if (!isEmpty(lov)) {
-          const { viewCode: hasCode, title = '', tableFields } = lov;
+          const { viewCode: hasCode, title = '' } = lov;
           // 获取独立值集编码
           const valueList = lov.queryFields.filter((item) => item.dataType === 'SELECT');
           if (valueList.length > 0) {
@@ -238,7 +241,7 @@ export default class Lov extends React.Component<LovProps, any> {
                 valueCode[sourceCode] = sourceCode;
               }
             });
-            queryMapIdpValue(valueCode).then((res) => {
+            queryMapIdpValue({ ...valueCode, publicMode }).then((res) => {
               if (getResponse(res)) {
                 this.setState({ ldpData: res });
               }
@@ -246,12 +249,12 @@ export default class Lov extends React.Component<LovProps, any> {
           }
 
           if (hasCode) {
-            const width = this.modalWidth(tableFields);
+            // const width = this.modalWidth(tableFields);
             this.setState(
               {
                 lov,
                 title,
-                width,
+                // width,
               },
               () => {
                 const { modalVisible: lovModalVisible } = this.state;
@@ -383,6 +386,7 @@ export default class Lov extends React.Component<LovProps, any> {
       className,
       isDbc2Sbc,
       allowClear = true,
+      maskClosable = false,
       ...otherProps
     } = this.props;
     const textField = this.getTextField();
@@ -420,18 +424,18 @@ export default class Lov extends React.Component<LovProps, any> {
     if (isDisabled) {
       lovClassNames.push('lov-disabled');
     }
-    const { title = '', width = 400, lov = {}, modalVisible, loading, lovModalKey } = this.state;
+    const { title = '', lov = {}, modalVisible, loading, lovModalKey } = this.state;
     const modalProps = {
       title,
-      width,
+      width: 700,
       destroyOnClose: true,
       wrapClassName: 'lov-modal',
-      maskClosable: false,
+      maskClosable,
       onOk: this.selectAndClose,
       bodyStyle: title ? { padding: '16px' } : { padding: '56px 16px 0' },
       onCancel: this.onCancel,
       style: {
-        minWidth: 400,
+        minWidth: 700,
       },
       visible: modalVisible,
     };

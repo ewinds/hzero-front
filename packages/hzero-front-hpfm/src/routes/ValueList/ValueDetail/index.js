@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, Card, Col, Form, Input, Modal, Row, Table, Icon, Tooltip } from 'hzero-ui';
+import { Button, Card, Col, Form, Input, Modal, Row, Table, Icon, Tooltip, Select } from 'hzero-ui';
 import { connect } from 'dva';
 import moment from 'moment';
 import classnames from 'classnames';
@@ -41,7 +41,7 @@ import DetailForm from './DetailForm';
 import FilterForm from './FilterForm';
 
 const { TextArea } = Input;
-
+const { Option } = Select;
 @connect(({ valueList, loading }) => ({
   valueList,
   loading: loading.effects['valueList/queryLovValues'],
@@ -70,6 +70,10 @@ export default class EditForm extends Component {
   componentDidMount() {
     const { dispatch, match, tenantId } = this.props;
     const { lovId } = match.params;
+    dispatch({
+      type: 'valueList/queryLovHeadersList',
+      payload: { tenantId },
+    });
     dispatch({
       type: 'valueList/queryLovHeader',
       payload: { lovId, tenantId },
@@ -349,6 +353,7 @@ export default class EditForm extends Component {
       form: { getFieldDecorator },
       tenantId: currentTenantId,
       saveHeaderLoading = false,
+      valueList: { requestMethods = [] },
       isTenant,
     } = this.props;
     const {
@@ -515,6 +520,14 @@ export default class EditForm extends Component {
                       ? valueListHeader.lovName
                       : getFieldDecorator('lovName', {
                           initialValue: valueListHeader.lovName,
+                          rules: [
+                            {
+                              max: 240,
+                              message: intl.get('hzero.common.validation.max', {
+                                max: 240,
+                              }),
+                            },
+                          ],
                         })(
                           <TLEditor
                             label={intl.get('hpfm.valueList.model.header.lovName').d('值集名称')}
@@ -589,6 +602,14 @@ export default class EditForm extends Component {
                       ? valueListHeader.valueField
                       : getFieldDecorator('valueField', {
                           initialValue: valueListHeader.valueField,
+                          rules: [
+                            {
+                              max: 30,
+                              message: intl.get('hzero.common.validation.max', {
+                                max: 30,
+                              }),
+                            },
+                          ],
                         })(<Input className={FORM_FIELD_CLASSNAME} />)}
                   </Form.Item>
                 </Col>
@@ -598,6 +619,14 @@ export default class EditForm extends Component {
                       ? valueListHeader.displayField
                       : getFieldDecorator('displayField', {
                           initialValue: valueListHeader.displayField,
+                          rules: [
+                            {
+                              max: 30,
+                              message: intl.get('hzero.common.validation.max', {
+                                max: 30,
+                              }),
+                            },
+                          ],
                         })(<Input className={FORM_FIELD_CLASSNAME} />)}
                   </Form.Item>
                 </Col>
@@ -618,7 +647,7 @@ export default class EditForm extends Component {
                 {...EDIT_FORM_ROW_LAYOUT}
                 className={
                   // eslint-disable-next-line no-nested-ternary
-                  valueListHeader.lovTypeCode === 'IDP'
+                  valueListHeader.lovTypeCode === 'IDP' || valueListHeader.lovTypeCode === 'URL'
                     ? isTenant && isNotCurrentTenant
                       ? 'read-row'
                       : 'inclusion-row'
@@ -640,9 +669,48 @@ export default class EditForm extends Component {
                         })(<Switch disabled={valueListHeader.lovTypeCode === 'IDP'} />)}
                   </Form.Item>
                 </Col>
-                <Col span={valueListHeader.lovTypeCode === 'IDP' ? 8 : 12}>
+                {valueListHeader.lovTypeCode === 'URL' && (
+                  <Col {...FORM_COL_3_LAYOUT}>
+                    <Form.Item
+                      {...EDIT_FORM_ITEM_LAYOUT}
+                      label={intl.get('hpfm.valueList.model.header.requestMethod').d('请求方式')}
+                    >
+                      {isTenant && isNotCurrentTenant
+                        ? valueListHeader.requestMethod
+                        : getFieldDecorator('requestMethod', {
+                            initialValue: valueListHeader.requestMethod || 'GET',
+                            rules: [
+                              {
+                                required: true,
+                                message: intl.get('hzero.common.validation.notNull', {
+                                  name: intl
+                                    .get('hpfm.valueList.model.header.requestMethod')
+                                    .d('请求方式'),
+                                }),
+                              },
+                            ],
+                          })(
+                            <Select style={{ width: '100%' }}>
+                              {requestMethods.map((item) => (
+                                <Option value={item.value} key={item.value}>
+                                  {item.meaning}
+                                </Option>
+                              ))}
+                            </Select>
+                          )}
+                    </Form.Item>
+                  </Col>
+                )}
+                <Col
+                  span={
+                    valueListHeader.lovTypeCode === 'IDP' || valueListHeader.lovTypeCode === 'URL'
+                      ? 8
+                      : 12
+                  }
+                >
                   <Form.Item
-                    {...(valueListHeader.lovTypeCode === 'IDP'
+                    {...(valueListHeader.lovTypeCode === 'IDP' ||
+                    valueListHeader.lovTypeCode === 'URL'
                       ? EDIT_FORM_ITEM_LAYOUT
                       : EDIT_FORM_ITEM_LAYOUT_COL_2)}
                     label={intl.get('hpfm.valueList.model.header.description').d('描述')}
@@ -651,6 +719,14 @@ export default class EditForm extends Component {
                       ? valueListHeader.description
                       : getFieldDecorator('description', {
                           initialValue: valueListHeader.description,
+                          rules: [
+                            {
+                              max: 480,
+                              message: intl.get('hzero.common.validation.max', {
+                                max: 480,
+                              }),
+                            },
+                          ],
                         })(
                           <TLEditor
                             label={intl.get('hpfm.valueList.model.header.description').d('描述')}

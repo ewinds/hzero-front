@@ -26,6 +26,7 @@ interface MenuProps<OriginMenu = any> {
   };
   menus?: OriginMenu[];
   menuLoad: Boolean;
+  menuQuickIndex: string;
   activeTabKey?: string;
 }
 
@@ -35,8 +36,9 @@ const Menu: React.FC<MenuProps> = ({
   menus = [],
   activeTabKey,
   menuLoad,
+  menuQuickIndex,
 }) => {
-  const { mainMenus, activeMenu } = useMenu(menus, activeTabKey);
+  const { mainMenus, activeMenu } = useMenu(menus, activeTabKey, menuQuickIndex);
   const [currentMenu, setCurrentMenu] = React.useState<MenuItem>();
 
   // 遮罩 取消后 设置
@@ -71,8 +73,13 @@ const Menu: React.FC<MenuProps> = ({
   );
 };
 
-export default connect(({ global = { menu: Array, menuLoad: Boolean, activeTabKey: String } }) => ({
-  menus: global.menu,
-  menuLoad: global.menuLoad, // 菜单
-  activeTabKey: global.activeTabKey,
-}))(Menu);
+export default connect(
+  ({
+    global = { menu: Array, menuLoad: Boolean, menuQuickIndex: String, activeTabKey: String },
+  }) => ({
+    menus: global.menu,
+    menuLoad: global.menuLoad, // 菜单
+    menuQuickIndex: global.menuQuickIndex, // 菜单
+    activeTabKey: global.activeTabKey,
+  })
+)(Menu);

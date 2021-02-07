@@ -39,12 +39,6 @@ export default class TableList extends PureComponent {
     onView(record);
   }
 
-  @Bind()
-  handleAddService(record) {
-    const { onAddService = (e) => e } = this.props;
-    onAddService(record);
-  }
-
   render() {
     const {
       dataSourceData = {},
@@ -74,23 +68,27 @@ export default class TableList extends PureComponent {
       {
         title: intl.get('hpfm.dataSource.model.dataSource.dsPurposeCodeMeaning').d('数据源用途'),
         dataIndex: 'dsPurposeCodeMeaning',
-        width: 110,
+        width: 280,
         render: (val, record) => {
-          let mean = '';
-          if (val) {
-            switch (record.dsPurposeCode) {
-              case 'DI':
-                mean = <Tag color="green">{val}</Tag>;
-                break;
-              case 'DT':
-                mean = <Tag color="orange">{val}</Tag>;
-                break;
-              default:
-                mean = <Tag color="red">{val}</Tag>;
-                break;
+          const valList = val.split(',') || [];
+          const list = record.dsPurposeCode.split(',') || [];
+          return valList.map((item, index) => {
+            let mean = '';
+            if (item) {
+              switch (list[index]) {
+                case 'DI':
+                  mean = <Tag color="green">{item}</Tag>;
+                  break;
+                case 'DT':
+                  mean = <Tag color="orange">{item}</Tag>;
+                  break;
+                default:
+                  mean = <Tag color="red">{item}</Tag>;
+                  break;
+              }
             }
-          }
-          return mean;
+            return mean;
+          });
         },
       },
       {
@@ -130,7 +128,7 @@ export default class TableList extends PureComponent {
         title: intl.get('hzero.common.button.action').d('操作'),
         dataIndex: 'operator',
         fixed: 'right',
-        width: 180,
+        width: 80,
         render: (val, record) => {
           const operators = [];
           if (tenantId === record.tenantId || !isTenantRoleLevel()) {
@@ -178,30 +176,6 @@ export default class TableList extends PureComponent {
               ),
               len: 2,
               title: intl.get('hzero.common.button.view').d('查看'),
-            });
-          }
-          if (record.datasourceId !== undefined && record.dsPurposeCode === 'DT') {
-            operators.push({
-              key: 'add',
-              ele: (
-                <ButtonPermission
-                  type="text"
-                  permissionList={[
-                    {
-                      code: `${match.path}.button.add`,
-                      type: 'button',
-                      meaning: '数据源-添加服务',
-                    },
-                  ]}
-                  onClick={() => {
-                    this.handleAddService(record);
-                  }}
-                >
-                  {intl.get('hpfm.dataSource.view.button.add').d('添加服务')}
-                </ButtonPermission>
-              ),
-              len: 4,
-              title: intl.get('hpfm.dataSource.view.button.add').d('添加服务'),
             });
           }
           return operatorRender(operators, record);

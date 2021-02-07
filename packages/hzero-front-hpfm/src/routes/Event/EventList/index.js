@@ -263,26 +263,26 @@ export default class EventList extends React.Component {
               title: intl.get('hpfm.event.model.event.processMaintain').d('事件维护'),
             },
             {
-              key: 'messageMaintain',
+              key: 'imgMaintain',
               ele: (
                 <ButtonPermission
                   type="text"
                   permissionList={[
                     {
-                      code: `${match.path}.button.messageMaintain`,
+                      code: `${match.path}.button.imgMaintain`,
                       type: 'button',
-                      meaning: '事件规则-消息维护',
+                      meaning: '事件规则-图形编辑界面',
                     },
                   ]}
                   onClick={() => {
-                    history.push(`/hpfm/event/message/${record.eventId}`);
+                    history.push(`/hpfm/event/graph/${record.eventId}`);
                   }}
                 >
-                  {intl.get('hpfm.event.model.event.messageMaintain').d('消息维护')}
+                  {intl.get('hpfm.event.model.event.imgMaintain').d('图形编辑界面')}
                 </ButtonPermission>
               ),
-              len: 4,
-              title: intl.get('hpfm.event.model.event.messageMaintain').d('消息维护'),
+              len: 6,
+              title: intl.get('hpfm.event.model.event.imgMaintain').d('图形编辑界面'),
             }
           );
           return operatorRender(operators);

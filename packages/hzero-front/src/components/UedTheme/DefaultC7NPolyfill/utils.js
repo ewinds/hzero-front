@@ -42,6 +42,8 @@ const vars = {
 
   // 背景色
   '@hzero-bgc-color': '#b9d3ff',
+  '@hzero-bgc-not-color': '#fff',
+  '@hzero-bgc-border-color': '#d9d9d9',
   '@hzero-bgc-color-light': '#eee',
   '@hzero-bgc-color-lightest': '#f0f0f0',
   '@hzero-bgc-color-dark': '#d5dae0',

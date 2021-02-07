@@ -394,7 +394,7 @@ export default class UserInfo extends React.Component {
       type: 'userInfo/updateLanguage',
       payload: {
         language,
-        languageName: languageMap[language].name,
+        languageName: languageMap[language]?.name,
         userInfo,
       },
     });

@@ -61,7 +61,7 @@ export default class ServiceRoute extends React.PureComponent {
       onOk() {
         dispatch({
           type: 'hadmServiceRoute/refreshServiceRoute',
-        }).then(res => {
+        }).then((res) => {
           if (res) {
             notification.success();
             that.fetchServiceRouteList();
@@ -156,7 +156,7 @@ export default class ServiceRoute extends React.PureComponent {
         ...serviceRouteDetail,
         ...fieldsValue,
       },
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
         this.hideModal();
@@ -175,7 +175,7 @@ export default class ServiceRoute extends React.PureComponent {
     dispatch({
       type: 'hadmServiceRoute/deleteServiceRoute',
       payload: record,
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
         this.fetchServiceRouteList();
@@ -271,7 +271,7 @@ export default class ServiceRoute extends React.PureComponent {
     ];
     return (
       <>
-        <Header title={intl.get('hadm.serviceRoute.view.message.title').d('服务路由')}>
+        <Header title={intl.get('hadm.common.title.serviceRoute').d('服务路由')}>
           <Button type="primary" icon="plus" style={{ marginLeft: 10 }} onClick={this.showModal}>
             {intl.get('hzero.common.button.create').d('新建')}
           </Button>

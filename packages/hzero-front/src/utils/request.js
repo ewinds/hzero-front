@@ -15,6 +15,7 @@ import {
   removeAllCookie,
   getSession,
   setSession,
+  getRequestId,
 } from './utils';
 import { getMenuId } from './menuTab';
 
@@ -39,10 +40,10 @@ function checkStatus(response) {
  * @param {Error} e - 原始的错误
  */
 async function catchNormalError(e) {
-  const dvaApp = getDvaApp();
   if (e.name === 501) {
     try {
       const errorData = await e.response.json();
+      const dvaApp = getDvaApp();
       // TODO: 这里使用了 全局变量 dvaApp
       // eslint-disable-next-line
       dvaApp._store.dispatch({
@@ -66,11 +67,6 @@ async function catchNormalError(e) {
   }
 }
 
-const headers = {
-  Pragma: 'no-cache',
-  'Cache-Control': 'no-cache',
-};
-
 /**
  * Requests a URL, returning a promise.
  *
@@ -80,7 +76,10 @@ const headers = {
  */
 export default function request(url, options, customOptions = {}) {
   const { API_HOST, AUTH_SELF_URL, LOGIN_URL, HZERO_OAUTH } = getEnvConfig();
-  const dvaApp = getDvaApp();
+  const headers = {
+    Pragma: 'no-cache',
+    'Cache-Control': 'no-cache',
+  };
   const defaultOptions = {
     credentials: 'include',
     headers,
@@ -104,17 +103,15 @@ export default function request(url, options, customOptions = {}) {
   let newUrl = !url.startsWith('/api') && !url.startsWith('http') ? `${API_HOST}${url}` : url;
 
   const newOptions = { ...defaultOptions, ...options };
-
   const patchRequestHeaderConfig = getConfig('patchRequestHeader');
   let patchRequestHeader;
   if (patchRequestHeaderConfig) {
-    if (typeof patchRequestHeaderConfig === 'function') {
+    if (typeof patchHeaderConfig === 'function') {
       patchRequestHeader = patchRequestHeaderConfig();
     } else {
       patchRequestHeader = patchRequestHeaderConfig;
     }
   }
-
   if (
     newOptions.method === 'POST' ||
     newOptions.method === 'PUT' ||
@@ -153,6 +150,7 @@ export default function request(url, options, customOptions = {}) {
     newOptions.headers = {
       ...newOptions.headers,
       Authorization: `bearer ${accessToken}`,
+      'H-Request-Id': `${getRequestId()}`,
       ...patchRequestHeader,
     };
   }
@@ -163,7 +161,7 @@ export default function request(url, options, customOptions = {}) {
       'H-Menu-Id': `${MenuId}`,
     };
   }
-
+  const dvaApp = getDvaApp();
   let fetchChain = fetch(newUrl, newOptions)
     .then(checkStatus)
     .then((response) => {

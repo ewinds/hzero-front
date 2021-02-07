@@ -26,7 +26,7 @@ export default class Search extends PureComponent {
   constructor(props) {
     super(props);
     this.state = {
-      expandForm: false,
+      expandForm: true,
     };
   }
 
@@ -63,6 +63,7 @@ export default class Search extends PureComponent {
 
   renderSiteSearchForm() {
     const {
+      flagList = [],
       code = [], // 角色来源
       roleLevel = [], // 角色层级
       searchLabels = [], // 标签
@@ -160,6 +161,24 @@ export default class Search extends PureComponent {
               )}
             </FormItem>
           </Col>
+          <Col {...FORM_COL_4_LAYOUT}>
+            <FormItem
+              {...SEARCH_FORM_ITEM_LAYOUT}
+              label={intl.get(`hzero.common.status`).d('状态')}
+            >
+              {getFieldDecorator('enabled', {
+                initialValue: '1',
+              })(
+                <Select allowClear className={FORM_FIELD_CLASSNAME}>
+                  {flagList.map((n) => (
+                    <Option key={n.value} value={n.value}>
+                      {n.meaning}
+                    </Option>
+                  ))}
+                </Select>
+              )}
+            </FormItem>
+          </Col>
         </Row>
       </Form>
     );
@@ -168,6 +187,7 @@ export default class Search extends PureComponent {
   renderTenantSearchForm() {
     const {
       form: { getFieldDecorator = (e) => e },
+      flagList = [],
       searchLabels = [], // 标签
     } = this.props;
     return (
@@ -191,6 +211,24 @@ export default class Search extends PureComponent {
                   {searchLabels.map((n) => (
                     <Option key={n.id} value={n.name}>
                       {n.name}
+                    </Option>
+                  ))}
+                </Select>
+              )}
+            </FormItem>
+          </Col>
+          <Col {...FORM_COL_4_LAYOUT}>
+            <FormItem
+              {...SEARCH_FORM_ITEM_LAYOUT}
+              label={intl.get(`hzero.common.status`).d('状态')}
+            >
+              {getFieldDecorator('enabled', {
+                initialValue: '1',
+              })(
+                <Select allowClear className={FORM_FIELD_CLASSNAME}>
+                  {flagList.map((n) => (
+                    <Option key={n.value} value={n.value}>
+                      {n.meaning}
                     </Option>
                   ))}
                 </Select>

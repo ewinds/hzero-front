@@ -113,7 +113,7 @@ export default class ListFilter extends React.Component {
             >
               {getFieldDecorator('rateLimitType')(
                 <Select>
-                  {limitTypes.map(item => (
+                  {limitTypes.map((item) => (
                     <Select.Option key={item.value} value={item.value}>
                       {item.meaning}
                     </Select.Option>
@@ -125,7 +125,7 @@ export default class ListFilter extends React.Component {
           <Col {...FORM_COL_4_LAYOUT}>
             <FormItem
               {...SEARCH_FORM_ITEM_LAYOUT}
-              label={intl.get(`hadm.zuulRateLimit.model.zuulRateLimit.remark`).d('说明')}
+              label={intl.get('hzero.common.explain').d('说明')}
             >
               {getFieldDecorator('remark')(<Input />)}
             </FormItem>
@@ -168,7 +168,7 @@ export default class ListFilter extends React.Component {
             >
               {getFieldDecorator('refreshStatus')(
                 <Select style={{ width: '100%' }} allowClear>
-                  {refreshStatus.map(n => (
+                  {refreshStatus.map((n) => (
                     <Option key={n.value} value={n.value}>
                       {n.meaning}
                     </Option>

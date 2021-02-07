@@ -106,12 +106,17 @@ const sectionOne = () => {
     .c7n-pro-select-float-label,
     .c7n-pro-input-float-label {
       .c7n-pro-field-label-wrapper {
-        border-top-color: transparent !important;
+        // border-top-color: transparent !important;
         .c7n-pro-field-label {
-          background: #fff;
+          // background: #fff;
           padding-left: 8px;
         }
       }
+    }
+
+    .c7n-pro-input-focused .c7n-pro-input:focus,
+    .c7n-pro-select-focused .c7n-pro-select:focus {
+      box-shadow: none;
     }
 
     /* 单独的组件 */
@@ -126,7 +131,7 @@ const sectionOne = () => {
       }
     }
 
-    // fix 输入框缩进去的问题
+    /* fix 输入框缩进去的问题 */
     .c7n-pro-input-multiple-input {
       box-sizing: initial;
     }
@@ -356,6 +361,16 @@ const sectionOne = () => {
           color: #fff;
         }
       }
+      .c7n-pro-btn:not(.c7n-pro-btn-flat).c7n-pro-btn-primary.hzero-permission-btn-disabled {
+        background-color: ${vars['@hzero-bgc-not-color']};
+        border-color: ${vars['@hzero-bgc-border-color']};
+
+        &:hover {
+          background-color: ${vars['@hzero-bgc-not-color']};
+          border-color: ${vars['@hzero-bgc-border-color']};
+          color: #fff;
+        }
+      }
     }
 
     .c7n-pro-tabs {
@@ -429,47 +444,6 @@ const sectionOne = () => {
         text-align: left;
       }
     }
-
-    .c7n-collapse-header {
-      font-size: 14px;
-    }
-
-    .c7n-tabs-nav .c7n-tabs-tab {
-      font-size: 14px;
-    }
-
-    // c7n pro 弹窗设置底部靠右
-    .c7n-pro-modal-drawer .c7n-pro-modal-footer-drawer {
-      text-align: right;
-    }
-
-    // 自动高度
-
-    .c7n-tabs:not(.c7n-tabs-vertical) > .c7n-tabs-content > .c7n-tabs-tabpane {
-      height: 100%;
-    }
-
-    .page-tabs {
-      height: 100%;
-
-      .c7n-pro-pagination {
-        line-height: inherit;
-      }
-
-      .c7n-tabs-content {
-        height: calc(100% - 40px);
-      }
-    }
-
-    .page-card {
-      height: 100%;
-
-      .c7n-card-body {
-        height: calc(100% - 32px);
-      }
-    }
-
-    // 结束
   `;
 };
 
@@ -628,20 +602,15 @@ const sectionFour = (props) => {
       border: none;
       border-radius: 4px;
 
-      .c7n-pro-input-wrapper {
-        background-color: inherit;
-      }
-    }
-
-    .c7n-pro-table-header-edit {
-      border: none;
-      border-radius: 4px;
-
       &:before {
         display: inline-block;
         content: '';
         height: 100%;
         vertical-align: middle;
+      }
+
+      .c7n-pro-input-wrapper {
+        background-color: inherit;
       }
     }
 
@@ -734,6 +703,9 @@ const sectionFour = (props) => {
         border-color: #ffbc00;
       }
     }
+    .c7n-pro-input-number-float-label.c7n-pro-input-number-required:not(.c7n-pro-input-number-invalid):not(.c7n-pro-input-number-disabled) .c7n-pro-input-number {
+      background-color: transparent;
+    }
     .c7n-pro-table-toolbar {
       padding-top: 2px;
     }
@@ -743,13 +715,13 @@ const sectionFour = (props) => {
       background: ${hexToRgbaColor(primary, 0.1)};
     }
 
-    .c7n-pro-input-number,
-    .c7n-pro-calendar-picker {
-      border-radius: 4px;
-      &:focus {
-        box-shadow: 0 0 2px 1px ${vars['@hzero-primary-color-2']};
-      }
-    }
+    // .c7n-pro-input-number,
+    // .c7n-pro-calendar-picker {
+    //   border-radius: 4px;
+    //   &:focus {
+    //     box-shadow: 0 0 2px 1px ${vars['@hzero-primary-color-2']};
+    //   }
+    // }
 
     .c7n-pro-table {
       border-left: 0;
@@ -1121,11 +1093,13 @@ const sectionFive = () => {
     }
 
     .more-fields-form {
+
       .c7n-pro-input-number,
       .c7n-pro-calendar-picker,
       .c7n-pro-form-item {
         width: 100%;
       }
+
 
       > div.c7n-pro-form-item {
         margin-bottom: 3px;

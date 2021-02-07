@@ -3,6 +3,7 @@ import { Table, Popconfirm, Icon, Tag } from 'hzero-ui';
 import { Bind } from 'lodash-decorators';
 import intl from 'utils/intl';
 import { enableRender, operatorRender } from 'utils/renderer';
+import { Button as ButtonPermission } from 'components/Permission';
 import { tableScrollWidth } from 'utils/utils';
 import { VERSION_IS_OP } from 'utils/config';
 
@@ -58,11 +59,28 @@ export default class ListTable extends PureComponent {
   }
 
   /**
+   * uReport报表编辑器
+   * @param {object} record
+   */
+  @Bind()
+  handleUReportEditor(record) {
+    this.props.onUReportEditor(record);
+  }
+
+  /**
    * render
    * @returns React.element
    */
   render() {
-    const { loading, dataSource, pagination, onChange, tenantRoleLevel, tenantId } = this.props;
+    const {
+      loading,
+      dataSource,
+      pagination,
+      onChange,
+      tenantRoleLevel,
+      tenantId,
+      path,
+    } = this.props;
     const columns = [
       {
         title: intl.get('hrpt.reportDefinition.model.reportDefinition.orderSeq').d('排序号'),
@@ -159,9 +177,21 @@ export default class ListTable extends PureComponent {
             operators.push({
               key: 'copy',
               ele: (
-                <a onClick={() => this.copyOption(record)}>
+                <ButtonPermission
+                  type="text"
+                  permissionList={[
+                    {
+                      code: `${path}.button.copy`,
+                      type: 'button',
+                      meaning: '报表定义-复制',
+                    },
+                  ]}
+                  onClick={() => {
+                    this.copyOption(record);
+                  }}
+                >
                   {intl.get('hzero.common.button.copy').d('复制')}
-                </a>
+                </ButtonPermission>
               ),
               len: 2,
               title: intl.get('hzero.common.button.copy').d('复制'),
@@ -171,9 +201,21 @@ export default class ListTable extends PureComponent {
               {
                 key: 'edit',
                 ele: (
-                  <a onClick={() => this.editOption(record)}>
+                  <ButtonPermission
+                    type="text"
+                    permissionList={[
+                      {
+                        code: `${path}.button.edit`,
+                        type: 'button',
+                        meaning: '报表定义-编辑',
+                      },
+                    ]}
+                    onClick={() => {
+                      this.editOption(record);
+                    }}
+                  >
                     {intl.get('hzero.common.button.edit').d('编辑')}
-                  </a>
+                  </ButtonPermission>
                 ),
                 len: 2,
                 title: intl.get('hzero.common.button.edit').d('编辑'),
@@ -181,9 +223,21 @@ export default class ListTable extends PureComponent {
               {
                 key: 'assign',
                 ele: (
-                  <a onClick={() => this.assignPermission(record)}>
+                  <ButtonPermission
+                    type="text"
+                    permissionList={[
+                      {
+                        code: `${path}.button.assign`,
+                        type: 'button',
+                        meaning: '报表定义-分配权限',
+                      },
+                    ]}
+                    onClick={() => {
+                      this.assignPermission(record);
+                    }}
+                  >
                     {intl.get('hrpt.common.view.assignPermission').d('分配权限')}
-                  </a>
+                  </ButtonPermission>
                 ),
                 len: 4,
                 title: intl.get('hrpt.common.view.assignPermission').d('分配权限'),
@@ -206,13 +260,48 @@ export default class ListTable extends PureComponent {
                     title={intl.get('hzero.common.message.confirm.delete').d('是否删除此条记录？')}
                     onConfirm={() => this.deleteOption(record)}
                   >
-                    <a>{intl.get('hzero.common.button.delete').d('删除')}</a>
+                    <ButtonPermission
+                      type="text"
+                      permissionList={[
+                        {
+                          code: `${path}.button.delete`,
+                          type: 'button',
+                          meaning: '报表定义-删除',
+                        },
+                      ]}
+                    >
+                      {intl.get('hzero.common.button.delete').d('删除')}
+                    </ButtonPermission>
                   </Popconfirm>
                 ),
                 len: 2,
                 title: intl.get('hzero.common.button.delete').d('删除'),
               }
             );
+          }
+          if (!tenantRoleLevel && record.reportTypeCode === 'U') {
+            operators.push({
+              key: 'designer',
+              ele: (
+                <ButtonPermission
+                  type="text"
+                  permissionList={[
+                    {
+                      code: `${path}.button.designer`,
+                      type: 'button',
+                      meaning: '报表定义-设计器',
+                    },
+                  ]}
+                  onClick={() => {
+                    this.handleUReportEditor(record);
+                  }}
+                >
+                  {intl.get('hrpt.reportDefinition.view.reportDefinition.designer').d('设计器')}
+                </ButtonPermission>
+              ),
+              len: 3,
+              title: intl.get('hrpt.reportDefinition.view.reportDefinition.designer').d('设计器'),
+            });
           }
           return operatorRender(operators);
         },

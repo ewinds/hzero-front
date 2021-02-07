@@ -138,7 +138,7 @@ export default class PropExtendHeader extends PureComponent {
         ...formData,
         ...fieldsValue,
       },
-    }).then(res1 => {
+    }).then((res1) => {
       if (res1) {
         notification.success();
         this.handleSearch(pagination);
@@ -156,7 +156,7 @@ export default class PropExtendHeader extends PureComponent {
     dispatch({
       type: 'header/removeHeader',
       payload: record,
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
         this.handleSearch();
@@ -296,8 +296,8 @@ export default class PropExtendHeader extends PureComponent {
         dataIndex: 'formGroupMeaning',
         width: 120,
         align: 'left',
-        render: value => {
-          const codeList = configGroupList.filter(n => n.value === value);
+        render: (value) => {
+          const codeList = configGroupList.filter((n) => n.value === value);
           if (!isEmpty(codeList)) {
             return <Tag color={codeList[0].tag}>{codeList[0].meaning}</Tag>;
           } else {
@@ -338,7 +338,7 @@ export default class PropExtendHeader extends PureComponent {
       dataSource: list,
       columns,
       pagination,
-      onChange: page => this.handleSearch(page),
+      onChange: (page) => this.handleSearch(page),
       scroll: { x: tableScrollWidth(columns) },
     };
     const drawerProps = {

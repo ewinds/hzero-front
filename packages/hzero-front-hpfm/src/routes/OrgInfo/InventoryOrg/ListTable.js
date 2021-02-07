@@ -202,7 +202,7 @@ export default class ListTable extends Component {
             return (
               <span className="action-link">
                 <a onClick={() => onHandleOrgEdit(record, false)}>
-                  {intl.get('hzero.common.status.cancel').d('取消')}
+                  {intl.get('hzero.common.button.cancel').d('取消')}
                 </a>
               </span>
             );
@@ -220,7 +220,7 @@ export default class ListTable extends Component {
                 ]}
                 onClick={() => onHandleOrgEdit(record, true)}
               >
-                {intl.get('hzero.common.status.edit').d('编辑')}
+                {intl.get('hzero.common.button.edit').d('编辑')}
               </ButtonPermission>
             </span>
           );
@@ -237,7 +237,7 @@ export default class ListTable extends Component {
           dataSource={fetchInventoryData.content || []}
           columns={columns}
           pagination={pagination}
-          onChange={page => onFetchInventory(page)}
+          onChange={(page) => onFetchInventory(page)}
         />
       </Fragment>
     );

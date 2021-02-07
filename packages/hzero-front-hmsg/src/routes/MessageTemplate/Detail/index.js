@@ -13,6 +13,9 @@ import { routerRedux } from 'dva/router';
 import { isEmpty, isUndefined } from 'lodash';
 import { Bind } from 'lodash-decorators';
 import classNames from 'classnames';
+import MdEditor from 'react-markdown-editor-lite';
+import 'react-markdown-editor-lite/lib/index.css';
+import ReactMarkdown from 'react-markdown';
 
 import Switch from 'components/Switch';
 import { Content, Header } from 'components/Page';
@@ -109,9 +112,11 @@ export default class Detail extends PureComponent {
     } = this.props;
     this.state = {
       flag: false,
+      editorType: 'RT',
       spinning: !isUndefined(id) && type !== 'copy',
       prevContent: templateContent,
       modalVisible: false,
+      mdContent: '',
     };
   }
 
@@ -126,15 +131,15 @@ export default class Detail extends PureComponent {
   static getDerivedStateFromProps(nextProps, prevState) {
     const {
       messageTemplate: {
-        detail: { templateContent },
+        detail: { templateContent, editorType },
       },
     } = nextProps;
-    if ((templateContent || '') !== prevState.prevContent) {
-      return {
-        prevContent: templateContent || '',
-      };
+    const nextState = {};
+
+    if (editorType !== 'MD' && (templateContent || '') !== prevState.prevContent) {
+      nextState.prevContent = templateContent || '';
     }
-    return null;
+    return nextState;
   }
 
   /**
@@ -157,6 +162,13 @@ export default class Detail extends PureComponent {
         payload: {
           templateId: isCopy ? templateId : id,
         },
+      }).then((res) => {
+        if (res) {
+          this.setState({ editorType: res.editorType });
+          if (res.editorType === 'MD') {
+            this.setState({ mdContent: res.templateContent });
+          }
+        }
       });
     }
     dispatch({
@@ -279,55 +291,109 @@ export default class Detail extends PureComponent {
       match: { params: tempType },
     } = this.props;
     const { detail = {} } = messageTemplate;
+    const { editorType, mdContent } = this.state;
     let templateContent = '';
     form.validateFields((err, values) => {
       if (!err) {
-        this.getEditData().then((data) => {
-          if (data.text !== undefined) {
-            templateContent = data.text;
-            if (templateContent === '' || isUndefined(templateContent)) {
-              this.setState({
-                flag: true,
-              });
-              return;
-            }
-            // 校验通过，进行保存操作
-            let type = 'messageTemplate/updateTemplate'; // 默认操作：更新
-            if (!detail.templateId || tempType.type) {
-              // 新建
-              type = 'messageTemplate/addTemplate';
-            }
-            const { categoryCode, ...others } = values;
-            dispatch({
-              type,
-              payload: {
-                ...detail,
-                ...others,
-                messageCategoryCode: categoryCode[0],
-                messageSubcategoryCode: categoryCode[1],
-                templateContent,
-              },
-            }).then((res) => {
-              if (res) {
-                notification.success();
-                if (!detail.templateId) {
-                  dispatch(
-                    routerRedux.push({
-                      pathname: `/hmsg/message-template/detail/${res.templateId}`,
-                    })
-                  );
-                }
-                dispatch({
-                  type: 'messageTemplate/updateState',
-                  payload: { detail: res },
+        if (editorType !== 'MD') {
+          this.getEditData().then((data) => {
+            if (data.text !== undefined) {
+              templateContent = data.text;
+              if (templateContent === '' || isUndefined(templateContent)) {
+                this.setState({
+                  flag: true,
                 });
+                return;
               }
-            });
+              // 校验通过，进行保存操作
+              let type = 'messageTemplate/updateTemplate'; // 默认操作：更新
+              if (!detail.templateId || tempType.type) {
+                // 新建
+                type = 'messageTemplate/addTemplate';
+              }
+              const { categoryCode, ...others } = values;
+              dispatch({
+                type,
+                payload: {
+                  ...detail,
+                  ...others,
+                  editorType,
+                  messageCategoryCode: categoryCode[0],
+                  messageSubcategoryCode: categoryCode[1],
+                  templateContent,
+                },
+              }).then((res) => {
+                if (res) {
+                  notification.success();
+                  if (!detail.templateId) {
+                    dispatch(
+                      routerRedux.push({
+                        pathname: `/hmsg/message-template/detail/${res.templateId}`,
+                      })
+                    );
+                  }
+                  dispatch({
+                    type: 'messageTemplate/updateState',
+                    payload: { detail: res },
+                  });
+                }
+              });
+              this.setState({
+                flag: false,
+              });
+            }
+          });
+        } else if (mdContent) {
+          templateContent = mdContent;
+          if (templateContent === '' || isUndefined(templateContent)) {
             this.setState({
-              flag: false,
+              flag: true,
             });
+            return;
           }
-        });
+          // 校验通过，进行保存操作
+          let type = 'messageTemplate/updateTemplate'; // 默认操作：更新
+          if (!detail.templateId || tempType.type) {
+            // 新建
+            type = 'messageTemplate/addTemplate';
+          }
+          const { categoryCode, ...others } = values;
+          dispatch({
+            type,
+            payload: {
+              ...detail,
+              ...others,
+              editorType,
+              messageCategoryCode: categoryCode[0],
+              messageSubcategoryCode: categoryCode[1],
+              templateContent,
+            },
+          }).then((res) => {
+            if (res) {
+              notification.success();
+              if (!detail.templateId) {
+                dispatch(
+                  routerRedux.push({
+                    pathname: `/hmsg/message-template/detail/${res.templateId}`,
+                  })
+                );
+              }
+              dispatch({
+                type: 'messageTemplate/updateState',
+                payload: { detail: res },
+              });
+            }
+          });
+          this.setState({
+            flag: false,
+          });
+        } else {
+          notification.warning({
+            message: intl
+              .get('hmsg.messageTemplate.view.message.alert.contentRequiredMd')
+              .d('请输入Markdown文本内容'),
+          });
+        }
       } else {
         this.setState({
           flag: false,
@@ -438,7 +504,7 @@ export default class Detail extends PureComponent {
       copyDetail = {},
     } = messageTemplate;
     const { isCopy } = payload;
-    const { flag, spinning, prevContent, modalVisible } = this.state;
+    const { flag, spinning, prevContent, modalVisible, editorType, mdContent } = this.state;
     return (
       <>
         <Header
@@ -475,6 +541,44 @@ export default class Detail extends PureComponent {
           >
             {intl.get('hmsg.messageTemplate.model.template.templateParam').d('模板参数')}
           </ButtonPermission>
+          {editorType &&
+            (editorType === 'RT' ? (
+              <ButtonPermission
+                permissionList={[
+                  {
+                    code: `${path}.button.markdown`,
+                    type: 'button',
+                    meaning: '消息模板-切换MarkDown',
+                  },
+                ]}
+                onClick={() => {
+                  this.setState({ editorType: 'MD' });
+                }}
+                icon="switcher"
+                loading={loading}
+              >
+                {intl.get('hmsg.messageTemplate.model.template.markdown').d('切换MarkDown')}
+              </ButtonPermission>
+            ) : (
+              <ButtonPermission
+                permissionList={[
+                  {
+                    code: `${path}.button.richTextEditor`,
+                    type: 'button',
+                    meaning: '消息模板-切换富文本编辑器',
+                  },
+                ]}
+                onClick={() => {
+                  this.setState({ editorType: 'RT' });
+                }}
+                icon="switcher"
+                loading={loading}
+              >
+                {intl
+                  .get('hmsg.messageTemplate.model.template.richTextEditor')
+                  .d('切换富文本编辑器')}
+              </ButtonPermission>
+            ))}
         </Header>
         <Content>
           <Spin spinning={spinning ? detailLoading : null}>
@@ -691,10 +795,28 @@ export default class Detail extends PureComponent {
                     }
                     className={flag ? styles.templateContent : ''}
                   >
-                    {!detailLoading &&
-                      ((isCopy ? false : id === undefined) ||
+                    {editorType === 'MD' ? (
+                      <MdEditor
+                        config={{
+                          view: {
+                            menu: false,
+                            md: true,
+                            html: true,
+                          },
+                        }}
+                        value={mdContent}
+                        onChange={(html) => {
+                          this.setState({ mdContent: html.text });
+                        }}
+                        style={{ height: '500px' }}
+                        renderHTML={(text) => <ReactMarkdown source={text} />}
+                      />
+                    ) : (
+                      (!detailLoading ||
+                        (isCopy ? false : id === undefined) ||
                         copyDetail.templateContent ||
-                        prevContent) && (
+                        prevContent ||
+                        mdContent) && (
                         <StaticTextEditor
                           key={id === undefined ? 'new' : id}
                           content={
@@ -710,7 +832,8 @@ export default class Detail extends PureComponent {
                             this.staticTextEditor = staticTextEditor;
                           }}
                         />
-                      )}
+                      )
+                    )}
                     {flag ? (
                       <span className={styles.templateContentError}>
                         {intl.get('hzero.common.validation.notNull', {

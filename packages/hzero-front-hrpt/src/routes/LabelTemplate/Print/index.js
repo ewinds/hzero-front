@@ -11,9 +11,7 @@ import {
   Select,
   CheckBox,
   Tooltip,
-  // NumberField,
   ModalContainer,
-  // Modal,
 } from 'choerodon-ui/pro';
 import axios from 'axios';
 import queryString from 'query-string';
@@ -24,9 +22,9 @@ import { isTenantRoleLevel, getCurrentOrganizationId, getAccessToken } from 'uti
 import { HZERO_RPT, API_HOST } from 'utils/config';
 import Icons from 'components/Icons';
 
+import PrintElement from '@/components/PrintElement';
 import { PrintDS as printDs } from '@/stores/labelTemplateDS';
 import styles from './index.less';
-import PrintElement from '@/components/PrintElement';
 
 const Print = (props) => {
   const { location = {} } = props;
@@ -43,6 +41,8 @@ const Print = (props) => {
   const [label, setLabel] = React.useState({});
 
   const [visible, setVisible] = React.useState(false);
+
+  // const [printLoading, setPrintLoading] = React.useState(false);
 
   const [viewLoading, setViewLoading] = React.useState(false);
 

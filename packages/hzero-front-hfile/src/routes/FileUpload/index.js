@@ -592,7 +592,7 @@ export default class FileUpload extends PureComponent {
             color: 'rgba(0, 0, 0, 0.85)',
           },
         },
-        color: capacityNumber === 0 ? ['#f0f2f5'] : ['#29bece', '#f0f2f5'],
+        color: capacityNumber === 0 ? ['#dadada'] : ['#29bece', '#dadada'],
         tooltip: {},
         series: [
           {

@@ -20,6 +20,7 @@ import Lov from 'components/Lov';
 import Switch from 'components/Switch';
 import { Button as ButtonPermission } from 'components/Permission';
 import EditTable from 'components/EditTable';
+import TLEditor from 'components/TLEditor';
 
 import { MODAL_FORM_ITEM_LAYOUT } from 'utils/constants';
 import intl from 'utils/intl';
@@ -63,13 +64,16 @@ export default class EditForm extends ModalForm {
     const { form, handleSave, docTypeSqlidList } = this.props;
     form.validateFields({ force: true }, (err, fieldsValue) => {
       if (err) return;
+      const initData = docTypeSqlidList.filter(
+        (v) => v._status !== 'create' && v._status !== 'update' && v._status !== 'delete'
+      );
       const sqlIdList = getEditTableData(docTypeSqlidList, ['tableId']);
       const params = {
         ...data,
         ...fieldsValue,
         orderSeq: fieldsValue.orderSeq || 0,
         docTypeAssigns: [...deleteDocTypeAssigns, ...addDocTypeAssigns],
-        docTypeSqlidList: [...sqlIdList, ...deleteSqlIdLine],
+        docTypeSqlidList: [...initData, ...sqlIdList, ...deleteSqlIdLine],
       };
       handleSave(params);
     });
@@ -280,6 +284,7 @@ export default class EditForm extends ModalForm {
       enabledFlag = 0,
       docTypeAssigns = [],
       docTypePermissions,
+      _token,
     } = data;
     const columns = [
       {
@@ -360,12 +365,12 @@ export default class EditForm extends ModalForm {
               </>
             ) : record._status === 'update' ? (
               <a onClick={() => this.handleEditLine(record, false)}>
-                {intl.get('hzero.common.status.cancel').d('取消')}
+                {intl.get('hzero.common.button.cancel').d('取消')}
               </a>
             ) : (
               <>
                 <a onClick={() => this.handleEditLine(record, true)}>
-                  {intl.get('hzero.common.status.edit').d('编辑')}
+                  {intl.get('hzero.common.button.edit').d('编辑')}
                 </a>
                 <Popconfirm
                   title={intl.get('hzero.common.message.confirm.delete').d('是否删除此条记录？')}
@@ -430,7 +435,13 @@ export default class EditForm extends ModalForm {
               },
             ],
             initialValue: docTypeName,
-          })(<Input />)}
+          })(
+            <TLEditor
+              label={intl.get('hiam.docType.model.docType.docTypeName').d('类型名称')}
+              field="docTypeName"
+              token={_token}
+            />
+          )}
         </Form.Item>
         <Form.Item
           {...MODAL_FORM_ITEM_LAYOUT}

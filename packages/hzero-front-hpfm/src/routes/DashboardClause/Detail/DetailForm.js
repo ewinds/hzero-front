@@ -6,6 +6,7 @@ import intl from 'utils/intl';
 import { isTenantRoleLevel } from 'utils/utils';
 import { FORM_COL_3_LAYOUT, EDIT_FORM_ITEM_LAYOUT, EDIT_FORM_ROW_LAYOUT } from 'utils/constants';
 
+import TLEditor from 'components/TLEditor';
 import Switch from 'components/Switch';
 import { CODE_UPPER } from 'utils/regExp';
 
@@ -99,7 +100,13 @@ export default class DetailForm extends Component {
                   },
                 ],
                 initialValue: headInfo.clauseName,
-              })(<Input />)}
+              })(
+                <TLEditor
+                  label={intl.get(`${promptCode}.model.dashboard.clauseName`).d('条目名称')}
+                  field="clauseName"
+                  token={headInfo ? headInfo._token : null}
+                />
+              )}
             </Form.Item>
           </Col>
           <Col {...FORM_COL_3_LAYOUT}>
@@ -206,7 +213,7 @@ export default class DetailForm extends Component {
                   initialValue: headInfo.dataTenantLevel,
                 })(
                   <Select>
-                    {flags.map(item => (
+                    {flags.map((item) => (
                       <Option value={item.value} key={item.value}>
                         {item.meaning}
                       </Option>
@@ -228,10 +235,7 @@ export default class DetailForm extends Component {
             </Form.Item>
           </Col>
           <Col {...FORM_COL_3_LAYOUT}>
-            <Form.Item
-              {...EDIT_FORM_ITEM_LAYOUT}
-              label={intl.get(`hzero.common.status`).d('状态')}
-            >
+            <Form.Item {...EDIT_FORM_ITEM_LAYOUT} label={intl.get(`hzero.common.status`).d('状态')}>
               {getFieldDecorator('enabledFlag', {
                 initialValue: headInfo.enabledFlag === 0 ? 0 : 1,
               })(<Switch />)}

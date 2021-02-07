@@ -200,7 +200,7 @@ export default class ImportHistory extends React.Component {
           <Col>
             <span className="action-link">
               <a onClick={() => this.openDetailPage(record)}>
-                {intl.get('himp.commentImport.view.button.detail').d('详情')}
+                {intl.get('hzero.common.button.detail').d('详情')}
               </a>
             </span>
           </Col>

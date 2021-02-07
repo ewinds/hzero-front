@@ -14,6 +14,7 @@ import uuid from 'uuid/v4';
 import { Content } from 'components/Page';
 import ValueList from 'components/ValueList';
 import Lov from 'components/Lov';
+import TLEditor from 'components/TLEditor';
 import EditTable from 'components/EditTable';
 import { Button as ButtonPermission } from 'components/Permission';
 
@@ -39,7 +40,7 @@ export default class EditModal extends React.Component {
       const { profileValue = {} } = nextProps;
       return {
         profileValue: nextProps.profileValue,
-        dataSource: cloneDeep(profileValue.profileValueDTOList || []).map(record => ({
+        dataSource: cloneDeep(profileValue.profileValueDTOList || []).map((record) => ({
           ...record,
           _status: 'update',
         })),
@@ -101,7 +102,7 @@ export default class EditModal extends React.Component {
               })(
                 <ValueList
                   options={levelCode}
-                  onChange={value => this.handleRecordLevelCodeChange(value, record)}
+                  onChange={(value) => this.handleRecordLevelCodeChange(value, record)}
                   className={styles['full-width']}
                   disabled={this.getEditDisabled(false)}
                 />
@@ -315,7 +316,14 @@ export default class EditModal extends React.Component {
                     }),
                   },
                 ],
-              })(<Input disabled={this.getEditDisabled(false)} />)}
+              })(
+                <TLEditor
+                  label={intl.get('hpfm.profile.model.profile.description').d('配置描述')}
+                  field="description"
+                  token={profileValue ? profileValue._token : null}
+                  disabled={this.getEditDisabled(false)}
+                />
+              )}
             </FormItem>
           </Col>
         </Row>
@@ -372,7 +380,7 @@ export default class EditModal extends React.Component {
         const { dataSource } = this.state;
         const { profileValue = {}, form } = this.props;
         const profileValues = [];
-        forEach(dataSource, record => {
+        forEach(dataSource, (record) => {
           if (record.value) {
             profileValues.push(record.value);
           }
@@ -467,16 +475,16 @@ export default class EditModal extends React.Component {
     if (removeRecord._status === 'create') {
       // 如果是新建的,直接删除
       this.setState({
-        dataSource: filter(dataSource, r => {
+        dataSource: filter(dataSource, (r) => {
           return r.profileValueId !== removeRecord.profileValueId;
         }),
       });
     } else {
       // 如果是之前存在的,调接口删除
-      onRecordRemove(removeRecord).then(response => {
+      onRecordRemove(removeRecord).then((response) => {
         if (response) {
           this.setState({
-            dataSource: filter(dataSource, r => {
+            dataSource: filter(dataSource, (r) => {
               return r.profileValueId !== removeRecord.profileValueId;
             }),
           });
@@ -501,6 +509,7 @@ export default class EditModal extends React.Component {
           saveProfile.description = fields.description;
           saveProfile.profileLevel = 'T';
           saveProfile.tenantId = tenantId;
+          saveProfile._tls = fields._tls;
           const saveDataSource = getEditTableData(dataSource, ['updateStatus', 'profileValueId']);
           if (dataSource.length !== 0 && dataSource.length !== saveDataSource.length) {
             hasLineError = true;
@@ -516,7 +525,8 @@ export default class EditModal extends React.Component {
           hasHeadError = false;
           saveProfile = profileValue;
           saveProfile.description = fields.description;
-          const editDataSource = filter(dataSource, r => r.updateStatus);
+          saveProfile._tls = fields._tls;
+          const editDataSource = filter(dataSource, (r) => r.updateStatus);
           const saveDataSource = getEditTableData(editDataSource, [
             'updateStatus',
             'profileValueId',
@@ -546,12 +556,12 @@ export default class EditModal extends React.Component {
         footer={
           profileValue.tenantId === tenantId || profileValue.tenantId === undefined
             ? [
-              <Button key="cancel" onClick={this.handleCloseModal}>
-                {intl.get('hzero.common.button.cancel').d('取消')}
-              </Button>,
-              <Button type="primary" key="save" onClick={this.handleOkBtnClick} loading={loading}>
-                {intl.get('hzero.common.button.ok').d('确定')}
-              </Button>,
+                <Button key="cancel" onClick={this.handleCloseModal}>
+                  {intl.get('hzero.common.button.cancel').d('取消')}
+                </Button>,
+                <Button type="primary" key="save" onClick={this.handleOkBtnClick} loading={loading}>
+                  {intl.get('hzero.common.button.ok').d('确定')}
+                </Button>,
               ]
             : null
         }

@@ -55,17 +55,15 @@ export default class VisitPermissionTab extends Component {
     this.setState({
       expandedRowKeys: expanded
         ? expandedRowKeys.concat(record.key)
-        : expandedRowKeys.filter(o => o !== record.key),
+        : expandedRowKeys.filter((o) => o !== record.key),
     });
   }
 
   get columns() {
-    const { path, onShield = e => e } = this.props;
+    const { path, onShield = (e) => e } = this.props;
     return [
       {
-        title: intl
-          .get(`hiam.roleManagement.model.roleManagement.permissionSetName`)
-          .d('权限层级名称'),
+        title: intl.get(`hiam.roleManagement.model.roleManagement.permissionName`).d('权限名称'),
         dataIndex: 'name',
       },
       {
@@ -81,7 +79,7 @@ export default class VisitPermissionTab extends Component {
             formField: intl.get('hiam.roleManagement.view.message.formField').d('表单域'),
           };
           const valueList = value.split(',') || [];
-          const text = valueList.map(item => (texts[item] ? texts[item] : '')) || [];
+          const text = valueList.map((item) => (texts[item] ? texts[item] : '')) || [];
           return (
             record.type === 'ps' && (
               <Tag color={value === 'api' ? 'green' : 'orange'}>{text.join()}</Tag>
@@ -116,7 +114,8 @@ export default class VisitPermissionTab extends Component {
                       },
                     ]}
                     onClick={() =>
-                      onShield({ shieldFlag, authorityId: secGrpAclId, authorityType: 'ACL' })}
+                      onShield({ shieldFlag, authorityId: secGrpAclId, authorityType: 'ACL' })
+                    }
                   >
                     {shieldFlag
                       ? intl.get('hiam.roleManagement.view.button.cancelShield').d('取消屏蔽')

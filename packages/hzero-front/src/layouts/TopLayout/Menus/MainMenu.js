@@ -21,31 +21,61 @@ class MainMenu extends Component {
   //   onMainMenuChange: PropTypes.func.isRequired,
   // };
 
+  state = {
+    defaultActiveKey: null,
+    loadFlag: false,
+  };
+
   @Bind()
   handleMainMenuChange(menuId) {
     const { onMainMenuChange, menus = [] } = this.props;
-    const changeMainMenu = menus.find(menu => `${menu.id}` === menuId);
+    const changeMainMenu = menus.find((menu) => `${menu.id}` === menuId);
     if (changeMainMenu) {
       onMainMenuChange(changeMainMenu);
     }
   }
 
+  static getDerivedStateFromProps(nextProps, prevState) {
+    const { loadFlag } = prevState;
+    const { menuLoad, menuQuickIndex, onMainMenuChange, menus = [] } = nextProps;
+    if (menuLoad && !loadFlag && menuQuickIndex) {
+      const { id } = menus.filter((item) => item.quickIndex === menuQuickIndex)[0] || {};
+      if (id) {
+        const changeMainMenu = menus.find((menu) => `${menu.id}` === id);
+        if (changeMainMenu) {
+          onMainMenuChange(changeMainMenu);
+        }
+        return { defaultActiveKey: id, loadFlag: true };
+      } else {
+        return { loadFlag: true };
+      }
+    } else if (menuLoad && !loadFlag) {
+      return { loadFlag: true };
+    }
+  }
+
   render() {
-    const { menus, language, extraRight = null } = this.props;
+    const { menus, language, extraRight = null, menuLoad } = this.props;
+    const { defaultActiveKey, loadFlag } = this.state;
     return (
-      <Tabs
-        type="card"
-        className={getStyle('main-menu')}
-        onChange={this.handleMainMenuChange}
-        tabBarExtraContent={extraRight}
-      >
-        {menus.map(menu => (
-          <Tabs.TabPane
-            key={menu.id}
-            tab={language ? menu.name && intl.get(menu.name).d(menu.name) : '...'}
-          />
-        ))}
-      </Tabs>
+      <>
+        {menuLoad && loadFlag ? (
+          <Tabs
+            type="card"
+            className={getStyle('main-menu')}
+            onChange={this.handleMainMenuChange}
+            tabBarExtraContent={extraRight}
+            defaultActiveKey={defaultActiveKey}
+          >
+            {menus.map((menu) => (
+              <Tabs.TabPane
+                key={menu.id}
+                tab={language ? menu.name && intl.get(menu.name).d(menu.name) : '...'}
+              />
+            ))}
+          </Tabs>
+        ) : null}
+      </>
     );
   }
 }

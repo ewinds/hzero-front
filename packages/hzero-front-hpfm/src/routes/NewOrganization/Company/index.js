@@ -421,6 +421,7 @@ export default class Company extends React.Component {
       companyId = '',
       companyName = '',
     } = record;
+    debugger;
     switch (type) {
       case 'create':
         this.formDS.create({});

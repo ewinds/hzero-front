@@ -30,7 +30,7 @@ const tableDS = () => {
       {
         name: 'description',
         type: 'string',
-        label: intl.get('hadm.LogicalDataSource.model.logicalData.description').d('描述'),
+        label: intl.get('hzero.common.view.description').d('描述'),
       },
     ],
     fields: [
@@ -44,7 +44,7 @@ const tableDS = () => {
       {
         name: 'description',
         type: 'string',
-        label: intl.get('hadm.LogicalDataSource.model.logicalData.description').d('描述'),
+        label: intl.get('hzero.common.view.description').d('描述'),
       },
     ],
     transport: {
@@ -80,7 +80,7 @@ const formDS = () => {
       {
         name: 'description',
         type: 'string',
-        label: intl.get('hadm.LogicalDataSource.model.logicalData.description').d('描述'),
+        label: intl.get('hzero.common.view.description').d('描述'),
         maxLength: 240,
       },
       {
@@ -179,7 +179,7 @@ const dataSourceListDS = () => {
       {
         name: 'datasourceOrder',
         type: 'number',
-        label: intl.get('hadm.LogicalDataSource.model.logicalData.order').d('序号'),
+        label: intl.get('hzero.common.view.serialNumber').d('序号'),
       },
       {
         name: 'datasourceName',

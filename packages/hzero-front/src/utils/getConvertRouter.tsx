@@ -5,7 +5,7 @@ import dynamic from 'dva/dynamic';
 // @ts-ignore
 import { isString } from 'lodash';
 import { createElement } from 'react';
-import { RoutersConfig } from '@/typings/IRouterConfig';
+import { RoutersConfig } from '../typings/IRouterConfig';
 
 interface GetConvertRouterOptions {
   hzeroRoutes: RoutersConfig;

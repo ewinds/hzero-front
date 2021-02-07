@@ -25,16 +25,17 @@ export function getAccessToken() {
 }
 
 export function setAccessToken(token) {
-  const patchTokenConfig = getConfig('patchToken' as any);
+  // @ts-ignore
+  const patchTokenConfig = getConfig('patchToken');
   let patchToken;
   if (patchTokenConfig) {
     if (typeof patchTokenConfig === 'function') {
-      patchToken = patchTokenConfig(undefined as any);
+      // @ts-ignore
+      patchToken = patchTokenConfig();
     } else {
       patchToken = patchTokenConfig;
     }
   }
-
   cookies.set(ACCESS_TOKEN, token, {
     path: '/',
     ...patchToken,
@@ -101,6 +102,18 @@ export function extractRefreshTokenFromHash(hash) {
       const refreshToken = centerReg.split('=')[1];
       return refreshToken;
     }
+  }
+  return null;
+}
+
+/**
+ * 抽取ErrorMessage
+ * @param {String} search   search值
+ */
+export function extractErrorMessageFromSearch(search) {
+  if (search) {
+    const { errorMessage } = qs.parse(search.substring(1));
+    return errorMessage;
   }
   return null;
 }

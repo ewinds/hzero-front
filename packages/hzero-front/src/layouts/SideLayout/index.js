@@ -56,6 +56,10 @@ const SideLayout = ({
   ]);
   const handleSetCollapsed = React.useCallback(() => {
     setCollapsed(!collapsed);
+    dispatch({
+      type: 'global/changeLayoutCollapsed',
+      payload: { collapsed: !collapsed },
+    });
   }, [collapsed]);
   const sideMenuRef = React.useRef();
   const WrapSideMenu = React.useMemo(
@@ -73,6 +77,12 @@ const SideLayout = ({
       sideMenuRef.current.setMaskHeight();
     }
   }, [sideMenuRef]);
+  React.useEffect(() => {
+    dispatch({
+      type: 'global/changeLayoutCollapsed',
+      payload: { collapsed: false },
+    });
+  }, []);
   const { logo, title } = currentUser;
 
   return (

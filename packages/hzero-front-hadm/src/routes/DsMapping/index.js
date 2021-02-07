@@ -47,11 +47,11 @@ const DsMapping = ({ match: { path } }) => {
                     handleEdit(true, record);
                   }}
                 >
-                  {intl.get('hadm.common.button.edit').d('编辑')}
+                  {intl.get('hzero.common.button.edit').d('编辑')}
                 </ButtonPermission>
               ),
               len: 2,
-              title: intl.get('hadm.common.button.edit').d('编辑'),
+              title: intl.get('hzero.common.button.edit').d('编辑'),
             },
             {
               key: 'delete',
@@ -151,4 +151,4 @@ const DsMapping = ({ match: { path } }) => {
   );
 };
 
-export default formatterCollections({ code: ['hadm.dsMapping'] })(DsMapping);
+export default formatterCollections({ code: ['hadm.dsMapping', 'hadm.common'] })(DsMapping);

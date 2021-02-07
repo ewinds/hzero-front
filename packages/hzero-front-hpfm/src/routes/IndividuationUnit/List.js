@@ -39,7 +39,7 @@ export default class List extends Component {
     const { unitTypeOptions = [] } = this.props;
     const unitTypeMap = {};
     if (!isEmpty(unitTypeOptions)) {
-      unitTypeOptions.forEach(item => {
+      unitTypeOptions.forEach((item) => {
         unitTypeMap[item.value] = item.meaning;
       });
     }
@@ -52,7 +52,7 @@ export default class List extends Component {
       {
         title: intl.get('hpfm.individuationUnit.model.individuationUnit.unitType').d('单元类型'),
         dataIndex: 'unitType',
-        render: text => unitTypeMap[text],
+        render: (text) => unitTypeMap[text],
       },
       {
         title: intl.get('hpfm.individuationUnit.model.individuationUnit.menuName').d('所属功能'),

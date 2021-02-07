@@ -336,3 +336,15 @@ export async function deletePermission(params) {
     }
   );
 }
+
+/**
+ * 获取导出类型
+ * @async
+ * @function fetchExportType
+ * @returns {object} fetch Promise
+ */
+export async function fetchExportType() {
+  return request(`${prefix}/reports/export-type`, {
+    method: 'GET',
+  });
+}

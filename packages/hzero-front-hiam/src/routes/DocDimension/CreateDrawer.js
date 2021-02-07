@@ -10,6 +10,7 @@ import { Form, Input, InputNumber, Modal, Select, Spin } from 'hzero-ui';
 import { Bind } from 'lodash-decorators';
 import { isUndefined } from 'lodash';
 
+import TLEditor from 'components/TLEditor';
 import Switch from 'components/Switch';
 import Lov from 'components/Lov';
 
@@ -79,6 +80,7 @@ export default class CreateDrawer extends Component {
       viewName = '',
       valueSource = '',
       enabledFlag = 1,
+      _token,
     } = initData;
     const { getFieldDecorator, getFieldValue } = form;
     return (
@@ -148,7 +150,15 @@ export default class CreateDrawer extends Component {
                     }),
                   },
                 ],
-              })(<Input />)}
+              })(
+                <TLEditor
+                  label={intl
+                    .get('hiam.docDimension.model.docDimension.dimensionName')
+                    .d('维度名称')}
+                  field="dimensionName"
+                  token={_token}
+                />
+              )}
             </Form.Item>
             <Form.Item
               {...MODAL_FORM_ITEM_LAYOUT}

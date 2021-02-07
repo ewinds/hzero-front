@@ -8,8 +8,9 @@
 import React from 'react';
 import { Form, Input, InputNumber, Modal, Select } from 'hzero-ui';
 import { Bind } from 'lodash-decorators';
-import { isEmpty, isUndefined } from 'lodash';
+import { isEmpty, isUndefined, isEqual } from 'lodash';
 import intl from 'utils/intl';
+import Lov from 'components/Lov';
 import { CODE } from 'utils/regExp';
 import Switch from 'components/Switch';
 import TLEditor from 'components/TLEditor';
@@ -21,19 +22,53 @@ const formLayout = {
   wrapperCol: { span: 17 },
 };
 
+const keyCodeConstant = {
+  LOV: 'LOV',
+  LOV_VIEW: 'LOV_VIEW',
+};
+
 @Form.create({ fieldNameProp: null })
 export default class Drawer extends React.PureComponent {
+  constructor(props) {
+    super(props);
+    const { initData } = this.props;
+    this.state = {
+      fieldDisabled:
+        isEqual(initData.itemTypeCode, keyCodeConstant.LOV) ||
+        isEqual(initData.itemTypeCode, keyCodeConstant.LOV_VIEW),
+    };
+  }
+
   /**
    * 确定
    */
   @Bind()
   handleOk() {
     const { form, onOk } = this.props;
+    const { fieldDisabled } = this.state;
     form.validateFields((err, fieldsValue) => {
       if (!err) {
-        onOk(fieldsValue);
+        if (!fieldDisabled) {
+          const { valueSet, ...otherFields } = fieldsValue;
+          onOk(otherFields);
+        } else {
+          onOk(fieldsValue);
+        }
       }
     });
+  }
+
+  @Bind()
+  handleChangeKeyType(value) {
+    if (keyCodeConstant[value]) {
+      this.setState({
+        fieldDisabled: true,
+      });
+    } else {
+      this.setState({
+        fieldDisabled: false,
+      });
+    }
   }
 
   /**
@@ -51,8 +86,10 @@ export default class Drawer extends React.PureComponent {
       modalVisible,
       keyTypeList,
     } = this.props;
-    const { getFieldDecorator } = form;
+    const { fieldDisabled } = this.state;
+    const { getFieldDecorator, getFieldValue } = form;
     const isEditing = !isUndefined(initData.formLineId);
+    console.log('==========isEditing', isEditing);
     return (
       <Modal
         destroyOnClose
@@ -141,8 +178,8 @@ export default class Drawer extends React.PureComponent {
                 },
               ],
             })(
-              <Select disabled={isEditing}>
-                {keyTypeList.map(itemTypeCode => (
+              <Select disabled={isEditing} onChange={this.handleChangeKeyType}>
+                {keyTypeList.map((itemTypeCode) => (
                   <Option key={itemTypeCode.value} value={itemTypeCode.value}>
                     {itemTypeCode.meaning}
                   </Option>
@@ -178,7 +215,7 @@ export default class Drawer extends React.PureComponent {
                   }),
                 },
               ],
-            })(<Input />)}
+            })(<Input disabled={fieldDisabled} />)}
           </Form.Item>
           <Form.Item
             {...formLayout}
@@ -220,8 +257,71 @@ export default class Drawer extends React.PureComponent {
                     .d('请输入正确的正则表达式'),
                 },
               ],
-            })(<Input />)}
+            })(<Input disabled={fieldDisabled} />)}
           </Form.Item>
+          {isEditing ? (
+            <Form.Item
+              {...formLayout}
+              label={intl.get('hpfm.dynamicForm.line.valueSet').d('值集/视图编码')}
+            >
+              {getFieldDecorator('valueSet', {
+                initialValue: initData.valueSet,
+              })(
+                <Lov
+                  code={
+                    isEqual(getFieldValue('itemTypeCode'), keyCodeConstant.LOV)
+                      ? 'HPFM.SITE.LOV_IDP'
+                      : 'HPFM.LOV_VIEW.CODE'
+                  }
+                  lovOptions={{
+                    valueField: isEqual(getFieldValue('itemTypeCode'), keyCodeConstant.LOV)
+                      ? 'lovCode'
+                      : 'viewCode',
+                    displayField: isEqual(getFieldValue('itemTypeCode'), keyCodeConstant.LOV)
+                      ? 'lovCode'
+                      : 'viewCode',
+                  }}
+                  textValue={initData.valueSet}
+                  disabled
+                />
+              )}
+            </Form.Item>
+          ) : (
+            <Form.Item
+              {...formLayout}
+              label={intl.get('hpfm.dynamicForm.line.valueSet').d('值集/视图编码')}
+            >
+              {getFieldDecorator('valueSet', {
+                initialValue: initData.valueSet,
+                rules: [
+                  {
+                    required: getFieldValue('itemTypeCode') ? fieldDisabled : false,
+                    message: intl.get('hzero.common.validation.notNull', {
+                      name: intl.get('hpfm.dynamicForm.line.valueSet').d('值集/视图编码'),
+                    }),
+                  },
+                ],
+              })(
+                <Lov
+                  code={
+                    isEqual(getFieldValue('itemTypeCode'), keyCodeConstant.LOV)
+                      ? 'HPFM.SITE.LOV_IDP'
+                      : 'HPFM.LOV_VIEW.CODE'
+                  }
+                  lovOptions={{
+                    valueField: isEqual(getFieldValue('itemTypeCode'), keyCodeConstant.LOV)
+                      ? 'lovCode'
+                      : 'viewCode',
+                    displayField: isEqual(getFieldValue('itemTypeCode'), keyCodeConstant.LOV)
+                      ? 'lovCode'
+                      : 'viewCode',
+                  }}
+                  textValue={initData.valueSet}
+                  disabled={getFieldValue('itemTypeCode') ? !fieldDisabled : false}
+                />
+              )}
+            </Form.Item>
+          )}
           <Form.Item
             {...formLayout}
             label={intl.get('hpfm.dynamicForm.line.requiredFlag').d('是否必输')}
@@ -230,7 +330,7 @@ export default class Drawer extends React.PureComponent {
               initialValue: isEmpty(initData) ? 1 : initData.requiredFlag,
             })(<Switch />)}
           </Form.Item>
-          <Form.Item {...formLayout} label={intl.get('hpfm.dynamicForm.line.enableFlag').d('启用')}>
+          <Form.Item {...formLayout} label={intl.get('hzero.common.status.enable').d('启用')}>
             {getFieldDecorator('enabledFlag', {
               initialValue: isEmpty(initData) ? 1 : initData.enabledFlag,
             })(<Switch />)}

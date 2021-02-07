@@ -43,7 +43,7 @@ const FormItem = Form.Item;
  * @reactProps {Function} showCreateModal - 控制modal显示隐藏方法
  * @return React.element
  */
-const CreateForm = Form.create({ fieldNameProp: null })(props => {
+const CreateForm = Form.create({ fieldNameProp: null })((props) => {
   const { form, modalVisible, handleAdd, showCreateModal, confirmLoading, isSiteFlag } = props;
   const okHandle = () => {
     form.validateFields((err, fieldsValue) => {
@@ -76,9 +76,9 @@ const CreateForm = Form.create({ fieldNameProp: null })(props => {
                 }),
               },
               {
-                max: 30,
+                max: 80,
                 message: intl.get('hzero.common.validation.max', {
-                  max: 30,
+                  max: 80,
                 }),
               },
               {
@@ -261,7 +261,7 @@ export default class LovSetting extends React.Component {
    */
   @Bind()
   handleSearch(pagination = {}) {
-    const { dispatch = e => e } = this.props;
+    const { dispatch = (e) => e } = this.props;
     const form = this.searchForm.props && this.searchForm.props.form;
     const params = isUndefined(form) ? {} : form.getFieldsValue();
     const filterValues = filterNullValueObject(params);
@@ -271,7 +271,7 @@ export default class LovSetting extends React.Component {
         page: pagination,
         ...filterValues,
       },
-    }).then(res => {
+    }).then((res) => {
       this.searchCallback(res);
     });
   }
@@ -295,7 +295,7 @@ export default class LovSetting extends React.Component {
     dispatch({
       type: 'lovSetting/copyLovView',
       payload: { viewCode: record.viewCode, viewHeaderId: record.viewHeaderId },
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
         this.handleSearch(pagination);
@@ -312,7 +312,7 @@ export default class LovSetting extends React.Component {
     dispatch({
       type: 'lovSetting/copyLovView',
       payload: { ...data, viewCode, viewHeaderId },
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         this.setState({ copyValueVisible: false, copyValueData: {} });
         notification.success();
@@ -427,34 +427,34 @@ export default class LovSetting extends React.Component {
               key: 'copy',
               ele: isSiteFlag
                 ? record.tenantId === currentTenantId && (
-                <ButtonPermission
-                  type="text"
-                  permissionList={[
+                    <ButtonPermission
+                      type="text"
+                      permissionList={[
                         {
                           code: `${match.path}.button.copy`,
                           type: 'button',
                           meaning: '值集视图-复制',
                         },
                       ]}
-                  onClick={() => this.handleLovCopy(record)}
-                >
-                  {intl.get('hzero.common.button.copy').d('复制')}
-                </ButtonPermission>
+                      onClick={() => this.handleLovCopy(record)}
+                    >
+                      {intl.get('hzero.common.button.copy').d('复制')}
+                    </ButtonPermission>
                   )
                 : record.tenantId !== currentTenantId && (
-                <ButtonPermission
-                  type="text"
-                  permissionList={[
+                    <ButtonPermission
+                      type="text"
+                      permissionList={[
                         {
                           code: `${match.path}.button.copy`,
                           type: 'button',
                           meaning: '值集视图-复制',
                         },
                       ]}
-                  onClick={() => this.handleLovCopy(record)}
-                >
-                  {intl.get('hzero.common.button.copy').d('复制')}
-                </ButtonPermission>
+                      onClick={() => this.handleLovCopy(record)}
+                    >
+                      {intl.get('hzero.common.button.copy').d('复制')}
+                    </ButtonPermission>
                   ),
               len: 2,
               title: intl.get('hzero.common.button.copy').d('复制'),
@@ -549,7 +549,7 @@ export default class LovSetting extends React.Component {
     dispatch({
       type: 'lovSetting/addLovValue',
       payload: data,
-    }).then(response => {
+    }).then((response) => {
       if (response) {
         this.setState({
           modalVisible: false,
@@ -605,7 +605,7 @@ export default class LovSetting extends React.Component {
       dispatch({
         type: 'lovSetting/deleteLovValue',
         payload: deleteArr,
-      }).then(response => {
+      }).then((response) => {
         if (response) {
           this.refreshValue();
           notification.success();
@@ -686,7 +686,7 @@ export default class LovSetting extends React.Component {
           tenantStatus={tenantStatus}
           confirmLoading={confirmLoading}
           isSiteFlag={isSiteFlag}
-          onRef={ref => {
+          onRef={(ref) => {
             this.createForm = ref;
           }}
         />

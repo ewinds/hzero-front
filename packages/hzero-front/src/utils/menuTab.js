@@ -540,7 +540,9 @@ function openTab(newTab) {
   const oldTab = findTabFromKey(keyParseData.pathname);
   let pathParseData;
   let searchData;
-  if (oldTab === null) {
+  if (newTab.key === '/workplace' || newTab.key === '/') {
+    activeTabAndPush(workplaceTab);
+  } else if (oldTab === null) {
     pathParseData = parsePath(path);
     searchData = qs.stringify(Object.assign(searchFormat(search), qs.parse(pathParseData.search)));
     addTabAndPush({

@@ -9,7 +9,7 @@ import React, { PureComponent } from 'react';
 import { Button, Checkbox, Form, Input, Tag, Row, Col } from 'hzero-ui';
 import { isEmpty } from 'lodash';
 
-import Table from '@/components/VirtualTable';
+import Table from 'components/VirtualTable';
 
 import intl from 'utils/intl';
 import { SEARCH_FORM_ITEM_LAYOUT } from 'utils/constants';
@@ -29,8 +29,8 @@ const PermissionsQueryForm = ({ form = {}, search = (e) => e }) => {
           <FormItem
             {...SEARCH_FORM_ITEM_LAYOUT}
             label={intl
-              .get(`hiam.roleManagement.model.roleManagement.permissionSetName`)
-              .d('权限层级名称')}
+              .get(`hiam.roleManagement.model.roleManagement.permissionName`)
+              .d('权限名称')}
           >
             {getFieldDecorator('name')(<Input />)}
           </FormItem>
@@ -235,7 +235,7 @@ export default class Permissions extends PureComponent {
       {
         title: intl.get(`hiam.roleManagement.model.roleManagement.permissionName`).d('权限名称'),
         dataIndex: 'name',
-        width: 335,
+        width: 320,
       },
       {
         title: intl.get(`hiam.roleManagement.model.roleManagement.permission.Type`).d('权限类型'),
@@ -261,7 +261,7 @@ export default class Permissions extends PureComponent {
       },
       {
         title: intl.get('hzero.common.button.action').d('操作'),
-        width: 70,
+        width: 85,
         render: this.operationRender,
         // (text, record) =>
         //   record.psLeafFlag === 1 && (
@@ -290,7 +290,6 @@ export default class Permissions extends PureComponent {
       expandedRowKeys,
       onExpandChange: this.onExpand,
       height: 600,
-      shouldUpdateScroll: false,
       // onExpand: this.onExpand,
     };
     return (

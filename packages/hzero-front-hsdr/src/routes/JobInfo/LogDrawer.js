@@ -44,13 +44,13 @@ export default class LogDrawer extends React.Component {
 
   @Bind()
   showErrorModal(record) {
-    const { onError = e => e } = this.props;
+    const { onError = (e) => e } = this.props;
     onError({ logId: record.logId });
   }
 
   @Bind()
   handleSearch() {
-    const { form, onSearch = e => e } = this.props;
+    const { form, onSearch = (e) => e } = this.props;
     const fieldsValue = form.getFieldsValue();
     fieldsValue.timeStart =
       fieldsValue.timeStart && fieldsValue.timeStart.format(DEFAULT_DATETIME_FORMAT);
@@ -99,13 +99,13 @@ export default class LogDrawer extends React.Component {
 
   @Bind()
   handleDeleteContent(record) {
-    const { onDelete = e => e } = this.props;
+    const { onDelete = (e) => e } = this.props;
     onDelete(record);
   }
 
   @Bind()
   handleTableChange(page) {
-    const { onSearch = e => e } = this.props;
+    const { onSearch = (e) => e } = this.props;
     onSearch({ page });
   }
 
@@ -131,7 +131,7 @@ export default class LogDrawer extends React.Component {
                 >
                   {getFieldDecorator('jobResult')(
                     <Select allowClear>
-                      {jobResultList.map(item => (
+                      {jobResultList.map((item) => (
                         <Select.Option value={item.value} key={item.value}>
                           {item.meaning}
                         </Select.Option>
@@ -147,7 +147,7 @@ export default class LogDrawer extends React.Component {
                 >
                   {getFieldDecorator('clientResult')(
                     <Select allowClear>
-                      {clientResultList.map(item => (
+                      {clientResultList.map((item) => (
                         <Select.Option value={item.value} key={item.value}>
                           {item.meaning}
                         </Select.Option>
@@ -166,9 +166,10 @@ export default class LogDrawer extends React.Component {
                       showTime
                       format={dateTimeFormat}
                       placeholder=""
-                      disabledDate={currentDate =>
+                      disabledDate={(currentDate) =>
                         getFieldValue('timeEnd') &&
-                        moment(getFieldValue('timeEnd')).isBefore(currentDate, 'day')}
+                        moment(getFieldValue('timeEnd')).isBefore(currentDate, 'day')
+                      }
                     />
                   )}
                 </Form.Item>
@@ -185,9 +186,10 @@ export default class LogDrawer extends React.Component {
                       showTime
                       format={dateTimeFormat}
                       placeholder=""
-                      disabledDate={currentDate =>
+                      disabledDate={(currentDate) =>
                         getFieldValue('timeStart') &&
-                        moment(getFieldValue('timeStart')).isAfter(currentDate, 'day')}
+                        moment(getFieldValue('timeStart')).isAfter(currentDate, 'day')
+                      }
                     />
                   )}
                 </Form.Item>
@@ -218,7 +220,7 @@ export default class LogDrawer extends React.Component {
       payload: {
         logId: record.logId,
       },
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         this.setState({ progressValue: JSON.parse(res) });
         if (res === 100) {
@@ -257,6 +259,23 @@ export default class LogDrawer extends React.Component {
         });
       }
     );
+  }
+
+  // 导出
+  @Bind()
+  handleDownload(record) {
+    const { tenantRoleLevel } = this.props;
+    const { tenantId } = record;
+    const api = tenantRoleLevel
+      ? `${HZERO_FILE}/v1/${tenantId}/files/download`
+      : `${HZERO_FILE}/v1/files/download`;
+    downloadFile({
+      requestUrl: api,
+      queryParams: [
+        { name: 'bucketName', value: BKT_SDR },
+        { name: 'url', value: record.outputFile },
+      ],
+    });
   }
 
   render() {
@@ -342,6 +361,53 @@ export default class LogDrawer extends React.Component {
         fixed: 'right',
         render: (text, record) => {
           const operators = [];
+          operators.push({
+            key: 'delete',
+            ele: (
+              <Popconfirm
+                placement="topRight"
+                title={intl.get('hzero.common.message.confirm.delete').d('是否删除此条记录？')}
+                onConfirm={() => this.handleDeleteContent(record)}
+              >
+                <ButtonPermission
+                  type="text"
+                  permissionList={[
+                    {
+                      code: `${path}.button.delete`,
+                      type: 'button',
+                      meaning: '调度任务-删除',
+                    },
+                  ]}
+                >
+                  {intl.get('hzero.common.button.delete').d('删除')}
+                </ButtonPermission>
+              </Popconfirm>
+            ),
+            len: 2,
+            title: intl.get('hzero.common.button.delete').d('删除'),
+          });
+          if (record.clientResult === 'DOING') {
+            operators.push({
+              key: 'taskProgress',
+              ele: (
+                <ButtonPermission
+                  type="text"
+                  permissionList={[
+                    {
+                      code: `${path}.button.taskProgress`,
+                      type: 'button',
+                      meaning: '调度任务-任务进度',
+                    },
+                  ]}
+                  onClick={() => this.showProgressModal(record)}
+                >
+                  {intl.get('hsdr.jobLog.model.jobLog.taskProgress').d('任务进度')}
+                </ButtonPermission>
+              ),
+              len: 4,
+              title: intl.get('hsdr.jobLog.model.jobLog.taskProgress').d('任务进度'),
+            });
+          }
           if (record.clientResult === 'FAILURE') {
             operators.push({
               key: 'errorDetail',
@@ -391,57 +457,32 @@ export default class LogDrawer extends React.Component {
                   : intl.get('hsdr.jobLog.model.jobLog.logUrl').d('日志文件'),
             });
           }
-          if (record.clientResult === 'DOING') {
+          if (record.outputFile) {
             operators.push({
-              key: 'taskProgress',
+              key: 'export',
               ele: (
                 <ButtonPermission
                   type="text"
                   permissionList={[
                     {
-                      code: `${path}.button.taskProgress`,
+                      code: `${path}.button.export`,
                       type: 'button',
-                      meaning: '调度任务-任务进度',
+                      meaning: '调度日志-导出文件',
                     },
                   ]}
-                  onClick={() => this.showProgressModal(record)}
+                  onClick={() => this.handleDownload(record)}
                 >
-                  {intl.get('hsdr.jobLog.model.jobLog.taskProgress').d('任务进度')}
+                  {intl.get('hsdr.jobLog.view.button.exportFile').d('导出文件')}
                 </ButtonPermission>
               ),
               len: 4,
-              title: intl.get('hsdr.jobLog.model.jobLog.taskProgress').d('任务进度'),
+              title: intl.get('hsdr.jobLog.view.button.exportFile').d('导出文件'),
             });
           }
-          operators.push({
-            key: 'delete',
-            ele: (
-              <Popconfirm
-                placement="topRight"
-                title={intl.get('hzero.common.message.confirm.delete').d('是否删除此条记录？')}
-                onConfirm={() => this.handleDeleteContent(record)}
-              >
-                <ButtonPermission
-                  type="text"
-                  permissionList={[
-                    {
-                      code: `${path}.button.delete`,
-                      type: 'button',
-                      meaning: '调度任务-删除',
-                    },
-                  ]}
-                >
-                  {intl.get('hzero.common.button.delete').d('删除')}
-                </ButtonPermission>
-              </Popconfirm>
-            ),
-            len: 2,
-            title: intl.get('hzero.common.button.delete').d('删除'),
-          });
           return operatorRender(operators, record, { limit: 3 });
         },
       },
-    ].filter(col => (isTenantRoleLevel() ? col.dataIndex !== 'tenantName' : true));
+    ].filter((col) => (isTenantRoleLevel() ? col.dataIndex !== 'tenantName' : true));
     return (
       <Modal
         destroyOnClose

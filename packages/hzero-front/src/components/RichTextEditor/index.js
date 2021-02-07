@@ -151,6 +151,18 @@ export default class CKEditor extends React.Component {
         );
         return replaceImg;
       });
+
+      const videoReg = new RegExp(/<video\b.*?(?:>|\/>)/g);
+      str = content.replace(videoReg, (item) => {
+        const replaceImg = item.replace(
+          /(http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\\.,@?^=%&:/~\\+#]*[\w\-\\@?^=%&/~\\+#])+([\S]+[.]*[\w\-\\@?^=%&/~\\+#])/,
+          (temp) => {
+            const { url } = qs.parse(temp.substring(temp.indexOf('?') + 1), '&amp;');
+            return temp.startsWith(HZERO_FILE) ? url || temp : temp;
+          }
+        );
+        return replaceImg;
+      });
     }
     return str;
   }
@@ -202,11 +214,31 @@ export default class CKEditor extends React.Component {
               if (privateBucket) {
                 const accessToken = getAccessToken();
                 const imgReg = new RegExp(/<img\b.*?(?:>|\/>)/g);
-                const newContent = content.replace(imgReg, (item) => {
+                let newContent = content.replace(imgReg, (item) => {
                   const url = item.match(
                     /(http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\\.,@?^=%&:/~\\+#]*[\w\-\\@?^=%&/~\\+#])+([\S]+[.]*[\w\-\\@?^=%&/~\\+#])/
                   )
-                    ? content.match(
+                    ? item.match(
+                        /(http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\\.,@?^=%&:/~\\+#]*[\w\-\\@?^=%&/~\\+#])+([\S]+[.]*[\w\-\\@?^=%&/~\\+#])/
+                      )[0]
+                    : undefined;
+                  const newUrl = `${HZERO_FILE}/v1/${organizationId}/files/redirect-url?bucketName=${bucketName}&access_token=${accessToken}&url=${encodeURIComponent(
+                    url
+                  )}`;
+                  let replaceImg = item;
+                  replaceImg = item.replace(
+                    /(http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\\.,@?^=%&:/~\\+#]*[\w\-\\@?^=%&/~\\+#])+([\S]+[.]*[\w\-\\@?^=%&/~\\+#])/,
+                    newUrl
+                  );
+                  return replaceImg;
+                });
+
+                const videoReg = new RegExp(/<video\b.*?(?:>|\/>)/g);
+                newContent = newContent.replace(videoReg, (item) => {
+                  const url = item.match(
+                    /(http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\\.,@?^=%&:/~\\+#]*[\w\-\\@?^=%&/~\\+#])+([\S]+[.]*[\w\-\\@?^=%&/~\\+#])/
+                  )
+                    ? item.match(
                         /(http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\\.,@?^=%&:/~\\+#]*[\w\-\\@?^=%&/~\\+#])+([\S]+[.]*[\w\-\\@?^=%&/~\\+#])/
                       )[0]
                     : undefined;
@@ -257,22 +289,33 @@ export default class CKEditor extends React.Component {
                 (evt) => {
                   const { bucketDirectory = 'editor' } = this.props;
                   const { fileLoader } = evt.data;
-                  const { xhr } = fileLoader;
-                  xhr.open('POST', fileLoader.uploadUrl, true);
-                  if (accessToken) {
-                    xhr.setRequestHeader('Authorization', `bearer ${accessToken}`);
-                  }
-                  xhr.setRequestHeader('Cache-Control', 'no-cache');
-                  xhr.setRequestHeader('X-File-Name', this.fileName);
-                  xhr.setRequestHeader('X-File-Size', this.total);
+                  const { xhr, file } = fileLoader;
+                  if (file.size > 30 * 1024 * 1024) {
+                    // eslint-disable-next-line no-alert
+                    alert(
+                      intl
+                        .get('hzero.common.upload.error.size', { fileSize: 30 })
+                        .d(`上传文件大小不能超过: 30 MB`)
+                    );
+                    evt.stop();
+                    return false;
+                  } else {
+                    xhr.open('POST', fileLoader.uploadUrl, true);
+                    if (accessToken) {
+                      xhr.setRequestHeader('Authorization', `bearer ${accessToken}`);
+                    }
+                    xhr.setRequestHeader('Cache-Control', 'no-cache');
+                    xhr.setRequestHeader('X-File-Name', this.fileName);
+                    xhr.setRequestHeader('X-File-Size', this.total);
 
-                  const formData = new FormData();
-                  formData.append('file', fileLoader.file, fileLoader.fileName);
-                  formData.append('bucketName', bucketName);
-                  formData.append('directory', bucketDirectory);
-                  formData.append('fileName', fileLoader.fileName);
-                  xhr.send(formData);
-                  evt.stop();
+                    const formData = new FormData();
+                    formData.append('file', fileLoader.file, fileLoader.fileName);
+                    formData.append('bucketName', bucketName);
+                    formData.append('directory', bucketDirectory);
+                    formData.append('fileName', fileLoader.fileName);
+                    xhr.send(formData);
+                    evt.stop();
+                  }
                 },
                 null,
                 null,
@@ -309,6 +352,9 @@ export default class CKEditor extends React.Component {
                   evt.data.message = JSON.parse(res).message;
                 }
 
+                setTimeout(() => {
+                  onEditorChange(evt.editor.getData());
+                }, 0);
                 // Get XHR and response.
               });
             }
@@ -791,16 +837,16 @@ CKEditor.defaultProps = {
 };
 
 const getEditorUrl = () => {
-  let CKEDITOR_BASEPATH = window.CKEDITOR_BASEPATH;
+  let { CKEDITOR_BASEPATH } = window;
   if (!window.CKEDITOR_BASEPATH) {
     let publicUrl = process.env.PUBLIC_URL || '/';
     if (!publicUrl.endsWith('/')) {
-      publicUrl = publicUrl + '/';
+      publicUrl += '/';
     }
     CKEDITOR_BASEPATH = `${publicUrl}lib/ckeditor/`;
   }
   if (!CKEDITOR_BASEPATH.endsWith('/')) {
-    CKEDITOR_BASEPATH = CKEDITOR_BASEPATH + '/';
+    CKEDITOR_BASEPATH += '/';
   }
   return `${CKEDITOR_BASEPATH}ckeditor.js`;
 };

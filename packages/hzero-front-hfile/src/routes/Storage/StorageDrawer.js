@@ -250,7 +250,7 @@ export default class StorageDrawer extends React.PureComponent {
                 </Form.Item>
               </>
             )}
-            {(type === '2' || type === '4' || type === '7' || type === '8') && (
+            {(type === '2' || type === '4' || type === '7' || type === '8' || type === '12') && (
               <Form.Item
                 label={intl.get('hfile.storage.model.storage.region').d('Bucket所属地区')}
                 {...formItemLayout}

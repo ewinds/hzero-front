@@ -10,7 +10,7 @@ import { parseParameters, isTenantRoleLevel, getCurrentOrganizationId } from 'ut
 const tenantId = getCurrentOrganizationId();
 
 function templatesApi() {
-  return isTenantRoleLevel() ? `${tenantId}/common-templates` : 'common-templates';
+  return isTenantRoleLevel() ? `${tenantId}/content-templates` : 'content-templates';
 }
 
 /**

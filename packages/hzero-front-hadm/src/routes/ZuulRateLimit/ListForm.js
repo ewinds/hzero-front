@@ -58,7 +58,7 @@ export default class ListForm extends PureComponent {
         onOk={this.saveBtn}
         onCancel={onCancel}
         confirmLoading={confirmLoading}
-        okText={intl.get('hzero.common.button.sure').d('确定')}
+        okText={intl.get('hzero.common.button.ok').d('确定')}
         cancelText={intl.get('hzero.common.button.cancel').d('取消')}
       >
         <Form>
@@ -71,7 +71,7 @@ export default class ListForm extends PureComponent {
                 {
                   required: true,
                   message: intl.get('hzero.common.validation.notNull', {
-                    name: intl.get(`hadm.zuulRateLimit.model.zuulRateLimit.uomTypeCode`).d('代码'),
+                    name: intl.get(`hadm.zuulRateLimit.model.zuulRateLimit.rateLimitKey`).d('代码'),
                   }),
                 },
                 {
@@ -106,7 +106,7 @@ export default class ListForm extends PureComponent {
               ],
             })(
               <Select>
-                {limitTypes.map(item => (
+                {limitTypes.map((item) => (
                   <Select.Option key={item.value} value={item.value}>
                     {item.meaning}
                   </Select.Option>
@@ -114,16 +114,10 @@ export default class ListForm extends PureComponent {
               </Select>
             )}
           </Form.Item>
-          <Form.Item
-            {...formLayout}
-            label={intl.get(`hadm.zuulRateLimit.model.zuulRateLimit.remark`).d('说明')}
-          >
+          <Form.Item {...formLayout} label={intl.get('hzero.common.explain').d('说明')}>
             {form.getFieldDecorator('remark', {})(<Input />)}
           </Form.Item>
-          <Form.Item
-            {...formLayout}
-            label={intl.get(`hadm.zuulRateLimit.model.zuulRateLimit.enableFlag`).d('启用')}
-          >
+          <Form.Item {...formLayout} label={intl.get('hzero.common.status.enable').d('启用')}>
             {form.getFieldDecorator('enabledFlag', {
               initialValue: 1,
             })(<Switch />)}

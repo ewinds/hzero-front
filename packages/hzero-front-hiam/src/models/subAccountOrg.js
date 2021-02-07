@@ -3,9 +3,10 @@
  * @author WY <yang.wang06@hand-china.com>
  */
 
-import { isEmpty } from 'lodash';
-import { createPagination, getResponse } from 'utils/utils';
+import { isEmpty, isUndefined } from 'lodash';
+import { createPagination, getResponse, setSession } from 'utils/utils';
 import { queryMapIdpValue, queryUnifyIdpValue, getPublicKey } from 'hzero-front/lib/services/api'; // 相对路径
+import notification from 'utils/notification';
 import {
   addUserGroup,
   apiFieldApiQuery,
@@ -21,6 +22,7 @@ import {
   subAccountOrgGroupCurrent,
   subAccountOrgGroupQueryAll,
   subAccountOrgQuery,
+  queryLabelList,
   subAccountOrgRoleCurrent,
   subAccountOrgRoleQueryAll,
   subAccountOrgUpdateOne,
@@ -36,6 +38,8 @@ import {
   queryTabList,
   queryDimension,
   queryEmployee,
+  postCaptcha,
+  resetPassword,
 } from '../services/subAccountOrgService';
 import { getPasswordRule } from '../services/commonService';
 // import uuid from 'uuid/v4';
@@ -51,6 +55,7 @@ export default {
     editFormProps: {},
     editModalProps: {},
     passwordProps: {},
+    phoneProps: {},
     // 组织树
     unitsTree: [],
 
@@ -74,6 +79,7 @@ export default {
     dimensionList: [],
     employeePagination: {},
     employeeList: [],
+    labelList: [],
   },
   effects: {
     *fetchList({ payload }, { call, put }) {
@@ -109,7 +115,9 @@ export default {
         yield put({
           type: 'updateState',
           payload: {
-            passwordTipMsg: res,
+            passwordTipMsg: isUndefined(payload.forceCodeVerify)
+              ? res
+              : { ...res, forceCodeVerify: payload.forceCodeVerify },
           },
         });
       }
@@ -119,6 +127,19 @@ export default {
     *fetchDetail({ payload }, { call }) {
       const subAccountDetail = yield call(subAccountOrgQuery, payload);
       return getResponse(subAccountDetail);
+    },
+
+    // 获取授权类型信息
+    *queryLabelList({ payload }, { call, put }) {
+      const res = yield call(queryLabelList, payload);
+      if (res && !res.failed) {
+        yield put({
+          type: 'updateState',
+          payload: {
+            labelList: res,
+          },
+        });
+      }
     },
     // 更新账号信息
     *updateOne({ payload }, { call }) {
@@ -181,7 +202,8 @@ export default {
       });
     },
     // 打开修改密码
-    *openPassword({ payload }, { put }) {
+    *openPassword({ payload }, { put, select }) {
+      const { validCodeLimitTimeEnd } = yield select((state) => state.subAccountOrg.passwordProps);
       const { userInfo } = payload;
       yield put({
         type: 'updateState',
@@ -189,18 +211,58 @@ export default {
           passwordProps: {
             visible: true,
             userInfo,
+            validCodeLimitTimeEnd,
+            validCodeSendLimitFlag: !!validCodeLimitTimeEnd,
+          },
+        },
+      });
+    },
+    // 打开修改密码
+    *openPhone({ payload }, { put, select }) {
+      const { validCodeLimitTimeEnd } = yield select((state) => state.subAccountOrg.phoneProps);
+      const { userInfo } = payload;
+      yield put({
+        type: 'updateState',
+        payload: {
+          phoneProps: {
+            visible: true,
+            userInfo,
+            validCodeLimitTimeEnd,
+            validCodeSendLimitFlag: !!validCodeLimitTimeEnd,
           },
         },
       });
     },
     // 关闭修改密码
-    *closePassword(_, { put }) {
+    *closePassword(_, { put, select }) {
+      const { validCodeLimitTimeEnd, validCodeSendLimitFlag } = yield select(
+        (state) => state.subAccountOrg.passwordProps
+      );
       yield put({
         type: 'updateState',
         payload: {
           passwordProps: {
             visible: false,
             userInfo: {},
+            validCodeLimitTimeEnd,
+            validCodeSendLimitFlag,
+          },
+        },
+      });
+    },
+    // 关闭修改密码
+    *closePhone(_, { put, select }) {
+      const { validCodeLimitTimeEnd, validCodeSendLimitFlag } = yield select(
+        (state) => state.subAccountOrg.phoneProps
+      );
+      yield put({
+        type: 'updateState',
+        payload: {
+          phoneProps: {
+            visible: false,
+            userInfo: {},
+            validCodeLimitTimeEnd,
+            validCodeSendLimitFlag,
           },
         },
       });
@@ -446,6 +508,50 @@ export default {
           },
         });
       }
+    },
+    // 发送验证码
+    *postCaptcha({ payload }, { call, put, select }) {
+      const passwordProps = yield select((state) => state.subAccountOrg.passwordProps);
+      const phoneProps = yield select((state) => state.subAccountOrg.phoneProps);
+      const captchaField = 'captchaKey';
+      const res = getResponse(yield call(postCaptcha, payload));
+      const validCodeLimitTimeStart = new Date().getTime();
+      // 60秒限制
+      const validCodeLimitTimeEnd = validCodeLimitTimeStart + 60000;
+      if (res) {
+        notification.success({ message: res.message });
+        if (captchaField) {
+          setSession(`sub-account-org-phone`, res[captchaField] || 0);
+        }
+      }
+      yield put({
+        type: 'updateState',
+        payload: {
+          passwordProps: {
+            ...passwordProps,
+            validCodeLimitTimeEnd: res ? validCodeLimitTimeEnd : 0,
+            validCodeSendLimitFlag: !!res,
+          },
+          phoneProps: {
+            ...phoneProps,
+            validCodeLimitTimeEnd: res ? validCodeLimitTimeEnd : 0,
+            validCodeSendLimitFlag: !!res,
+          },
+        },
+      });
+      return res;
+    },
+
+    // 重置密码
+    *resetPassword({ payload }, { call }) {
+      const { id, userOrganizationId, ...params } = payload;
+      const res = getResponse(
+        yield call(resetPassword, id, userOrganizationId, {
+          ...params,
+          organizationId: userOrganizationId,
+        })
+      );
+      return res;
     },
   },
   reducers: {

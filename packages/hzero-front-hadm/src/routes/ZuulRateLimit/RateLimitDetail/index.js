@@ -138,7 +138,7 @@ export default class EditForm extends Component {
         payload: {
           dimensionConfig: { ...fieldsValue, rateLimitId },
         },
-      }).then(res => {
+      }).then((res) => {
         if (res) {
           notification.success();
           dispatch({
@@ -162,7 +162,7 @@ export default class EditForm extends Component {
         payload: {
           dimensionConfig: { ...lineDetail, ...fieldsValue },
         },
-      }).then(res => {
+      }).then((res) => {
         if (res) {
           notification.success();
           dispatch({
@@ -331,7 +331,7 @@ export default class EditForm extends Component {
           ...newHeaderInformation
         } = values;
         const { rateLimitId } = headerInformation;
-        const newZuulRateLimitLineList = zuulRateLimitLineList.map(item => {
+        const newZuulRateLimitLineList = zuulRateLimitLineList.map((item) => {
           if (item.isNew) {
             const { isNew, rateLimitLineId, ...newItem } = item;
             return { ...newItem, rateLimitId };
@@ -345,9 +345,16 @@ export default class EditForm extends Component {
             ...newHeaderInformation,
             gatewayRateLimitLineList: [...newZuulRateLimitLineList],
           },
-        }).then(res => {
+        }).then((res) => {
           if (res) {
             notification.success();
+            dispatch({
+              type: 'hadmZuulRateLimit/updateState',
+              payload: {
+                selectedDetailRows: [],
+                selectedDetailRowKeys: [],
+              },
+            });
             this.handleSearch();
           }
         });
@@ -379,7 +386,7 @@ export default class EditForm extends Component {
     dispatch({
       type: 'hadmZuulRateLimit/refresh',
       payload: [{ rateLimitId: headerInformation.rateLimitId }],
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
         dispatch({
@@ -442,7 +449,7 @@ export default class EditForm extends Component {
       dispatch,
       hadmZuulRateLimit: { lineDetail },
     } = this.props;
-    return dispatch({ type: 'hadmZuulRateLimit/insertDimensionConfigs', payload }).then(res =>
+    return dispatch({ type: 'hadmZuulRateLimit/insertDimensionConfigs', payload }).then((res) =>
       dispatch({
         type: 'hadmZuulRateLimit/queryGateWayRateLimitDimensionAllowChange',
         payload: {
@@ -463,7 +470,7 @@ export default class EditForm extends Component {
       dispatch,
       hadmZuulRateLimit: { lineDetail },
     } = this.props;
-    return dispatch({ type: 'hadmZuulRateLimit/deleteDimensionConfigs', payload }).then(res =>
+    return dispatch({ type: 'hadmZuulRateLimit/deleteDimensionConfigs', payload }).then((res) =>
       dispatch({
         type: 'hadmZuulRateLimit/queryGateWayRateLimitDimensionAllowChange',
         payload: {
@@ -491,6 +498,19 @@ export default class EditForm extends Component {
   queryDimensionConfigsDetail(payload) {
     const { dispatch } = this.props;
     return dispatch({ type: 'hadmZuulRateLimit/queryDimensionConfigsDetail', payload });
+  }
+
+  @Bind()
+  handleBack() {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'hadmZuulRateLimit/updateState',
+      payload: {
+        selectedDetailRows: [],
+        selectedDetailRowKeys: [],
+        zuulRateLimitLineList: [],
+      },
+    });
   }
 
   render() {
@@ -554,7 +574,7 @@ export default class EditForm extends Component {
         width: 120,
       },
       {
-        title: intl.get(`hadm.zuulRateLimit.model.zuulRateLimit.path`).d('服务路由'),
+        title: intl.get(`hadm.common.model.common.serviceRoute`).d('服务路由'),
         dataIndex: 'path',
       },
       {
@@ -564,8 +584,8 @@ export default class EditForm extends Component {
         render(rateLimitDimension) {
           return rateLimitDimension
             .map(
-              dimension =>
-                ((dimensionTypes || []).find(item => item.value === dimension) || {}).meaning
+              (dimension) =>
+                ((dimensionTypes || []).find((item) => item.value === dimension) || {}).meaning
             )
             .join(',');
         },
@@ -592,7 +612,7 @@ export default class EditForm extends Component {
         ),
       },
     ];
-    const newColumns = columns.filter(item => item);
+    const newColumns = columns.filter((item) => item);
     const basePath = match.path.substring(0, match.path.indexOf('/detail'));
 
     return (
@@ -602,6 +622,7 @@ export default class EditForm extends Component {
           backPath={`${basePath}/list${
             match.path.indexOf('/private') === 0 ? `?access_token=${accessToken}` : ''
           }`}
+          onBack={this.handleBack}
         >
           <Button
             icon="save"
@@ -658,7 +679,7 @@ export default class EditForm extends Component {
                 <Col {...FORM_COL_3_LAYOUT}>
                   <Form.Item
                     {...EDIT_FORM_ITEM_LAYOUT}
-                    label={intl.get(`hadm.zuulRateLimit.model.zuulRateLimit.remark`).d('说明')}
+                    label={intl.get('hzero.common.explain').d('说明')}
                   >
                     {getFieldDecorator('remark', {
                       initialValue: headerInformation.remark,
@@ -711,7 +732,7 @@ export default class EditForm extends Component {
                 <Col {...FORM_COL_3_LAYOUT}>
                   <Form.Item
                     {...EDIT_FORM_ITEM_LAYOUT}
-                    label={intl.get(`hadm.zuulRateLimit.model.zuulRateLimit.enableFlag`).d('启用')}
+                    label={intl.get('hzero.common.status.enable').d('启用')}
                   >
                     {getFieldDecorator('enabledFlag', {
                       initialValue: headerInformation.enabledFlag === 0 ? 0 : 1,

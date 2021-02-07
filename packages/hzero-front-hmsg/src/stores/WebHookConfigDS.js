@@ -36,12 +36,12 @@ const tableDS = () => ({
     {
       name: 'serverCode',
       type: 'string',
-      label: intl.get('hmsg.common.view.serverCode').d('配置编码'),
+      label: intl.get('hmsg.webhookConfig.view.webhookConfig.serverCode').d('接收方编码'),
     },
     {
       name: 'serverName',
       type: 'string',
-      label: intl.get('hmsg.common.view.serverName').d('配置名称'),
+      label: intl.get('hmsg.webhookConfig.view.webhookConfig.serverName').d('接收方名称'),
     },
   ].filter(Boolean),
   fields: [
@@ -52,13 +52,13 @@ const tableDS = () => ({
     },
     {
       name: 'serverCode',
-      label: intl.get('hmsg.common.view.serverCode').d('配置编码'),
+      label: intl.get('hmsg.webhookConfig.view.webhookConfig.serverCode').d('接收方编码'),
       type: 'string',
     },
     {
       name: 'serverName',
       type: 'string',
-      label: intl.get('hmsg.common.view.serverName').d('配置名称'),
+      label: intl.get('hmsg.webhookConfig.view.webhookConfig.serverName').d('接收方名称'),
     },
     {
       name: 'serverTypeMeaning',
@@ -126,7 +126,7 @@ const drawerDS = () => ({
       required: true,
       type: 'string',
       maxLength: 30,
-      label: intl.get('hmsg.common.view.serverCode').d('配置编码'),
+      label: intl.get('hmsg.webhookConfig.view.webhookConfig.serverCode').d('接收方编码'),
       pattern: CODE,
       defaultValidationMessages: {
         patternMismatch: intl
@@ -136,9 +136,9 @@ const drawerDS = () => ({
     },
     {
       name: 'serverName',
-      type: 'string',
+      type: 'intl',
       required: true,
-      label: intl.get('hmsg.common.view.serverName').d('配置名称'),
+      label: intl.get('hmsg.webhookConfig.view.webhookConfig.serverName').d('接收方名称'),
       maxLength: 60,
     },
     {

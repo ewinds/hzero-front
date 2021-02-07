@@ -551,7 +551,7 @@ const Detail = (props) => {
         <Card
           bordered={false}
           className={DETAIL_CARD_CLASSNAME}
-          title={<h3>{intl.get('hadm.maintain.view.message.title.info').d('基本信息')}</h3>}
+          title={<h3>{intl.get('hadm.common.title.baseInfo').d('基本信息')}</h3>}
         >
           <Form dataSet={detailDS} columns={3}>
             <TextField name="maintainVersion" />

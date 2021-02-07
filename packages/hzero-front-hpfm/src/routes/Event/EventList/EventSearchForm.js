@@ -87,10 +87,10 @@ export default class EventSearchForm extends React.Component {
           <Col {...FORM_COL_4_LAYOUT} className={SEARCH_COL_CLASSNAME}>
             <Form.Item>
               <Button onClick={this.handleFormReset}>
-                {intl.get('hzero.common.status.reset').d('重置')}
+                {intl.get('hzero.common.button.reset').d('重置')}
               </Button>
               <Button type="primary" htmlType="submit" onClick={this.handleSearch}>
-                {intl.get('hzero.common.status.search').d('查询')}
+                {intl.get('hzero.common.button.search').d('查询')}
               </Button>
             </Form.Item>
           </Col>

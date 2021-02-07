@@ -108,11 +108,11 @@ const DsRoutes = (props) => {
                     handleDisabled(record);
                   }}
                 >
-                  {intl.get('hzero.common.button.unEnabled').d('禁用')}
+                  {intl.get('hzero.common.button.disable').d('禁用')}
                 </ButtonPermission>
               ),
               len: 2,
-              title: intl.get('hzero.common.button.unEnabled').d('禁用'),
+              title: intl.get('hzero.common.button.disable').d('禁用'),
             },
             {
               key: 'delete',

@@ -5,6 +5,8 @@
  * @copyright HAND ® 2019
  */
 
+import axios from 'axios';
+
 import request from 'utils/request';
 import { getIeVersion } from 'utils/browser';
 import { getEnvConfig } from 'utils/iocUtils';
@@ -14,10 +16,70 @@ import {
   getAccessToken,
   getCurrentOrganizationId,
   getResponse,
+  getRequestId,
   isTenantRoleLevel,
 } from 'utils/utils';
+import { getMenuId } from 'utils/menuTab';
 
 const { API_HOST, HZERO_FILE } = getEnvConfig();
+
+const withTokenAxios = axios.create();
+const jsonMimeType = 'application/json; charset=utf-8';
+
+withTokenAxios.defaults = {
+  ...withTokenAxios.defaults,
+  headers: {
+    ...(withTokenAxios.defaults || {}).headers,
+    'Content-Type': jsonMimeType,
+    Accept: 'application/json;',
+    // 'X-Requested-With': 'XMLHttpRequest',
+  },
+  withCredentials: true,
+};
+
+// Add a request interceptor
+withTokenAxios.interceptors.request.use(
+  (config) => {
+    let { url = '' } = config;
+    if (url.indexOf('://') === -1 && !url.startsWith('/_api')) {
+      url = `${API_HOST}${url}`;
+    }
+    // Do something before request is sent
+    return {
+      ...config,
+      url,
+      headers: {
+        ...config.headers,
+        Authorization: `bearer ${getAccessToken()}`,
+        'H-Request-Id': `${getRequestId()}`,
+        'H-Menu-Id': `${getMenuId()}`,
+      },
+    };
+  },
+  (err) => {
+    return Promise.reject(err);
+  }
+);
+
+withTokenAxios.interceptors.response.use(
+  (res) => {
+    const { status, data } = res;
+    if (status === 204 || status === 200) {
+      return res;
+    }
+    if (data && data.failed) {
+      // notification.error({
+      //   message: data.message,
+      // });
+      throw res;
+    } else {
+      return res;
+    }
+  },
+  (err) => {
+    throw err;
+  }
+);
 
 /**
  * 获取fileList
@@ -175,7 +237,8 @@ export interface DownloadFileParams {
     name: string;
     value: any;
   }>;
-  method: 'GET' | 'POST';
+  method: 'GET' | 'POST' | 'get' | 'post';
+  queryData: object;
 }
 
 /**
@@ -212,15 +275,22 @@ export async function downloadFile(params: DownloadFileParams) {
   tokenInput.setAttribute('name', 'access_token');
   tokenInput.setAttribute('value', `${getAccessToken()}`);
 
+  // 设置requestId
+  const idInput = document.createElement('input');
+  idInput.setAttribute('type', 'hidden');
+  idInput.setAttribute('name', 'H-Request-Id');
+  idInput.setAttribute('value', `${getRequestId()}`);
+
   // 处理post请求时token效验
   if (method === 'POST') {
-    newUrl = `${newUrl}?access_token=${getAccessToken()}`;
+    newUrl = `${newUrl}?access_token=${getAccessToken()}&H-Request-Id=${getRequestId()}`;
   }
 
   // 表单添加请求配置
   downloadForm.setAttribute('method', method);
   downloadForm.setAttribute('action', newUrl);
   downloadForm.appendChild(tokenInput);
+  downloadForm.appendChild(idInput);
 
   // 表单添加查询参数
   if (queryParams && Array.isArray(queryParams)) {
@@ -245,11 +315,143 @@ export async function downloadFile(params: DownloadFileParams) {
 }
 
 /**
+ * 下载
+ * @export
+ * @param {object} params 传递参数
+ * @param {string} params.requestUrl 下载文件请求的url
+ * @param {array} params.queryParams 下载文件请求的查询参数，参数格式为：[{ name: '', value: '' }]]
+ */
+export function downloadFileByAxios(params: DownloadFileParams, filename) {
+  const { requestUrl: url, queryParams, method, queryData } = params || {};
+  let newUrl = !url.startsWith('/api') && !url.startsWith('http') ? `${API_HOST}${url}` : `${url}`;
+
+  let FILE_NAME = '';
+
+  const reg1 = new RegExp(`^${HZERO_FILE}/v1(/[0-9]*)?/files/redirect-url`);
+  const reg2 = new RegExp(`^${HZERO_FILE}/v1(/[0-9]*)?/files/download`);
+
+  if (reg1.test(newUrl) || reg2.test(newUrl)) {
+    let fileUrl = '';
+    if (queryParams && Array.isArray(queryParams)) {
+      queryParams.forEach((item) => {
+        if (item.name === 'url') {
+          fileUrl = decodeURIComponent(item.value);
+        }
+      });
+    }
+
+    if (fileUrl) {
+      const index = fileUrl.indexOf('@');
+      if (index > -1) {
+        FILE_NAME = fileUrl.substring(index + 1);
+      } else {
+        const s = fileUrl.split('/');
+        if (s.length > 1) {
+          FILE_NAME = s[s.length - 1];
+        } else {
+          return downloadFile(params);
+        }
+      }
+    }
+  }
+
+  const newParams = {};
+  // 表单添加查询参数
+  if (queryParams && Array.isArray(queryParams)) {
+    newUrl += `?`;
+    queryParams.forEach((item, index) => {
+      newParams[item.name] = item.value;
+      if (index === 0) {
+        newUrl += `${item.name}=${encodeURIComponent(item.value)}`;
+      } else {
+        newUrl += `&${item.name}=${encodeURIComponent(item.value)}`;
+      }
+    });
+  }
+  return withTokenAxios(
+    method !== 'GET' && method !== 'get'
+      ? {
+          url: newUrl,
+          method,
+          data: queryData,
+          baseURL: `${API_HOST}`,
+          responseType: 'arraybuffer',
+        }
+      : {
+          url: newUrl,
+          method,
+          baseURL: `${API_HOST}`,
+          responseType: 'arraybuffer',
+        }
+  ).then((resp) => {
+    try {
+      const { data, headers } = resp;
+      let fileName = '';
+
+      // 提取文件名
+      const temp = headers['content-disposition']?.match(
+        /[fF][iI][Ll][Ee][Nn][Aa][Mm][Ee]=(.*)/
+      )[1];
+      fileName = temp;
+      if (fileName && (fileName[0] === "'" || fileName[0] === '"')) {
+        fileName = fileName.substring(1, fileName.length - 1);
+      }
+
+      if (!fileName && filename) {
+        fileName = filename;
+      }
+      if (FILE_NAME) {
+        fileName = FILE_NAME;
+      }
+
+      if (!fileName) {
+        throw Error('cannot get fileName!');
+      }
+
+      // 将二进制流转为blob
+      const blob = new Blob([data], { type: 'application/octet-stream' });
+      if (typeof window.navigator.msSaveBlob !== 'undefined') {
+        // 兼容IE，window.navigator.msSaveBlob：以本地方式保存文件
+        window.navigator.msSaveBlob(blob, decodeURI(fileName));
+      } else {
+        // 创建新的URL并指向File对象或者Blob对象的地址
+        const blobURL = window.URL.createObjectURL(blob);
+        // 创建a标签，用于跳转至下载链接
+        const tempLink = document.createElement('a');
+        tempLink.style.display = 'none';
+        tempLink.href = blobURL;
+        tempLink.setAttribute('download', decodeURI(fileName));
+        // 兼容：某些浏览器不支持HTML5的download属性
+        if (typeof tempLink.download === 'undefined') {
+          tempLink.setAttribute('target', '_blank');
+        }
+        // 挂载a标签
+        document.body.appendChild(tempLink);
+        tempLink.click();
+        document.body.removeChild(tempLink);
+        // 释放blob URL地址
+        window.URL.revokeObjectURL(blobURL);
+      }
+      return true;
+    } catch (e) {
+      const enc = new TextDecoder('utf-8');
+      let err = {};
+      try {
+        err = JSON.parse(enc.decode(new Uint8Array(resp.data)));
+      } catch (error) {
+        console.error(e);
+      }
+      throw err;
+    }
+  });
+}
+
+/**
  * initiateAsyncExport 发起异步导出请求
  * @param {string} params - 参数
  */
 export async function initiateAsyncExport(params) {
-  const { requestUrl: url, queryParams } = params;
+  const { requestUrl: url, queryParams, method, queryData } = params;
   let newUrl = !url.startsWith('/api') && !url.startsWith('http') ? `${API_HOST}${url}` : url;
   if (queryParams && Object.keys(queryParams).length >= 1) {
     queryParams.forEach((item) => {
@@ -258,9 +460,15 @@ export async function initiateAsyncExport(params) {
       )}`;
     });
   }
-  const res = request(newUrl, {
-    method: 'GET',
-  });
+  const res =
+    method !== 'GET' && method !== 'get'
+      ? request(newUrl, {
+          method,
+          body: queryData,
+        })
+      : request(newUrl, {
+          method,
+        });
 
   // FIXME: @WJC utils need fix
   // @ts-ignore

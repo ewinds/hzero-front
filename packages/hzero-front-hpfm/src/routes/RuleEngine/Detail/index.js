@@ -16,6 +16,7 @@ import classnames from 'classnames';
 
 import Switch from 'components/Switch';
 import { Content, Header } from 'components/Page';
+import TLEditor from 'components/TLEditor';
 import Lov from 'components/Lov';
 import { Button as ButtonPermission } from 'components/Permission';
 
@@ -131,7 +132,7 @@ export default class Detail extends PureComponent {
             payload: {
               ...values,
             },
-          }).then(res => {
+          }).then((res) => {
             if (res) {
               notification.success();
               dispatch(
@@ -148,7 +149,7 @@ export default class Detail extends PureComponent {
               ...detail,
               ...values,
             },
-          }).then(res => {
+          }).then((res) => {
             if (res) {
               notification.success();
               this.handleSearch();
@@ -201,7 +202,7 @@ export default class Detail extends PureComponent {
     dispatch({
       type: 'ruleEngine/testRuleEngine',
       payload: { tenantId, scriptCode, params },
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
       }
@@ -237,7 +238,7 @@ export default class Detail extends PureComponent {
     return (
       <Fragment>
         <Header
-          title={intl.get('hpfm.ruleEngine.view.message.title.detail').d('规则引擎明细')}
+          title={intl.get('hpfm.ruleEngine.view.message.title.detail').d('规则脚本明细')}
           backPath="/hpfm/rule-engine/list"
         >
           <ButtonPermission
@@ -367,6 +368,12 @@ export default class Detail extends PureComponent {
                             .get('hzero.common.validation.codeUpper')
                             .d('全大写及数字，必须以字母、数字开头，可包含“-”、“_”、“.”、“/”'),
                         },
+                        {
+                          max: 30,
+                          message: intl.get('hzero.common.validation.max', {
+                            max: 30,
+                          }),
+                        },
                       ],
                       initialValue: detail.scriptCode,
                     })(
@@ -399,7 +406,7 @@ export default class Detail extends PureComponent {
                       initialValue: detail.category,
                     })(
                       <Select allowClear>
-                        {categoryList.map(item => (
+                        {categoryList.map((item) => (
                           <Select.Option key={item.value} value={item.value}>
                             {item.meaning}
                           </Select.Option>
@@ -423,9 +430,23 @@ export default class Detail extends PureComponent {
                               .d('描述'),
                           }),
                         },
+                        {
+                          max: 240,
+                          message: intl.get('hzero.common.validation.max', {
+                            max: 240,
+                          }),
+                        },
                       ],
                       initialValue: detail.scriptDescription,
-                    })(<Input />)}
+                    })(
+                      <TLEditor
+                        label={intl
+                          .get('hpfm.ruleEngine.model.ruleEngine.scriptDescription')
+                          .d('描述')}
+                        field="scriptDescription"
+                        token={detail ? detail._token : null}
+                      />
+                    )}
                   </Form.Item>
                 </Col>
               </Row>
@@ -450,7 +471,7 @@ export default class Detail extends PureComponent {
                     })(
                       <Select allowClear>
                         {scriptTypeCode &&
-                          scriptTypeCode.map(item => (
+                          scriptTypeCode.map((item) => (
                             <Select.Option key={item.value} value={item.value}>
                               {item.meaning}
                             </Select.Option>

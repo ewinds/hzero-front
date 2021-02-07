@@ -1,12 +1,18 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { isEmpty, isFunction } from 'lodash';
-import { Modal, Table, notification, Form, Button, Input } from 'hzero-ui';
+import { isEmpty, isFunction, isUndefined } from 'lodash';
+import { Modal, Table, notification, Form, Button, Input, Row, Col, Select } from 'hzero-ui';
 import { Bind } from 'lodash-decorators';
 
 import intl from 'utils/intl';
 import { createPagination, tableScrollWidth } from 'utils/utils';
 import { VERSION_IS_OP } from 'utils/config';
+
+import {
+  FORM_COL_3_LAYOUT,
+  SEARCH_FORM_ROW_LAYOUT,
+  SEARCH_FORM_ITEM_LAYOUT,
+} from 'utils/constants';
 
 const FormItem = Form.Item;
 
@@ -45,18 +51,22 @@ export default class RoleModal extends React.PureComponent {
 
   @Bind()
   fetchRoleList(pagination = { page: 0, size: 10 }) {
-    const { fetchRoles, form, excludeRoleIds = [], excludeUserIds = [] } = this.props;
+    const { fetchRoles, form, excludeRoleIds = [], id } = this.props;
     const params = {
       ...form.getFieldsValue(),
       excludeRoleIds,
-      excludeUserIds,
+      // excludeUserIds,
       ...pagination,
+      memberType: 'user',
     };
+    if (!isUndefined(id)) {
+      params.memberId = id;
+    }
     this.setState({
       fetchRolesLoading: true,
     });
     fetchRoles(params).then(
-      res => {
+      (res) => {
         const nextState = {
           fetchRolesLoading: false,
         };
@@ -84,11 +94,11 @@ export default class RoleModal extends React.PureComponent {
   @Bind()
   handleRowClick(record) {
     const { selectedRowKeys = [], selectedRows = [] } = this.state;
-    if (selectedRowKeys.some(id => id === record.id)) {
+    if (selectedRowKeys.some((id) => id === record.id)) {
       // 已经选中 需要移除
       this.setState({
-        selectedRowKeys: selectedRowKeys.filter(id => id !== record.id),
-        selectedRows: selectedRows.filter(item => item !== record),
+        selectedRowKeys: selectedRowKeys.filter((id) => id !== record.id),
+        selectedRows: selectedRows.filter((item) => item !== record),
       });
     } else {
       // 没有选中 需要新增
@@ -102,7 +112,7 @@ export default class RoleModal extends React.PureComponent {
   @Bind()
   handleRowSelectionChange(_, selectedRows) {
     this.setState({
-      selectedRowKeys: selectedRows.map(r => r.id),
+      selectedRowKeys: selectedRows.map((r) => r.id),
       selectedRows,
     });
   }
@@ -176,6 +186,7 @@ export default class RoleModal extends React.PureComponent {
     const {
       visible,
       form: { getFieldDecorator },
+      labelList,
     } = this.props;
     const { selectedRowKeys, dataSource = [], pagination = false, fetchRolesLoading } = this.state;
     const columns = [
@@ -198,18 +209,43 @@ export default class RoleModal extends React.PureComponent {
         width={720}
         title={intl.get('hiam.subAccount.view.message.title.roleModal').d('选择角色')}
       >
-        <Form layout="inline">
-          <FormItem label={intl.get('hiam.subAccount.model.role.name').d('角色名称')}>
-            {getFieldDecorator('name')(<Input />)}
-          </FormItem>
-          <FormItem>
-            <Button style={{ marginRight: 8 }} onClick={this.handleResetBtnClick}>
-              {intl.get('hzero.common.button.reset').d('重置')}
-            </Button>
-            <Button htmlType="submit" type="primary" onClick={this.handleSearchBtnClick}>
-              {intl.get('hzero.common.button.search').d('查询')}
-            </Button>
-          </FormItem>
+        <Form>
+          <Row type="flex" gutter={24} align="bottom" {...SEARCH_FORM_ROW_LAYOUT}>
+            <Col {...FORM_COL_3_LAYOUT}>
+              <FormItem
+                {...SEARCH_FORM_ITEM_LAYOUT}
+                label={intl.get('hiam.subAccount.model.role.name').d('角色名称')}
+              >
+                {getFieldDecorator('name')(<Input />)}
+              </FormItem>
+            </Col>
+            <Col {...FORM_COL_3_LAYOUT}>
+              <FormItem
+                {...SEARCH_FORM_ITEM_LAYOUT}
+                label={intl.get('hiam.subAccount.model.role.labels').d('角色标签')}
+              >
+                {getFieldDecorator('labels')(
+                  <Select mode="multiple">
+                    {labelList.map((n) => (
+                      <Select.Option key={n.name} value={n.name}>
+                        {n.name}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                )}
+              </FormItem>
+            </Col>
+            <Col {...FORM_COL_3_LAYOUT}>
+              <FormItem>
+                <Button style={{ marginRight: 8 }} onClick={this.handleResetBtnClick}>
+                  {intl.get('hzero.common.button.reset').d('重置')}
+                </Button>
+                <Button htmlType="submit" type="primary" onClick={this.handleSearchBtnClick}>
+                  {intl.get('hzero.common.button.search').d('查询')}
+                </Button>
+              </FormItem>
+            </Col>
+          </Row>
         </Form>
         <Table
           bordered

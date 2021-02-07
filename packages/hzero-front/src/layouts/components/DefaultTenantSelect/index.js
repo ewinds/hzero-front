@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /**
  * 租户切换
  */
@@ -145,7 +146,7 @@ class DefaultTenantSelect extends PureComponent {
       },
       {
         title: intl.get('entity.tenant.code').d('租户编码'),
-        width: 100,
+        width: 180,
         dataIndex: 'tenantNum',
       },
       {

@@ -51,12 +51,14 @@ export async function queryIdpValue(lovCode) {
  * @example queryMapIdpValue({ level: 'HPFM.LEVEL', dir: 'HPFM.DIRECTION' })
  */
 export async function queryMapIdpValue(params) {
+  const { publicMode, ...otherParams } = params;
   return request(
     `${HZERO_PLATFORM}/v1/${
-      isTenantRoleLevel() ? `${getCurrentOrganizationId()}/` : ''
+      // eslint-disable-next-line no-nested-ternary
+      publicMode ? 'pub/' : isTenantRoleLevel() ? `${getCurrentOrganizationId()}/` : ''
     }lovs/value/batch`,
     {
-      query: params,
+      query: otherParams,
     }
   );
 }

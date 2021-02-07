@@ -50,7 +50,7 @@ export default class CreateForm extends React.Component {
   }
 
   renderForm() {
-    const { form, onParentLovChange = e => e } = this.props;
+    const { form, onParentLovChange = (e) => e } = this.props;
     return (
       <Form>
         <Form.Item
@@ -72,6 +72,12 @@ export default class CreateForm extends React.Component {
                   .get('hzero.common.validation.codeUpper')
                   .d('全大写及数字，必须以字母、数字开头，可包含“-”、“_”、“.”、“/”'),
               },
+              {
+                max: 60,
+                message: intl.get('hzero.common.validation.max', {
+                  max: 60,
+                }),
+              },
             ],
           })(<Input trim typeCase="upper" inputChinese={false} />)}
         </Form.Item>
@@ -86,6 +92,12 @@ export default class CreateForm extends React.Component {
                 required: true,
                 message: intl.get('hzero.common.validation.notNull', {
                   name: intl.get('hpfm.dimensionConfig.model.header.dimensionName').d('维度名称'),
+                }),
+              },
+              {
+                max: 240,
+                message: intl.get('hzero.common.validation.max', {
+                  max: 240,
                 }),
               },
             ],
@@ -127,6 +139,7 @@ export default class CreateForm extends React.Component {
               queryParams={{
                 lovQueryFlag: 1,
                 lovTypeCode: 'IDP',
+                // eslint-disable-next-line no-nested-ternary
                 tenantId: !isTenantRoleLevel()
                   ? form.getFieldValue('tenantId') !== undefined
                     ? form.getFieldValue('tenantId')
@@ -142,7 +155,16 @@ export default class CreateForm extends React.Component {
           wrapperCol={{ span: 16 }}
           label={intl.get('hpfm.valueList.model.header.description').d('描述')}
         >
-          {form.getFieldDecorator('description')(
+          {form.getFieldDecorator('description', {
+            rules: [
+              {
+                max: 480,
+                message: intl.get('hzero.common.validation.max', {
+                  max: 480,
+                }),
+              },
+            ],
+          })(
             <TLEditor
               label={intl.get('hpfm.valueList.model.header.description').d('描述')}
               field="description"

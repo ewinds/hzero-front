@@ -332,7 +332,7 @@ export default class Client extends React.Component {
       },
       {
         title: intl.get('hiam.client.model.client.authorizedGrantTypes').d('授权类型'),
-        dataIndex: 'authorizedGrantTypes',
+        dataIndex: 'authGrantTypeMeanings',
         // width: 200,
         render: (text) => {
           const typeListT = text.split(',') || [];

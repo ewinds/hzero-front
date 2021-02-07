@@ -2,8 +2,15 @@ import pathToRegexp from 'path-to-regexp';
 import { forEach, isBoolean, isNumber, isUndefined, map } from 'lodash';
 import { localeContext } from 'choerodon-ui/pro';
 import moment from 'moment';
+import qs from 'query-string';
 
-import { getCurrentOrganizationId, getCurrentRole, getResponse, resolveRequire } from 'utils/utils';
+import {
+  getCurrentOrganizationId,
+  getCurrentRole,
+  getResponse,
+  resolveRequire,
+  getCurrentUser,
+} from 'utils/utils';
 import {
   getInitialActiveTabKey,
   getInitialTabData,
@@ -14,16 +21,17 @@ import {
 import intl from 'utils/intl';
 import { getRouterData } from 'utils/router';
 
+import { getDvaApp } from 'utils/iocUtils';
 import {
   queryCount,
   queryMenu,
   queryPromptLocale,
+  queryPublicPromptLocale,
   queryUnifyIdpValue,
   updateDefaultLanguage,
 } from '../services/api';
 import { getC7nLocale, getC7nProLocale, getHzeroUILocale } from '../services/localeApi';
 import { endTrace, startTrace, getTraceStatus } from '../services/traceLogService';
-import { getDvaApp } from '../utils/iocUtils';
 
 /**
  * 将原始的菜单数据转成 intl 的多语言格式
@@ -95,7 +103,33 @@ async function querySupportLanguage() {
  * @param {Object[]} queryMenus
  */
 function getMenuNodeList(menu, queryMenus = []) {
+  const currentUser = getCurrentUser();
   for (let i = 0; i < menu.length; i++) {
+    if (
+      (menu[i].type === 'window' || menu[i].type === 'link') &&
+      menu[i].path &&
+      currentUser &&
+      menu[i].path.indexOf('${') > 0
+    ) {
+      const param = qs.parseUrl(menu[i].path);
+      const paramObj = param.query;
+      for (const key in paramObj) {
+        if (Object.prototype.hasOwnProperty.call(paramObj, key)) {
+          if (paramObj[key].match(/\${(\S*)}/) && paramObj[key].match(/\${(\S*)}/)[1]) {
+            if (currentUser[paramObj[key].match(/\${(\S*)}/)[1]]) {
+              const value = currentUser[paramObj[key].match(/\${(\S*)}/)[1]];
+              delete paramObj[key];
+              paramObj[key] = value;
+            } else {
+              delete paramObj[key];
+            }
+          }
+        }
+      }
+      // eslint-disable-next-line no-param-reassign
+      menu[i].path = qs.stringifyUrl({ url: param.url, query: paramObj });
+    }
+
     if (isUndefined(menu[i].children)) {
       queryMenus.push({ ...menu[i], title: menu[i].name && intl.get(menu[i].name) });
     } else {
@@ -631,11 +665,19 @@ function getGlobalModalConfig({ app, getWrapperRouterData = (e) => e }) {
         });
       },
 
-      *publicLayoutLanguage({ payload: { language } }, { put }) {
+      *publicLayoutLanguage({ payload: { language } }, { call, put }) {
+        console.log('===publicLayoutLanguage=====');
+        const commonPrompt = getResponse(
+          yield call(queryPublicPromptLocale, language, 'hzero.common')
+        );
+        console.log('===commonPrompt=====', commonPrompt);
         const loadLocales = (intl && intl.options && intl.options.locales) || {}; // 设置或切换 当前intl的语言
         intl.init({
           currentLocale: language,
           locales: loadLocales,
+        });
+        intl.load({
+          [language]: commonPrompt,
         });
         yield put({
           type: 'updateState',
@@ -696,7 +738,9 @@ function getGlobalModalConfig({ app, getWrapperRouterData = (e) => e }) {
             language,
           },
         });
+
         const supportLanguage = getResponse(yield call(querySupportLanguage));
+
         yield put({
           type: 'updateState',
           payload: {

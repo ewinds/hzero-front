@@ -88,7 +88,7 @@ export default class SecGrpListPage extends Component {
     return [
       { name: 'secGrpCode' },
       { name: 'secGrpName' },
-      { name: 'levelMeaning', width: 100 },
+      { name: 'secGrpLevelMeaning', width: 100 },
       { name: 'remark' },
       { name: 'createRoleName' },
       { name: 'enabledFlag', width: 120, renderer: ({ value }) => enableRender(value) },
@@ -331,7 +331,9 @@ export default class SecGrpListPage extends Component {
             {intl.get('hiam.securityGroup.model.securityGroup.create').d('快速创建')}
           </ButtonPermission>
           <div>
-            <span>{intl.get('hiam.securityGroup.model.securityGroup.roleLov').d('当前角色')}</span>
+            <span>
+              {intl.get('hiam.securityGroup.model.securityGroup.roleLov').d('当前角色')}：
+            </span>
             <Lov
               dataSet={this.roleLovDs}
               name="roleLov"

@@ -29,6 +29,7 @@ import {
   getCurrentOrganizationId,
   getCurrentUser,
   encryptPwd,
+  setSession,
 } from 'utils/utils';
 import { openTab } from 'utils/menuTab';
 import { HZERO_IAM } from 'utils/config';
@@ -38,6 +39,7 @@ import Search from './Search';
 import List from './List';
 import EditForm from './EditForm';
 import Password from './Password';
+import Phone from './Phone';
 import UserGroupModal from './UserGroupModal';
 import AssignSecGrpDrawer from './AssignSecGrp';
 import EmployeeModal from './EmployeeModal';
@@ -52,7 +54,8 @@ const { TreeNode } = Tree;
     'HIAM.SUB_ACCOUND.EDIT.FORM_EDIT',
   ],
 })
-@connect(({ subAccountOrg, loading, userInfo }) => ({
+@connect(({ subAccountOrg, loading, userInfo, user }) => ({
+  user,
   userInfo,
   subAccountOrg,
   loading: loading.effects,
@@ -74,6 +77,8 @@ const { TreeNode } = Tree;
   queryAssignableSecGrpLoading: loading.effects['subAccountOrg/fetchAssignableSecGrp'],
   queryDataPermissionTabLoading: loading.effects['subAccountOrg/queryDataPermissionTab'],
   fetchEmployeeLoading: loading.effects['subAccountOrg/queryEmployee'],
+  postCaptchaLoading: loading.effects['subAccountOrg/postCaptcha'],
+  phoneLoading: loading.effects['subAccountOrg/resetPassword'],
   organizationId: getCurrentOrganizationId(),
   currentUser: getCurrentUser(),
 }))
@@ -90,6 +95,7 @@ export default class SubAccountOrg extends React.Component {
       currentRowData: {}, // 当前选中行数据
       drawerVisible: false, // 安全组模态框是否显示
       employeeVisible: false,
+      forceCodeVerify: false,
     };
   }
 
@@ -99,6 +105,7 @@ export default class SubAccountOrg extends React.Component {
   componentDidMount() {
     const {
       dispatch,
+      organizationId,
       subAccountOrg: { pagination },
     } = this.props;
     dispatch({
@@ -110,6 +117,14 @@ export default class SubAccountOrg extends React.Component {
     // 获取公钥
     dispatch({
       type: 'subAccountOrg/getPublicKey',
+    });
+    dispatch({
+      type: 'subAccountOrg/getPasswordRule',
+      payload: { organizationId },
+    }).then((res) => {
+      if (res) {
+        this.setState({ forceCodeVerify: res.forceCodeVerify });
+      }
     });
     this.handleSearch(pagination);
   }
@@ -178,19 +193,25 @@ export default class SubAccountOrg extends React.Component {
   @Bind()
   handleCreateBtnClick() {
     const { currentUser, dispatch } = this.props;
-    this.setState({
-      editModalProps: {
-        visible: true,
-      },
-      editFormProps: {
-        isCreate: true,
-        key: uuid(),
-        tenantName: currentUser && currentUser.tenantName,
-      },
+    const { forceCodeVerify } = this.state;
+    dispatch({
+      type: 'subAccountOrg/queryLabelList',
+      payload: { level: 'TENANT', type: 'ROLE' },
+    }).then(() => {
+      this.setState({
+        editModalProps: {
+          visible: true,
+        },
+        editFormProps: {
+          isCreate: true,
+          key: uuid(),
+          tenantName: currentUser && currentUser.tenantName,
+        },
+      });
     });
     dispatch({
       type: 'subAccountOrg/getPasswordRule',
-      payload: { organizationId: currentUser.organizationId },
+      payload: { organizationId: currentUser.organizationId, forceCodeVerify },
     });
   }
 
@@ -211,6 +232,10 @@ export default class SubAccountOrg extends React.Component {
       },
     }).then((res) => {
       if (res) {
+        dispatch({
+          type: 'subAccountOrg/queryLabelList',
+          payload: { level: record.level === 'site' ? 'SITE' : 'TENANT', type: 'ROLE' },
+        });
         this.setState({
           editModalProps: {
             visible: true,
@@ -383,23 +408,180 @@ export default class SubAccountOrg extends React.Component {
   // }
 
   /**
+   * 重置密码
+   * @param {object} editRecord
+   */
+  @Bind()
+  handleRecordResetPassword(record) {
+    const {
+      dispatch,
+      user: {
+        currentUser: { phoneCheckFlag },
+      },
+      subAccountOrg: { phoneProps },
+    } = this.props;
+    const { forceCodeVerify } = this.state;
+    if (forceCodeVerify) {
+      if (phoneCheckFlag) {
+        dispatch({
+          type: 'subAccountOrg/openPhone',
+          payload: {
+            userInfo: record,
+          },
+        });
+      } else {
+        notification.warning({
+          message: intl
+            .get('hiam.userInfo.view.confirmBindPhone')
+            .d('当前用户未绑定手机号，请先绑定手机号。'),
+        });
+      }
+    } else {
+      dispatch({
+        type: 'subAccountOrg/updateState',
+        payload: {
+          phoneProps: {
+            ...phoneProps,
+            visible: false,
+            userInfo: record,
+          },
+        },
+      });
+      Modal.confirm({
+        title: (
+          <span>
+            {intl.get('hiam.userInfo.view.confirmResetPassword1').d(`是否确认重置`)}
+            <span style={{ color: '#40a9ff99' }}>{`${record.realName}(${record.loginName})`}</span>
+            {intl.get('hiam.userInfo.view.confirmResetPassword2').d('的密码')}
+          </span>
+        ),
+        onOk: () => {
+          this.handlePasswordReset();
+        },
+        onCancel: () => {},
+      });
+    }
+  }
+
+  /**
+   * 重置密码
+   * @param {object} fieldsValue
+   */
+  @Bind()
+  handlePasswordReset(params = {}) {
+    const {
+      dispatch,
+      subAccountOrg: { phoneProps: { userInfo = {} } = {} },
+    } = this.props;
+    const { id, organizationId: userOrganizationId } = userInfo;
+    dispatch({
+      type: 'subAccountOrg/resetPassword',
+      payload: { id, userOrganizationId, ...params },
+    }).then((res) => {
+      if (res) {
+        notification.success();
+        this.handleClosePhone();
+      }
+    });
+  }
+
+  /**
+   * handleClosePassword-关闭密码修改模态框
+   */
+  @Bind()
+  handleClosePhone() {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'subAccountOrg/closePhone',
+    });
+  }
+
+  /**
    * handleRecordUpdatePassword-修改密码按钮点击
    * @param {Object} record 账号
    */
   @Bind()
   handleRecordUpdatePassword(record) {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'subAccountOrg/openPassword',
-      payload: {
-        userInfo: record,
+    const {
+      dispatch,
+      user: {
+        currentUser: { phoneCheckFlag },
       },
-    });
+    } = this.props;
+    const { forceCodeVerify } = this.state;
     dispatch({
       type: 'subAccountOrg/getPasswordRule',
-      payload: { organizationId: record.organizationId },
+      payload: { organizationId: record.organizationId, forceCodeVerify },
+    }).then((res) => {
+      if (res && forceCodeVerify) {
+        if (res && phoneCheckFlag) {
+          dispatch({
+            type: 'subAccountOrg/openPassword',
+            payload: {
+              userInfo: record,
+            },
+          });
+        } else {
+          notification.warning({
+            message: intl
+              .get('hiam.userInfo.view.confirmBindPhone')
+              .d('当前用户未绑定手机号，请先绑定手机号。'),
+          });
+        }
+      } else {
+        dispatch({
+          type: 'subAccountOrg/openPassword',
+          payload: {
+            userInfo: record,
+          },
+        });
+      }
     });
     this.setState({ editRecord: record });
+  }
+
+  /**
+   * 发送验证码
+   */
+  @Bind()
+  handleSendCaptcha() {
+    const {
+      dispatch,
+      user: {
+        currentUser: { phone },
+      },
+    } = this.props;
+    dispatch({
+      type: 'subAccountOrg/postCaptcha',
+      payload: { phone },
+    });
+  }
+
+  /**
+   * 停止计时
+   */
+  @Bind()
+  handleEnd() {
+    const {
+      dispatch,
+      subAccountOrg: { passwordProps, phoneProps },
+    } = this.props;
+    setSession(`sub-account-org-phone`, 0);
+    dispatch({
+      type: 'subAccountOrg/updateState',
+      payload: {
+        passwordProps: {
+          ...passwordProps,
+          validCodeLimitTimeEnd: 0,
+          validCodeSendLimitFlag: false,
+        },
+        phoneProps: {
+          ...phoneProps,
+          validCodeLimitTimeEnd: 0,
+          validCodeSendLimitFlag: false,
+        },
+      },
+    });
   }
 
   /**
@@ -935,6 +1117,7 @@ export default class SubAccountOrg extends React.Component {
         createSubRoles = [],
         enumMap = {},
         passwordProps = {},
+        phoneProps = {},
         unitsTree = [],
         pagination = false,
         dataSource = [],
@@ -949,8 +1132,14 @@ export default class SubAccountOrg extends React.Component {
         secGrpDataPermissionTabList = [],
         employeeList = [],
         employeePagination = {},
+        labelList = [],
       },
+      user: {
+        currentUser: { phone },
+      },
+      phoneLoading = false,
       querySecGrpLoading = false,
+      postCaptchaLoading = false,
       deleteSecGrpLoading = false,
       assignSecGrpLoading = false,
       queryFieldConfigLoading = false,
@@ -1010,6 +1199,8 @@ export default class SubAccountOrg extends React.Component {
       openSecurityGroupDrawer: this.openSecurityGroupDrawer,
       handleUnlock: this.handleUnlock,
       handleViewEmployee: this.handleViewEmployee,
+      handleRecordResetPassword: this.handleRecordResetPassword,
+      labelList,
     };
     const modalProps = {
       ...editModalProps,
@@ -1047,6 +1238,7 @@ export default class SubAccountOrg extends React.Component {
         this.editForm = node;
       },
       customizeForm,
+      labelList,
     };
     const secGrpDrawerProps = {
       path,
@@ -1157,12 +1349,27 @@ export default class SubAccountOrg extends React.Component {
         )}
         <Password
           {...passwordProps}
+          phone={phone}
           publicKey={publicKey}
           editRecord={editRecord}
           passwordTipMsg={passwordTipMsg}
           confirmLoading={updatingPassword}
+          postCaptchaLoading={postCaptchaLoading}
+          onEnd={this.handleEnd}
+          onSend={this.handleSendCaptcha}
           onOk={this.handlePasswordUpdate}
           onCancel={this.handleClosePassword}
+        />
+        <Phone
+          {...phoneProps}
+          phone={phone}
+          editRecord={editRecord}
+          confirmLoading={phoneLoading}
+          postCaptchaLoading={postCaptchaLoading}
+          onEnd={this.handleEnd}
+          onSend={this.handleSendCaptcha}
+          onOk={this.handlePasswordReset}
+          onCancel={this.handleClosePhone}
         />
         <AssignSecGrpDrawer {...secGrpDrawerProps} />
         {groupModalProps.visible && (

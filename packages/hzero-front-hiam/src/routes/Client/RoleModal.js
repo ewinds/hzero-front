@@ -47,6 +47,7 @@ export default class RoleModal extends React.PureComponent {
       excludeUserIds = [],
       excludeVisitRoleIds = [],
       roleType,
+      id,
     } = this.props;
     const params =
       roleType === 'permission'
@@ -56,19 +57,21 @@ export default class RoleModal extends React.PureComponent {
             ...form.getFieldsValue(),
             excludeRoleIds,
             excludeUserIds,
+            memberId: id,
             ...pagination,
           }
         : {
             level: 'organization',
             ...form.getFieldsValue(),
             ...pagination,
+            memberId: id,
             excludeRoleIds: excludeVisitRoleIds,
           };
     this.setState({
       fetchRolesLoading: true,
     });
     fetchRoles(params).then(
-      res => {
+      (res) => {
         const nextState = {
           fetchRolesLoading: false,
         };
@@ -92,7 +95,7 @@ export default class RoleModal extends React.PureComponent {
   @Bind()
   handleRowSelectionChange(_, selectedRows) {
     this.setState({
-      selectedRowKeys: selectedRows.map(r => r.id),
+      selectedRowKeys: selectedRows.map((r) => r.id),
       selectedRows,
     });
   }

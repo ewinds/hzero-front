@@ -11,6 +11,7 @@ import { Col, Icon, Row, Spin } from 'hzero-ui';
 import { Bind } from 'lodash-decorators';
 import { isUndefined } from 'lodash';
 import classNames from 'classnames';
+import queryString from 'query-string';
 
 import { Content, Header } from 'components/Page';
 import { Button as ButtonPermission } from 'components/Permission';
@@ -236,7 +237,9 @@ export default class Staff extends Component {
       match,
       addStaffLoading = false,
       deleteStaffLoading = false,
+      location: { search },
     } = this.props;
+    const { fromSource } = queryString.parse(search.substring(1));
     const { addibleStaff, addedStaff, positionName } = staff;
     const { addedRowKeys, addibleRowKeys, fistLoadedLoading = true } = this.state;
     const leftProps = {
@@ -261,11 +264,15 @@ export default class Staff extends Component {
       onChange: this.handleAddedStaff,
       onRef: this.handleBindRef,
     };
+    const backPath =
+      fromSource === 'company'
+        ? `/hpfm/hr/org/post/${staff.unitId}?fromSource=company`
+        : `/hpfm/hr/org/post/${staff.unitId}`;
     return (
       <Fragment>
         <Header
           title={intl.get('hpfm.employee.view.message.title.assign').d('岗位分配员工')}
-          backPath={`/hpfm/hr/org/post/${staff.unitId}`}
+          backPath={backPath}
         />
         <Content className={classNames(styles['hpfm-hr-staff'])}>
           {fistLoadedLoading ? (

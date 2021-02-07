@@ -68,9 +68,10 @@ export default class FilterForm extends PureComponent {
                 {...SEARCH_FORM_ITEM_LAYOUT}
                 label={intl.get('hpfm.database.model.database.datasourceId').d('数据源代码')}
               >
-                {getFieldDecorator('datasourceId', {})(
-                  <Lov code="HPFM.DATABASE.DATASOURCE" queryParams={{ dsPurposeCode: 'DT' }} />
-                )}
+                {getFieldDecorator(
+                  'datasourceId',
+                  {}
+                )(<Lov code="HPFM.DATABASE.DATASOURCE" queryParams={{ dsPurposeCode: 'DT' }} />)}
               </Form.Item>
             </Col>
             <Col {...FORM_COL_4_LAYOUT}>
@@ -84,7 +85,7 @@ export default class FilterForm extends PureComponent {
             <Col {...FORM_COL_4_LAYOUT} className={SEARCH_COL_CLASSNAME}>
               <Form.Item>
                 <Button data-code="reset" onClick={this.handleFormReset}>
-                  {intl.get('hzero.common.status.reset').d('重置')}
+                  {intl.get('hzero.common.button.reset').d('重置')}
                 </Button>
                 <Button
                   data-code="search"
@@ -92,7 +93,7 @@ export default class FilterForm extends PureComponent {
                   htmlType="submit"
                   onClick={this.handleFetch}
                 >
-                  {intl.get('hzero.common.status.search').d('查询')}
+                  {intl.get('hzero.common.button.search').d('查询')}
                 </Button>
               </Form.Item>
             </Col>

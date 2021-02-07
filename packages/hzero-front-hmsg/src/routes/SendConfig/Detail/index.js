@@ -19,6 +19,7 @@ import { Content, Header } from 'components/Page';
 import Lov from 'components/Lov';
 import Switch from 'components/Switch';
 import { Button as ButtonPermission } from 'components/Permission';
+import TLEditor from 'components/TLEditor';
 
 import intl from 'utils/intl';
 import formatterCollections from 'utils/intl/formatterCollections';
@@ -702,7 +703,15 @@ export default class Detail extends Component {
                           }),
                         },
                       ],
-                    })(<Input />)}
+                    })(
+                      <TLEditor
+                        label={intl
+                          .get('hmsg.sendConfig.model.sendConfig.messageName')
+                          .d('消息名称')}
+                        field="messageName"
+                        token={header ? header._token : null}
+                      />
+                    )}
                   </Form.Item>
                 </Col>
                 <Col {...FORM_COL_3_LAYOUT}>

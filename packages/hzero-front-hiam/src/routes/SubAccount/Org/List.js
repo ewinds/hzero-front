@@ -36,6 +36,7 @@ export default class ListTable extends React.Component {
       onApiFieldPermission,
       // handleRecordGrantBtnClick,
       handleRecordUpdatePassword,
+      handleRecordResetPassword,
       dataSource = [],
       pagination = {},
       openSecurityGroupDrawer = (e) => e,
@@ -279,6 +280,30 @@ export default class ListTable extends React.Component {
                 ),
               len: 4,
               title: intl.get('hiam.subAccount.view.option.passwordUpdate').d('修改密码'),
+            },
+            {
+              key: 'reset',
+              ele:
+                admin || record.id === currentUserId ? null : (
+                  <ButtonPermission
+                    type="text"
+                    permissionList={[
+                      {
+                        code: `${path}.button.reset`,
+                        type: 'button',
+                        meaning: '子账户管理-重置密码',
+                      },
+                    ]}
+                    key="password"
+                    onClick={() => {
+                      handleRecordResetPassword(record);
+                    }}
+                  >
+                    {intl.get('hiam.subAccount.view.option.resetPassword').d('重置密码')}
+                  </ButtonPermission>
+                ),
+              len: 4,
+              title: intl.get('hiam.subAccount.view.option.resetPassword').d('重置密码'),
             },
             {
               key: 'unlock',

@@ -6,7 +6,7 @@
  * @copyright Copyright (c) 2018, Hand
  */
 import React from 'react';
-import { Badge, Table, Tree } from 'hzero-ui';
+import { Badge, Table, Tree, Modal } from 'hzero-ui';
 import { connect } from 'dva';
 import { Bind } from 'lodash-decorators';
 import { isEmpty, join, map } from 'lodash';
@@ -20,12 +20,19 @@ import intl from 'utils/intl';
 import formatterCollections from 'utils/intl/formatterCollections';
 import { HZERO_IAM } from 'utils/config';
 import { dateRender, operatorRender } from 'utils/renderer';
-import { getCurrentUser, tableScrollWidth, encryptPwd } from 'utils/utils';
+import {
+  getCurrentUser,
+  tableScrollWidth,
+  encryptPwd,
+  setSession,
+  getCurrentOrganizationId,
+} from 'utils/utils';
 import { DEFAULT_DATE_FORMAT } from 'utils/constants';
 import notification from 'utils/notification';
 
 import FilterForm from './FilterForm';
 import EditPasswordModal from './components/EditPasswordModal';
+import EditPhoneModal from './components/EditPhoneModal';
 import EditModal from './components/EditModal';
 import UserGroupModal from './components/UserGroupModal';
 import EmployeeModal from './components/EmployeeModal';
@@ -39,9 +46,11 @@ const { TreeNode } = Tree;
     loading.effects['subAccount/createSubAccount'] ||
     loading.effects['subAccount/updateSubAccount'],
   passwordLoading: loading.effects['subAccount/updatePassword'],
+  phoneLoading: loading.effects['subAccount/resetPassword'],
   queryDetailLoading: loading.effects['subAccount/querySubAccount'],
   roleRemoveLoading: loading.effects['subAccount/removeRoles'],
   fetchEmployeeLoading: loading.effects['subAccount/queryEmployee'],
+  postCaptchaLoading: loading.effects['subAccount/postCaptcha'],
   currentUserId: (getCurrentUser() || {}).id,
   currentUser: getCurrentUser(),
   subAccount,
@@ -52,6 +61,7 @@ export default class SubAccountSite extends React.Component {
 
   state = {
     editPasswordModalProps: {},
+    editPhoneModalProps: {},
     editModalProps: {},
     groupModalProps: {},
     createPasswordRuleData: {},
@@ -61,6 +71,7 @@ export default class SubAccountSite extends React.Component {
     // checkedKeys: [],
     employeeVisible: false,
     currentUserId: '',
+    forceCodeVerify: false,
   };
 
   componentDidMount() {
@@ -76,6 +87,14 @@ export default class SubAccountSite extends React.Component {
     dispatch({
       type: 'subAccount/getPublicKey',
     });
+    dispatch({
+      type: 'subAccount/getPasswordRule',
+      payload: { organizationId: getCurrentOrganizationId() },
+    }).then((res) => {
+      if (res) {
+        this.setState({ forceCodeVerify: res.forceCodeVerify });
+      }
+    });
   }
 
   render() {
@@ -88,10 +107,16 @@ export default class SubAccountSite extends React.Component {
         lov: { level, levelMap, idd, gender, userType = [] } = {},
         employeeList = [],
         employeePagination = {},
+        labelList = [],
+      },
+      user: {
+        currentUser: { phone },
       },
       passwordLoading = false,
+      postCaptchaLoading = false,
       queryDetailLoading = false,
       roleRemoveLoading = false,
+      phoneLoading = false,
       fetching,
       saving,
       currentUser = {},
@@ -100,11 +125,13 @@ export default class SubAccountSite extends React.Component {
     } = this.props;
     const {
       editPasswordModalProps = {},
+      editPhoneModalProps = {},
       editModalProps = {},
       groupModalProps = {},
       editRecord = {},
       createPasswordRuleData = {},
       employeeVisible,
+      forceCodeVerify = false,
     } = this.state;
     return (
       <>
@@ -151,14 +178,33 @@ export default class SubAccountSite extends React.Component {
         </Content>
         {editPasswordModalProps.visible && (
           <EditPasswordModal
+            phone={phone}
             editRecord={editRecord}
             publicKey={publicKey}
-            passwordTipMsg={passwordTipMsg}
+            passwordTipMsg={{ ...passwordTipMsg, forceCodeVerify }}
             key="edit-modal-password"
             {...editPasswordModalProps}
+            postCaptchaLoading={postCaptchaLoading}
+            onEnd={this.handleEnd}
+            onSend={this.handleSendCaptcha}
             onCancel={this.handlePasswordModalHidden}
             onOk={this.handlePasswordUpdate}
             confirmLoading={passwordLoading}
+          />
+        )}
+        {editPhoneModalProps.visible && (
+          <EditPhoneModal
+            phone={phone}
+            editRecord={editRecord}
+            passwordTipMsg={passwordTipMsg}
+            key="reset-password"
+            {...editPhoneModalProps}
+            postCaptchaLoading={postCaptchaLoading}
+            onEnd={this.handleEnd}
+            onSend={this.handleSendCaptcha}
+            onCancel={this.handlePhoneModalHidden}
+            onOk={this.handlePasswordReset}
+            confirmLoading={phoneLoading}
           />
         )}
         {editModalProps.visible && (
@@ -184,6 +230,7 @@ export default class SubAccountSite extends React.Component {
             confirmLoading={saving}
             queryDetailLoading={queryDetailLoading}
             roleRemoveLoading={roleRemoveLoading}
+            labelList={labelList}
           />
         )}
         {groupModalProps.visible && (
@@ -249,9 +296,10 @@ export default class SubAccountSite extends React.Component {
   @Bind()
   handlePasswordRule(id) {
     const { dispatch } = this.props;
+    const { forceCodeVerify } = this.state;
     dispatch({
       type: 'subAccount/getPasswordRule',
-      payload: { organizationId: id },
+      payload: { organizationId: id, forceCodeVerify },
     }).then((res) => {
       if (res) {
         this.setState({ createPasswordRuleData: res });
@@ -519,6 +567,30 @@ export default class SubAccountSite extends React.Component {
               title: intl.get('hiam.subAccount.view.option.passwordUpdate').d('修改密码'),
             },
             {
+              key: 'reset',
+              ele:
+                admin || record.id === currentUserId ? null : (
+                  <ButtonPermission
+                    type="text"
+                    permissionList={[
+                      {
+                        code: `${path}.button.reset`,
+                        type: 'button',
+                        meaning: '子账户管理-重置密码',
+                      },
+                    ]}
+                    key="password"
+                    onClick={() => {
+                      this.handleRecordResetPassword(record);
+                    }}
+                  >
+                    {intl.get('hiam.subAccount.view.option.resetPassword').d('重置密码')}
+                  </ButtonPermission>
+                ),
+              len: 4,
+              title: intl.get('hiam.subAccount.view.option.resetPassword').d('重置密码'),
+            },
+            {
               key: 'unlock',
               ele: record.locked && (
                 <ButtonPermission
@@ -549,21 +621,196 @@ export default class SubAccountSite extends React.Component {
   }
 
   /**
+   * 重置密码
+   * @param {object} editRecord
+   */
+  @Bind()
+  handleRecordResetPassword(editRecord) {
+    const {
+      user: {
+        currentUser: { phoneCheckFlag },
+      },
+    } = this.props;
+    const { editPhoneModalProps, forceCodeVerify } = this.state;
+    if (forceCodeVerify) {
+      if (phoneCheckFlag) {
+        this.setState({
+          editPhoneModalProps: {
+            visible: true,
+            editRecord,
+            validCodeLimitTimeEnd: editPhoneModalProps.validCodeLimitTimeEnd,
+            validCodeSendLimitFlag: !!editPhoneModalProps.validCodeLimitTimeEnd,
+          },
+        });
+      } else {
+        notification.warning({
+          message: intl
+            .get('hiam.userInfo.view.confirmBindPhone')
+            .d('当前用户未绑定手机号，请先绑定手机号。'),
+        });
+      }
+    } else {
+      this.setState({
+        editPhoneModalProps: {
+          visible: false,
+          editRecord,
+          validCodeLimitTimeEnd: editPhoneModalProps.validCodeLimitTimeEnd,
+          validCodeSendLimitFlag: !!editPhoneModalProps.validCodeLimitTimeEnd,
+        },
+      });
+      Modal.confirm({
+        title: (
+          <span>
+            {intl.get('hiam.userInfo.view.confirmResetPassword1').d(`是否确认重置`)}
+            <span style={{ color: '#40a9ff99' }}>
+              {`${editRecord.realName}(${editRecord.loginName})`}
+            </span>
+            {intl.get('hiam.userInfo.view.confirmResetPassword2').d('的密码')}
+          </span>
+        ),
+        onOk: () => {
+          this.handlePasswordReset();
+        },
+        onCancel: () => {},
+      });
+    }
+  }
+
+  /**
+   * 重置密码
+   * @param {object} fieldsValue
+   */
+  @Bind()
+  handlePasswordReset(fieldsValue = {}) {
+    const { dispatch } = this.props;
+    const {
+      editPhoneModalProps: { editRecord = {} },
+    } = this.state;
+    const { id, organizationId } = editRecord;
+    dispatch({
+      type: 'subAccount/resetPassword',
+      payload: {
+        userId: id,
+        userOrganizationId: organizationId,
+        ...fieldsValue,
+      },
+    }).then((res) => {
+      if (res) {
+        notification.success();
+        this.handlePhoneModalHidden();
+      }
+    });
+  }
+
+  /**
    * 打开密码编辑模态框
    * @param {object} editRecord
    */
   @Bind()
   handleRecordUpdatePassword(editRecord) {
-    const { dispatch } = this.props;
-    this.setState({
-      editPasswordModalProps: {
-        visible: true,
-        editRecord,
+    const {
+      dispatch,
+      user: {
+        currentUser: { phoneCheckFlag },
       },
-    });
+    } = this.props;
+    const { editPasswordModalProps, forceCodeVerify } = this.state;
     dispatch({
       type: 'subAccount/getPasswordRule',
       payload: { organizationId: editRecord.organizationId },
+    }).then((res) => {
+      if (res && forceCodeVerify) {
+        if (res && phoneCheckFlag) {
+          this.setState({
+            editPasswordModalProps: {
+              visible: true,
+              editRecord,
+              validCodeLimitTimeEnd: editPasswordModalProps.validCodeLimitTimeEnd,
+              validCodeSendLimitFlag: !!editPasswordModalProps.validCodeLimitTimeEnd,
+            },
+          });
+        } else {
+          notification.warning({
+            message: intl
+              .get('hiam.userInfo.view.confirmBindPhone')
+              .d('当前用户未绑定手机号，请先绑定手机号。'),
+          });
+        }
+      } else {
+        this.setState({
+          editPasswordModalProps: {
+            visible: true,
+            editRecord,
+          },
+        });
+      }
+    });
+  }
+
+  /**
+   * 发送验证码
+   */
+  @Bind()
+  handleSendCaptcha() {
+    const {
+      dispatch,
+      user: {
+        currentUser: { phone },
+      },
+    } = this.props;
+    dispatch({
+      type: 'subAccount/postCaptcha',
+      payload: { phone },
+    }).then((res) => {
+      if (res) {
+        const { editPasswordModalProps, editPhoneModalProps } = this.state;
+        this.setState({
+          editPasswordModalProps: {
+            ...editPasswordModalProps,
+            ...res,
+          },
+          editPhoneModalProps: {
+            ...editPhoneModalProps,
+            ...res,
+          },
+        });
+      }
+    });
+  }
+
+  /**
+   * 停止计时
+   */
+  @Bind()
+  handleEnd() {
+    const { editPasswordModalProps, editPhoneModalProps } = this.state;
+    setSession(`sub-account-phone`, 0);
+    this.setState({
+      editPasswordModalProps: {
+        ...editPasswordModalProps,
+        validCodeLimitTimeEnd: 0,
+        validCodeSendLimitFlag: false,
+      },
+      editPhoneModalProps: {
+        ...editPhoneModalProps,
+        validCodeLimitTimeEnd: 0,
+        validCodeSendLimitFlag: false,
+      },
+    });
+  }
+
+  /**
+   * 隐藏重置密码模态框
+   */
+  @Bind()
+  handlePhoneModalHidden() {
+    const { editPhoneModalProps } = this.state;
+    this.setState({
+      editPhoneModalProps: {
+        visible: false,
+        validCodeLimitTimeEnd: editPhoneModalProps.validCodeLimitTimeEnd,
+        validCodeSendLimitFlag: !!editPhoneModalProps.validCodeLimitTimeEnd,
+      },
     });
   }
 
@@ -572,9 +819,12 @@ export default class SubAccountSite extends React.Component {
    */
   @Bind()
   handlePasswordModalHidden() {
+    const { editPasswordModalProps } = this.state;
     this.setState({
       editPasswordModalProps: {
         visible: false,
+        validCodeLimitTimeEnd: editPasswordModalProps.validCodeLimitTimeEnd,
+        validCodeSendLimitFlag: !!editPasswordModalProps.validCodeLimitTimeEnd,
       },
     });
   }
@@ -612,14 +862,20 @@ export default class SubAccountSite extends React.Component {
   showCreateForm() {
     const {
       user: { currentUser: { organizationId } = {} },
+      dispatch,
     } = this.props;
     this.handlePasswordRule(organizationId);
-    this.setState({
-      editModalProps: {
-        visible: true,
-        isCreate: true,
-        isAdmin: false,
-      },
+    dispatch({
+      type: 'subAccount/queryLabelList',
+      payload: { level: 'SITE', type: 'ROLE' },
+    }).then(() => {
+      this.setState({
+        editModalProps: {
+          visible: true,
+          isCreate: true,
+          isAdmin: false,
+        },
+      });
     });
   }
 
@@ -650,6 +906,11 @@ export default class SubAccountSite extends React.Component {
    */
   @Bind()
   showEditModal(editRecord) {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'subAccount/queryLabelList',
+      payload: { level: editRecord.level === 'site' ? 'SITE' : 'TENANT', type: 'ROLE' },
+    });
     this.setState({
       editModalProps: {
         visible: true,

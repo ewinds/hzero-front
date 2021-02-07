@@ -9,6 +9,7 @@ import { Form, Input, Modal, Spin } from 'hzero-ui';
 import { isUndefined } from 'lodash';
 import { Bind } from 'lodash-decorators';
 
+import TLEditor from 'components/TLEditor';
 import Switch from 'components/Switch';
 import Lov from 'components/Lov';
 
@@ -25,7 +26,7 @@ const FormItem = Form.Item;
 export default class MessageForm extends React.PureComponent {
   @Bind()
   handleOK() {
-    const { form, onOk = e => e } = this.props;
+    const { form, onOk = (e) => e } = this.props;
     form.validateFields((err, fieldsValue) => {
       if (!err) {
         onOk(fieldsValue);
@@ -61,6 +62,7 @@ export default class MessageForm extends React.PureComponent {
       enabledFlag,
       tenantName,
       tenantId,
+      _token,
     } = initData;
     const { getFieldDecorator } = form;
     return (
@@ -159,7 +161,16 @@ export default class MessageForm extends React.PureComponent {
                     message: intl.get('hzero.common.validation.max', { max: 50 }),
                   },
                 ],
-              })(<Input dbc2sbc={false} />)}
+              })(
+                <TLEditor
+                  label={intl
+                    .get('hiam.userGroupManagement.model.userGroup.groupName')
+                    .d('用户组名称')}
+                  field="groupName"
+                  token={_token}
+                  dbc2sbc={false}
+                />
+              )}
             </FormItem>
             <FormItem
               {...MODAL_FORM_ITEM_LAYOUT}

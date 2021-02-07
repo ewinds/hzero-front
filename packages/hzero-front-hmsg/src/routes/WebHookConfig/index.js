@@ -204,7 +204,7 @@ const WebHookConfig = ({ match: { path } }) => {
 
   return (
     <>
-      <Header title={intl.get('hmsg.webhookConfig.view.title.webHookConfig').d('WebHook配置')}>
+      <Header title={intl.get('hmsg.webhookConfig.view.title.webHookConfig').d('WebHook接收方')}>
         <ButtonPermission
           type="c7n-pro"
           permissionList={[

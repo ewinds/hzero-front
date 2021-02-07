@@ -5,11 +5,10 @@
  */
 
 import React from 'react';
-import { Form, SelectBox, Select, Button, Lov, TextField, Switch, DataSet } from 'choerodon-ui/pro';
+import { Form, SelectBox, Select, Button, Lov, TextField, Switch } from 'choerodon-ui/pro';
 import { Bind } from 'lodash-decorators';
 import { WithCustomizeC7N as withCustomize } from 'components/Customize';
 import intl from 'utils/intl';
-import { getResponse } from 'utils/utils';
 
 import { fetchEmployeeDetail } from '@/services/newOrganizationService';
 
@@ -43,8 +42,13 @@ export default class CreateEmployeeDrawer extends React.Component {
             partTimePositionId: record.positionId,
             unitId: record.unitId,
             unitName: record.unitName,
+            partTimePositionName: record.positionName,
+            partTimePositionLov: {
+              positionId: record.positionId,
+              positionName: record.positionName,
+            },
           }));
-        const { unitId, unitName, positionId } = list.filter(
+        const { unitId, unitName, positionId, positionName } = list.filter(
           (item) => item.primaryPositionFlag === 1
         )[0];
         employeeFormDS.loadData([
@@ -60,48 +64,49 @@ export default class CreateEmployeeDrawer extends React.Component {
             unitId,
             unitName,
             positionId,
+            positionName,
             objectVersionNumber,
             _token,
           },
         ]);
         employeePositionFormDS.loadData(partTimeList);
         employeePositionFormDS.map((record) => {
-          record.getField('partTimePositionId').setLovPara('unitId', unitId);
-          record
-            .getField('partTimePositionId')
-            .fetchLookup()
-            .then((res) => {
-              if (res && getResponse(res)) {
-                record.getField('partTimePositionId').set(
-                  'options',
-                  new DataSet({
-                    selection: 'single',
-                    data: res,
-                    paging: false,
-                  })
-                );
-              }
-              this.setState({});
-            });
+          record.getField('partTimePositionLov').setLovPara('unitId', unitId);
+          // record
+          //   .getField('partTimePositionId')
+          //   .fetchLookup()
+          //   .then((res) => {
+          //     if (res && getResponse(res)) {
+          //       record.getField('partTimePositionId').set(
+          //         'options',
+          //         new DataSet({
+          //           selection: 'single',
+          //           data: res,
+          //           paging: false,
+          //         })
+          //       );
+          //     }
+          //     this.setState({});
+          //   });
           return true;
         });
-        employeeFormDS.current.getField('positionId').setLovPara('unitId', unitId);
-        employeeFormDS.current
-          .getField('positionId')
-          .fetchLookup()
-          .then((res) => {
-            if (res && getResponse(res)) {
-              employeeFormDS.current.getField('positionId').set(
-                'options',
-                new DataSet({
-                  selection: 'single',
-                  data: res,
-                  paging: false,
-                })
-              );
-            }
-            this.setState({});
-          });
+        employeeFormDS.current.getField('positionLov').setLovPara('unitId', unitId);
+        // employeeFormDS.current
+        //   .getField('positionId')
+        //   .fetchLookup()
+        //   .then((res) => {
+        //     if (res && getResponse(res)) {
+        //       employeeFormDS.current.getField('positionId').set(
+        //         'options',
+        //         new DataSet({
+        //           selection: 'single',
+        //           data: res,
+        //         })
+        //       );
+        //     }
+        //     this.setState({});
+        //   });
+        this.setState({});
       });
     } else {
       employeeFormDS.create({});
@@ -118,22 +123,22 @@ export default class CreateEmployeeDrawer extends React.Component {
   @Bind()
   dataChange(item) {
     item.set('partTimePositionId', '');
-    item.getField('partTimePositionId').setLovPara('unitId', item.get('unitId'));
-    item
-      .getField('partTimePositionId')
-      .fetchLookup()
-      .then((res) => {
-        if (res && getResponse(res)) {
-          item.getField('partTimePositionId').set(
-            'options',
-            new DataSet({
-              selection: 'single',
-              data: res,
-              paging: false,
-            })
-          );
-        }
-      });
+    item.getField('partTimePositionLov').setLovPara('unitId', item.get('unitId'));
+    // item
+    //   .getField('partTimePositionId')
+    //   .fetchLookup()
+    //   .then((res) => {
+    //     if (res && getResponse(res)) {
+    //       item.getField('partTimePositionId').set(
+    //         'options',
+    //         new DataSet({
+    //           selection: 'single',
+    //           data: res,
+    //           paging: false,
+    //         })
+    //       );
+    //     }
+    //   });
   }
 
   @Bind()
@@ -150,10 +155,10 @@ export default class CreateEmployeeDrawer extends React.Component {
             this.dataChange(item);
           }}
         />,
-        <Select
+        <Lov
           record={item}
           label={intl.get('hpfm.organization.model.department.position').d('岗位')}
-          name="partTimePositionId"
+          name="partTimePositionLov"
         />,
       ]),
     ];
@@ -168,21 +173,20 @@ export default class CreateEmployeeDrawer extends React.Component {
     employeeFormDS.current
       .getField('positionId')
       .setLovPara('unitId', employeeFormDS.current.get('unitId'));
-    employeeFormDS.current
-      .getField('positionId')
-      .fetchLookup()
-      .then((res) => {
-        if (res && getResponse(res)) {
-          employeeFormDS.current.getField('positionId').set(
-            'options',
-            new DataSet({
-              selection: 'single',
-              data: res,
-              paging: false,
-            })
-          );
-        }
-      });
+    // employeeFormDS.current
+    //   .getField('positionId')
+    //   .fetchLookup()
+    //   .then((res) => {
+    //     if (res && getResponse(res)) {
+    //       employeeFormDS.current.getField('positionId').set(
+    //         'options',
+    //         new DataSet({
+    //           selection: 'single',
+    //           data: res,
+    //         })
+    //       );
+    //     }
+    //   });
   }
 
   render() {
@@ -201,7 +205,7 @@ export default class CreateEmployeeDrawer extends React.Component {
             <TextField name="mobile" />
             <TextField name="email" />
             <Lov name="departmentLov" onChange={this.departmentLovChange} />
-            <Select name="positionId" />
+            <Lov name="positionLov" />
             <SelectBox name="status">
               <Option value="ON">
                 {intl.get('hpfm.organization.model.department.onPosition').d('在职')}

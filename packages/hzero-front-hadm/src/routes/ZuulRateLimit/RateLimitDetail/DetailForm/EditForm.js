@@ -72,8 +72,8 @@ const EditFrom = ({
       return [];
     } else {
       return rateLimitDimension
-        .map(dimensionValue => {
-          const dimensionItem = dimensionTypes.find(item => item.value === dimensionValue);
+        .map((dimensionValue) => {
+          const dimensionItem = dimensionTypes.find((item) => item.value === dimensionValue);
           return (
             dimensionItem && {
               // 仅做显示
@@ -175,7 +175,7 @@ const EditFrom = ({
         <Col {...FORM_COL_2_LAYOUT}>
           <Form.Item
             {...MODAL_FORM_ITEM_LAYOUT}
-            label={intl.get(`hadm.zuulRateLimit.model.zuulRateLimit.path`).d('服务路由')}
+            label={intl.get(`hadm.common.model.common.serviceRoute`).d('服务路由')}
           >
             {form.getFieldDecorator('serviceRouteId', {
               initialValue: initData.serviceRouteId,
@@ -183,7 +183,7 @@ const EditFrom = ({
                 {
                   required: true,
                   message: intl.get('hzero.common.validation.notNull', {
-                    name: intl.get(`hadm.zuulRateLimit.model.zuulRateLimit.path`).d('服务路由'),
+                    name: intl.get(`hadm.common.model.common.serviceRoute`).d('服务路由'),
                   }),
                 },
               ],
@@ -234,7 +234,7 @@ const EditFrom = ({
               ],
             })(
               <Select allowClear disabled={!dimensionAllowChange} mode="multiple">
-                {dimensionTypes.map(item => (
+                {dimensionTypes.map((item) => (
                   <Select.Option value={item.value} key={item.value}>
                     {item.meaning}
                   </Select.Option>

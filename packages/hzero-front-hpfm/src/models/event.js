@@ -4,7 +4,7 @@
  */
 
 import { getResponse, createPagination } from 'utils/utils';
-import { queryIdpValue } from 'hzero-front/lib/services/api';
+import { queryMapIdpValue, queryIdpValue } from 'hzero-front/lib/services/api';
 import eventService from '../services/eventService';
 
 export default {
@@ -18,9 +18,29 @@ export default {
     messageList: {}, // 消息列表
     messageTypeCode: [], // 消息类型
     pagination: {}, // 分页信息对象
+    typeList: [],
+    apiList: [],
   },
 
   effects: {
+    // 获取初始化数据
+    *init(_, { call, put }) {
+      const res = getResponse(
+        yield call(queryMapIdpValue, {
+          typeList: 'HPFM.EVENT.CALL_TYPE',
+          apiList: 'HPFM.EVENT_RULE.API_METHOD',
+        })
+      );
+      const { typeList, apiList } = res;
+      yield put({
+        type: 'updateState',
+        payload: {
+          typeList,
+          apiList,
+        },
+      });
+    },
+
     *query({ payload }, { call, put }) {
       const response = yield call(eventService.queryEvents, payload);
       const list = getResponse(response);

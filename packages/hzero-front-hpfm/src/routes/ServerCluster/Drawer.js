@@ -245,7 +245,7 @@ export default class Drawer extends Component {
                   <Lov
                     code="HPFM.TENANT"
                     textValue={tenantName}
-                    disabled={!!tenantId || tenantId === 0}
+                    disabled={!!tenantId || String(tenantId) === '0'}
                   />
                 )}
               </Form.Item>

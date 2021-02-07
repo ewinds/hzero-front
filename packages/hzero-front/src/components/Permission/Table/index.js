@@ -32,31 +32,27 @@ export default class TablePermission extends React.Component {
     const checkColumns = [];
 
     // 收集列中的权限集，存放在队列中
-    columns.forEach(item => {
+    columns.forEach((item) => {
       const { permissionList } = item;
       if (permissionList && Array.isArray(permissionList)) {
-        permissionList.forEach(key => {
-          this.codeQueue.add(
-            key.code
-              .replace(/^\//g, '')
-              .replace(/\//g, '.')
-              .replace(/:/g, '-')
-          );
+        permissionList.forEach((key) => {
+          this.codeQueue.add(key.code.replace(/^\//g, '').replace(/\//g, '.').replace(/:/g, '-'));
         });
       }
     });
 
     if (this.codeQueue.size > 0) {
-      checkPermission(Array.from(this.codeQueue)).then(data => {
+      checkPermission(Array.from(this.codeQueue)).then((data) => {
         if (getResponse(data)) {
           // 将列中的权限集与鉴权结果做比对，去除鉴权失败的列
-          columns.forEach(items => {
+          columns.forEach((items) => {
             data.some(({ code, approve }) => {
               if (
                 items.permissionList === undefined ||
                 // approved=true，则controllerType=disabled则禁用，如果为hidden，则隐藏。非这两个值，则不控制
                 (items.permissionList.some(
-                  key => key.code.replace(/^\//g, '').replace(/\//g, '.') === code
+                  (key) =>
+                    key.code.replace(/^\//g, '').replace(/\//g, '.').replace(/:/g, '-') === code
                 ) &&
                   approve)
               ) {
@@ -64,7 +60,7 @@ export default class TablePermission extends React.Component {
               }
               return (
                 items.permissionList === undefined ||
-                (items.permissionList.some(key => key.code === code) && approve)
+                (items.permissionList.some((key) => key.code === code) && approve)
               );
             });
           });

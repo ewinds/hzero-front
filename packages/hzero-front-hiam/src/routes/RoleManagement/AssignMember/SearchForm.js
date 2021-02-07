@@ -34,12 +34,20 @@ export default class SearchForm extends React.Component {
 
   render() {
     const {
-      form: { getFieldDecorator = e => e },
+      form: { getFieldDecorator = (e) => e },
       disabled,
     } = this.props;
     return (
       <Form>
         <Row type="flex" gutter={24} align="bottom" {...SEARCH_FORM_ROW_LAYOUT}>
+          <Col {...FORM_COL_3_LAYOUT}>
+            <Form.Item
+              {...SEARCH_FORM_ITEM_LAYOUT}
+              label={intl.get('hiam.roleManagement.model.roleManagement.loginName').d('账户')}
+            >
+              {getFieldDecorator('userLoginName')(<Input className={FORM_FIELD_CLASSNAME} />)}
+            </Form.Item>
+          </Col>
           <Col {...FORM_COL_3_LAYOUT}>
             <Form.Item
               {...SEARCH_FORM_ITEM_LAYOUT}
@@ -61,6 +69,14 @@ export default class SearchForm extends React.Component {
               >
                 {intl.get('hzero.common.button.search').d('查询')}
               </Button>
+            </Form.Item>
+          </Col>
+          <Col {...FORM_COL_3_LAYOUT}>
+            <Form.Item
+              {...SEARCH_FORM_ITEM_LAYOUT}
+              label={intl.get('hiam.roleManagement.model.roleManagement.tenant').d('所属租户')}
+            >
+              {getFieldDecorator('tenantName')(<Input className={FORM_FIELD_CLASSNAME} />)}
             </Form.Item>
           </Col>
         </Row>

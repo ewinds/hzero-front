@@ -189,6 +189,7 @@ export default class Rate extends PureComponent {
       enabledFlag: fieldsValue.enabledFlag ? 1 : 0,
       startDate: moment(fieldsValue.startDate).format(DATETIME_MIN),
       endDate: moment(fieldsValue.endDate).format(DATETIME_MIN),
+      rateDate: moment(fieldsValue.rateDate).format(DATETIME_MIN),
       rate: round(divide(fieldsValue.exchangeNumber, fieldsValue.currencyNumber), 8),
     };
     dispatch({

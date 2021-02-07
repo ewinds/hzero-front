@@ -5,6 +5,7 @@ import uuid from 'uuid/v4';
 
 import Lov from 'components/Lov';
 import Switch from 'components/Switch';
+import TLEditor from 'components/TLEditor';
 import { Button as ButtonPermission } from 'components/Permission';
 
 import intl from 'utils/intl';
@@ -148,6 +149,7 @@ export default class EmailForm extends React.PureComponent {
       tryTimes,
       enabledFlag,
       filterStrategy,
+      _token,
     } = initData;
     const columns = [
       {
@@ -290,7 +292,13 @@ export default class EmailForm extends React.PureComponent {
                       }),
                     },
                   ],
-                })(<Input />)}
+                })(
+                  <TLEditor
+                    label={intl.get('hmsg.common.view.accountName').d('账户名称')}
+                    field="serverName"
+                    token={_token}
+                  />
+                )}
               </FormItem>
             </Col>
             <Col span={12}>

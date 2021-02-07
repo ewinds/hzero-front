@@ -1,18 +1,14 @@
-/* eslint-disable eqeqeq */
 import React from 'react';
 import { Form, Modal, Icon, Select, Popconfirm, Input } from 'hzero-ui';
 import intl from 'utils/intl';
 import { getEditTableData } from 'utils/utils';
 import EditTable from 'components/EditTable';
 import { Bind } from 'lodash-decorators';
-import formatterCollections from 'utils/intl/formatterCollections';
-
 import styles from './index.less';
 
 const FormItem = Form.Item;
 const { Option } = Select;
 
-@formatterCollections({ code: ['hpfm.individual', 'hpfm.customize'] })
 export default class ConditionModal extends React.Component {
   constructor(props) {
     super(props);
@@ -95,7 +91,7 @@ export default class ConditionModal extends React.Component {
   autoCompleteFieldKey(id, form) {
     const { fieldList = {} } = this.props;
     const fieldObj = (fieldList[form.getFieldValue(`paramUnitId`)] || []).find(
-      (i) => i.modelFieldId == id
+      (i) => i.modelFieldId === id
     );
     form.setFieldsValue({ paramKey: fieldObj.unitFieldCode });
   }
@@ -260,7 +256,7 @@ export default class ConditionModal extends React.Component {
         width: 60,
         render: (val, record) => (
           <Popconfirm
-            title={intl.get('hzero.common.message.confirm.delete').d('是否删除此条记录')}
+            title={intl.get('hzero.common.message.confirm.delete').d('是否删除此条记录？')}
             okText={intl.get('hzero.common.status.yes').d('是')}
             cancelText={intl.get('hzero.common.status.no').d('否')}
             onConfirm={() =>

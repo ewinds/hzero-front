@@ -4,9 +4,9 @@
   "description": "HZero Front",
   "author": "HZero Front Team",
   "dependencies": {
-    "@hzero-front-ui/c7n-ui": "~1.1.25",
-    "@hzero-front-ui/cfg": "~1.1.25",
-    "@hzero-front-ui/hzero-ui": "~1.1.25",
+    "@hzero-front-ui/c7n-ui": "~2.0.0",
+    "@hzero-front-ui/cfg": "~2.0.0",
+    "@hzero-front-ui/hzero-ui": "~2.0.0",
     "abort-controller": "^3.0.0",
     "is-keyword-js": "^1.0.3",
     "js-tokens": "^3.0.2",

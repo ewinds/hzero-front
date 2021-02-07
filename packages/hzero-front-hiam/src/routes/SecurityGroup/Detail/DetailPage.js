@@ -172,7 +172,7 @@ export default class SecGrpDetailPage extends Component {
               <TextField name="secGrpCode" disabled />
               <IntlField name="secGrpName" disabled={!isSelf} />
               <IntlField name="remark" disabled={!isSelf} />
-              <TextField name="levelMeaning" disabled />
+              <TextField name="secGrpLevelMeaning" disabled />
               <TextField name="createRoleName" disabled />
               <Switch name="enabledFlag" />
             </Form>

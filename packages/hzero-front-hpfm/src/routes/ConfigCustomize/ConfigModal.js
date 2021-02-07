@@ -330,14 +330,6 @@ export default class ConfigModal extends React.Component {
             />
           )}
         </FormItem>
-        <FormItem
-          {...formLayout2}
-          label={intl.get('hpfm.individual.model.config.textField').d('回显配置')}
-        >
-          {form.getFieldDecorator('textField', {
-            initialValue: widget.textField,
-          })(<Input trim inputChinese={false} />)}
-        </FormItem>
         {this.getDefaultValueRender(
           <FormItem
             labelCol={{ span: 8 }}
@@ -953,7 +945,6 @@ export default class ConfigModal extends React.Component {
       lovMappings: undefined,
       defaultValue: undefined,
       multipleFlag: undefined,
-      textField: undefined,
     });
     this.setState({ fieldLovMaps: [] });
     record.fieldLovMaps = [];
@@ -988,7 +979,6 @@ export default class ConfigModal extends React.Component {
       linkNewWindow: undefined,
       lovMappings: undefined,
       defaultValue: undefined,
-      textField: undefined,
     });
     this.setState({
       fieldLovMaps: [],
@@ -1021,6 +1011,17 @@ export default class ConfigModal extends React.Component {
       this.props.visible === true ||
       prev.id !== this.props.id
     );
+  }
+
+  @Bind()
+  handleChangeModel() {
+    const { form } = this.props;
+    form.setFieldsValue({
+      fieldCode: '',
+      fieldAlias: '',
+      fieldType: '',
+      fieldName: '',
+    });
   }
 
   render() {
@@ -1120,7 +1121,11 @@ export default class ConfigModal extends React.Component {
               },
             ],
           })(
-            <Select style={{ width: '100%' }} disabled={type !== 'new'}>
+            <Select
+              style={{ width: '100%' }}
+              disabled={type !== 'new'}
+              onChange={this.handleChangeModel}
+            >
               {moduleList.map((i) => (
                 <Option value={i.modelId}>{i.modelName}</Option>
               ))}
@@ -1721,7 +1726,6 @@ function getWidgetConfig(type, allData) {
     linkHref,
     linkNewWindow,
     multipleFlag,
-    textField,
     placeholder,
   } = allData;
 
@@ -1737,7 +1741,6 @@ function getWidgetConfig(type, allData) {
     dateFormat: undefined,
     lovMappings: undefined,
     multipleFlag: undefined,
-    textField: undefined,
     placeholder: undefined,
     defaultValue: allData.defaultValue,
     fieldWidget: allData.fieldWidget,
@@ -1748,7 +1751,6 @@ function getWidgetConfig(type, allData) {
     case 'LOV':
       config.multipleFlag = multipleFlag;
       config.sourceCode = sourceCode;
-      config.textField = textField;
       break;
     case 'CHECKBOX':
     case 'SWITCH':

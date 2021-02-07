@@ -15,7 +15,7 @@ export default class Button extends React.Component {
 
   state = {
     status: PENDING,
-    controllerType: 'disabled',
+    controllerType: 'hidden',
   };
 
   // 在 render 之前检查权限， permissionList
@@ -41,7 +41,7 @@ export default class Button extends React.Component {
   }
 
   @Bind()
-  handlePermission(status, controllerType = 'disabled') {
+  handlePermission(status, controllerType = 'hidden') {
     this.setState({
       status,
       controllerType,
@@ -71,23 +71,24 @@ export default class Button extends React.Component {
     const className = [propsClass, 'hzero-permission-btn'].join(' ');
     // 普通按钮不做限制
     if (permissionList === undefined) {
-      return this.renderButton(otherProps);
+      return this.renderButton({ ...otherProps, className });
     }
     // 鉴权通过后的处理
     if (status === SUCCESS) {
-      if (controllerType === 'disabled') {
-        return this.renderButton({
-          ...otherProps,
-          className: [className, 'hzero-permission-btn-disabled'].join(' '),
-          disabled: true,
-          style: { ...style, cursor: 'not-allowed', color: 'rgba(0,0,0,0.25)' },
-        });
-      } else {
-        // approved=true，则controllerType=disabled则禁用，其他，则不控制
-        return this.renderButton({ ...otherProps, className });
-      }
+      return this.renderButton({
+        ...otherProps,
+        className,
+      });
+      // 鉴权失败
+    } else if (controllerType === 'disabled') {
+      // approved=false，则controllerType=disabled则禁用，其他，则隐藏
+      return this.renderButton({
+        ...otherProps,
+        className: [className, 'hzero-permission-btn-disabled'].join(' '),
+        disabled: true,
+        style: { ...style, cursor: 'not-allowed', color: 'rgba(0,0,0,0.25)' },
+      });
     } else {
-      // 鉴权失败，返回null，不显示内容
       return null;
     }
   }

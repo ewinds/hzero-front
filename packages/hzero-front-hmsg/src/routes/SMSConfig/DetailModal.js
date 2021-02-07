@@ -5,6 +5,7 @@ import { Bind } from 'lodash-decorators';
 
 import Lov from 'components/Lov';
 import Switch from 'components/Switch';
+import TLEditor from 'components/TLEditor';
 
 import intl from 'utils/intl';
 import { CODE_UPPER } from 'utils/regExp';
@@ -51,7 +52,7 @@ export default class DetailModal extends PureComponent {
   render() {
     const {
       modalVisible,
-      onCancel,
+      onCancel = () => {},
       anchor,
       serverTypeList,
       tableRecord,
@@ -60,8 +61,9 @@ export default class DetailModal extends PureComponent {
       tenantRoleLevel,
       title,
       isCopy,
+      filterStrategyList = [],
     } = this.props;
-    const { getFieldDecorator } = this.props.form;
+    const { getFieldDecorator = () => {} } = this.props.form;
     return (
       <Modal
         destroyOnClose
@@ -125,7 +127,13 @@ export default class DetailModal extends PureComponent {
                 },
               ],
               initialValue: tableRecord.serverName ? tableRecord.serverName : '',
-            })(<Input />)}
+            })(
+              <TLEditor
+                label={intl.get('hmsg.common.view.accountName').d('账户名称')}
+                field="serverName"
+                token={tableRecord ? tableRecord._token : null}
+              />
+            )}
           </FormItem>
           <FormItem
             label={intl.get('hmsg.smsConfig.model.smsConfig.signName').d('短信签名')}
@@ -229,6 +237,22 @@ export default class DetailModal extends PureComponent {
                   !isCreate ? intl.get('hzero.common.validation.notChange').d('未更改') : ''
                 }
               />
+            )}
+          </FormItem>
+          <FormItem
+            {...formLayout}
+            label={intl.get('hmsg.email.model.email.filterStrategy').d('安全策略')}
+          >
+            {getFieldDecorator('filterStrategy', {
+              initialValue: tableRecord.filterStrategy,
+            })(
+              <Select allowClear>
+                {filterStrategyList.map((item) => (
+                  <Select.Option key={item.value} value={item.value}>
+                    {item.meaning}
+                  </Select.Option>
+                ))}
+              </Select>
             )}
           </FormItem>
           <FormItem label={intl.get('hzero.common.status.enable').d('启用')} {...formLayout}>

@@ -14,7 +14,7 @@ import { Content, Header } from 'components/Page';
 import Lov from 'components/Lov';
 import { Button as ButtonPermission } from 'components/Permission';
 
-import { getCurrentOrganizationId, isTenantRoleLevel } from 'utils/utils';
+import { getCurrentOrganizationId, isTenantRoleLevel, getCurrentLanguage } from 'utils/utils';
 import { VERSION_IS_OP, HZERO_PLATFORM } from 'utils/config';
 import notification from 'utils/notification';
 import intl from 'utils/intl';
@@ -24,6 +24,8 @@ import { operatorRender } from 'utils/renderer';
 
 import PromptDrawer from './PromptDrawer';
 import FilterForm from './FilterForm';
+
+const currentLanguage = getCurrentLanguage();
 
 @connect(({ loading, prompt, user }) => ({
   prompt,
@@ -109,10 +111,15 @@ export default class Prompt extends PureComponent {
    */
   @Bind()
   showModal() {
+    const { dispatch } = this.props;
     this.setState({
       promptFormData: {},
     });
-    this.handleModalVisible(true);
+    dispatch({
+      type: 'prompt/fetchLanguages',
+    }).then(() => {
+      this.handleModalVisible(true);
+    });
   }
 
   /**
@@ -165,6 +172,11 @@ export default class Prompt extends PureComponent {
   handleSavePrompt(fieldsValue, promptDetail) {
     const { dispatch, organizationId, isSiteFlag } = this.props;
     const { promptFormData, tenantId } = this.state;
+    const { promptConfigs } = fieldsValue;
+    let _promptConfigs;
+    if (promptConfigs) {
+      _promptConfigs = this.removeNull(promptConfigs);
+    }
     const params =
       promptFormData.promptCode !== undefined
         ? {
@@ -172,15 +184,11 @@ export default class Prompt extends PureComponent {
             ...fieldsValue,
             lang: promptFormData.lang,
             tenantId: promptDetail.tenantId,
-            // promptConfigs: {
-            //   ...fieldsValue.promptConfigs,
-            // },
+            promptConfigs: _promptConfigs,
           }
         : {
             ...fieldsValue,
-            // promptConfigs: {
-            //   ...fieldsValue.promptConfigs,
-            // },
+            promptConfigs: _promptConfigs,
             tenantId: isSiteFlag ? tenantId : organizationId,
           };
     dispatch({
@@ -193,6 +201,17 @@ export default class Prompt extends PureComponent {
         this.fetchPromptList();
       }
     });
+  }
+
+  @Bind()
+  removeNull(obj) {
+    const _obj = { ...obj };
+    Object.keys(_obj).forEach((item) => {
+      if (!_obj[item]) {
+        delete _obj[item];
+      }
+    });
+    return _obj;
   }
 
   /**
@@ -469,6 +488,7 @@ export default class Prompt extends PureComponent {
             languageList={languageList}
             onCancel={this.hideModal}
             onOk={this.handleSavePrompt}
+            currentLanguage={currentLanguage}
           />
         </Content>
       </React.Fragment>

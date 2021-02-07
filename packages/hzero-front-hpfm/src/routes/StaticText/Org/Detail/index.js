@@ -191,6 +191,12 @@ export default class StaticTextDetailOrg extends React.Component {
                             .get('hzero.common.validation.codeUpper')
                             .d('全大写及数字，必须以字母、数字开头，可包含“-”、“_”、“.”、“/”'),
                         },
+                        {
+                          max: 30,
+                          message: intl.get('hzero.common.validation.max', {
+                            max: 30,
+                          }),
+                        },
                       ],
                     })(
                       optionComponent(
@@ -315,6 +321,12 @@ export default class StaticTextDetailOrg extends React.Component {
                             name: intl.get('hpfm.staticText.model.staticText.title').d('标题'),
                           }),
                         },
+                        {
+                          max: 120,
+                          message: intl.get('hzero.common.validation.max', {
+                            max: 120,
+                          }),
+                        },
                       ],
                     })(
                       optionComponent(
@@ -332,6 +344,14 @@ export default class StaticTextDetailOrg extends React.Component {
                   >
                     {form.getFieldDecorator('description', {
                       initialValue: record.description,
+                      rules: [
+                        {
+                          max: 240,
+                          message: intl.get('hzero.common.validation.max', {
+                            max: 240,
+                          }),
+                        },
+                      ],
                     })(
                       optionComponent(
                         isView,

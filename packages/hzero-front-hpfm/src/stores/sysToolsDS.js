@@ -21,11 +21,6 @@ export const sysToolsCacheAxiosConfig = () => ({
       method: 'POST',
       data: {},
     }),
-    database: () => ({
-      url: `${HZERO_PLATFORM}/v1/tool/cache/database`,
-      method: 'POST',
-      data: {},
-    }),
     datasource: () => ({
       url: `${HZERO_PLATFORM}/v1/tool/cache/datasource`,
       method: 'POST',

@@ -6,13 +6,14 @@
  * @copyright Copyright (c) 2018, Hand
  */
 import React from 'react';
-import { Card, Col, Form, Input, Modal, Row, Table } from 'hzero-ui';
+import { Card, Col, Form, Modal, Row, Table } from 'hzero-ui';
 import { connect } from 'dva';
 import { omit } from 'lodash';
 import { Bind } from 'lodash-decorators';
 
-import { Content, Header } from 'components/Page';
 import Switch from 'components/Switch';
+import TLEditor from 'components/TLEditor';
+import { Content, Header } from 'components/Page';
 import { Button as ButtonPermission } from 'components/Permission';
 
 import { enableRender, yesOrNoRender, operatorRender } from 'utils/renderer';
@@ -26,7 +27,6 @@ import {
   EDIT_FORM_ITEM_LAYOUT,
   EDIT_FORM_ITEM_LAYOUT_COL_2,
   FORM_COL_3_LAYOUT,
-  FORM_FIELD_CLASSNAME,
   SEARCH_FORM_ROW_LAYOUT,
 } from 'utils/constants';
 
@@ -55,6 +55,10 @@ export default class EditForm extends React.Component {
   eventRuleForm;
 
   componentDidMount() {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'event/init',
+    });
     this.loadEvent();
   }
 
@@ -64,7 +68,7 @@ export default class EditForm extends React.Component {
     dispatch({
       type: 'event/getEvent',
       payload: { id: match.params.id, tenantId },
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         this.setState({
           event: res,
@@ -85,6 +89,7 @@ export default class EditForm extends React.Component {
     this.showEditModal({
       eventRuleId: '',
       eventId: match.params.id,
+      callType: 'M',
     });
   }
 
@@ -103,7 +108,7 @@ export default class EditForm extends React.Component {
             selectedRows,
             eventId: match.params.id,
           },
-        }).then(res => {
+        }).then((res) => {
           if (res) {
             this.setState({
               selectedRowKeys: [],
@@ -137,7 +142,7 @@ export default class EditForm extends React.Component {
           ...omit(event, ['ruleList']),
           ...form.getFieldsValue(),
         },
-      }).then(response => {
+      }).then((response) => {
         if (response) {
           notification.success();
           this.loadEvent();
@@ -193,7 +198,7 @@ export default class EditForm extends React.Component {
     dispatch({
       type: 'event/updateRule',
       payload: data,
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         this.loadEvent();
         this.hideModal();
@@ -208,14 +213,14 @@ export default class EditForm extends React.Component {
       form,
       isSiteFlag,
       tenantId: currentTenantId,
-      event: { ruleModalVisible },
+      event: { ruleModalVisible, apiList, typeList },
       eventSaving = false,
       ruleSaving = false,
       fetchLoading = false,
     } = this.props;
 
     const { event, selectedRowKeys, rule } = this.state;
-    const { ruleList = [], tenantName, tenantId: currentDetailTenantId } = event;
+    const { ruleList = [], tenantName, tenantId: currentDetailTenantId, _token } = event;
 
     const basePath = match.path.substring(0, match.path.indexOf('/detail'));
 
@@ -372,7 +377,12 @@ export default class EditForm extends React.Component {
                     label={intl.get('hpfm.event.model.event.description').d('事件描述')}
                   >
                     {form.getFieldDecorator('eventDescription')(
-                      <Input disabled={editControl} className={FORM_FIELD_CLASSNAME} />
+                      <TLEditor
+                        label={intl.get('hcuz.custButton.view.title.description').d('事件描述')}
+                        field="eventDescription"
+                        disabled={editControl}
+                        token={_token}
+                      />
                     )}
                   </Form.Item>
                 </Col>
@@ -426,21 +436,25 @@ export default class EditForm extends React.Component {
             />
           </Card>
         </Content>
-        <EventRuleForm
-          title={
-            rule.eventRuleId
-              ? intl.get('hpfm.event.view.detail.button.edit').d('编辑规则')
-              : intl.get('hpfm.event.view.detail.button.create').d('新建规则')
-          }
-          eventRule={rule}
-          onRef={ref => {
-            this.eventRuleForm = ref;
-          }}
-          handleAdd={this.handleAdd}
-          confirmLoading={ruleSaving}
-          modalVisible={ruleModalVisible}
-          hideModal={this.hideModal}
-        />
+        {ruleModalVisible && (
+          <EventRuleForm
+            title={
+              rule.eventRuleId
+                ? intl.get('hpfm.event.view.detail.button.edit').d('编辑规则')
+                : intl.get('hpfm.event.view.detail.button.create').d('新建规则')
+            }
+            eventRule={rule}
+            onRef={(ref) => {
+              this.eventRuleForm = ref;
+            }}
+            apiList={apiList}
+            typeList={typeList}
+            handleAdd={this.handleAdd}
+            confirmLoading={ruleSaving}
+            modalVisible={ruleModalVisible}
+            hideModal={this.hideModal}
+          />
+        )}
       </React.Fragment>
     );
   }

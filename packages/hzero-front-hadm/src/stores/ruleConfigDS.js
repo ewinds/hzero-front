@@ -41,7 +41,7 @@ const initDS = () => {
       {
         name: 'index',
         type: 'number',
-        label: intl.get('hadm.ruleConfig.model.ruleConfig.order').d('序号'),
+        label: intl.get('hzero.common.view.serialNumber').d('序号'),
       },
       {
         name: 'proxySchemaName',
@@ -51,7 +51,7 @@ const initDS = () => {
       {
         name: 'serviceCode',
         type: 'string',
-        label: intl.get('hadm.ruleConfig.model.ruleConfig.serviceCode').d('服务编码'),
+        label: intl.get('hadm.common.model.common.serviceCode').d('服务编码'),
       },
       {
         name: 'dsUrl',
@@ -70,7 +70,7 @@ const initDS = () => {
       },
       {
         name: 'action',
-        label: intl.get('hadm.ruleConfig.model.kc.action').d('操作'),
+        label: intl.get('hzero.common.button.action').d('操作'),
       },
     ],
     transport: {

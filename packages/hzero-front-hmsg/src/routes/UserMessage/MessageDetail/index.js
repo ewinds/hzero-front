@@ -18,9 +18,11 @@ import { getCurrentOrganizationId } from 'utils/utils';
 import { dateTimeRender } from 'utils/renderer';
 import { BKT_MSG } from 'utils/config';
 import intl from 'utils/intl';
+import formatterCollections from 'utils/intl/formatterCollections';
 
 import styles from '../index.less';
 
+@formatterCollections({ code: ['hmsg.userMessage'] })
 @connect(({ userMessage, loading }) => ({
   userMessage,
   organizationId: getCurrentOrganizationId(),

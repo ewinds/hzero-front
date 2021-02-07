@@ -258,6 +258,23 @@ export default class LogDrawer extends React.Component {
     );
   }
 
+  // 导出
+  @Bind()
+  handleDownload(record) {
+    const { tenantRoleLevel } = this.props;
+    const { tenantId } = record;
+    const api = tenantRoleLevel
+      ? `${HZERO_FILE}/v1/${tenantId}/files/download`
+      : `${HZERO_FILE}/v1/files/download`;
+    downloadFile({
+      requestUrl: api,
+      queryParams: [
+        { name: 'bucketName', value: BKT_SDR },
+        { name: 'url', value: record.outputFile },
+      ],
+    });
+  }
+
   render() {
     const {
       title,
@@ -341,6 +358,53 @@ export default class LogDrawer extends React.Component {
         fixed: 'right',
         render: (text, record) => {
           const operators = [];
+          operators.push({
+            key: 'delete',
+            ele: (
+              <Popconfirm
+                placement="topRight"
+                title={intl.get('hzero.common.message.confirm.delete').d('是否删除此条记录？')}
+                onConfirm={() => this.handleDeleteContent(record)}
+              >
+                <ButtonPermission
+                  type="text"
+                  permissionList={[
+                    {
+                      code: `${path}.button.delete`,
+                      type: 'button',
+                      meaning: '并发请求-删除',
+                    },
+                  ]}
+                >
+                  {intl.get('hzero.common.button.delete').d('删除')}
+                </ButtonPermission>
+              </Popconfirm>
+            ),
+            len: 2,
+            title: intl.get('hzero.common.button.delete').d('删除'),
+          });
+          if (record.clientResult === 'DOING') {
+            operators.push({
+              key: 'taskProgress',
+              ele: (
+                <ButtonPermission
+                  type="text"
+                  permissionList={[
+                    {
+                      code: `${path}.button.taskProgress`,
+                      type: 'button',
+                      meaning: '并发请求-任务进度',
+                    },
+                  ]}
+                  onClick={() => this.showProgressModal(record)}
+                >
+                  {intl.get('hsdr.jobLog.model.jobLog.taskProgress').d('任务进度')}
+                </ButtonPermission>
+              ),
+              len: 4,
+              title: intl.get('hsdr.jobLog.model.jobLog.taskProgress').d('任务进度'),
+            });
+          }
           if (record.clientResult === 'FAILURE') {
             operators.push({
               key: 'errorDetail',
@@ -390,53 +454,29 @@ export default class LogDrawer extends React.Component {
                   : intl.get('hsdr.jobLog.model.jobLog.logUrl').d('日志文件'),
             });
           }
-          if (record.clientResult === 'DOING') {
+          if (record.outputFile) {
             operators.push({
-              key: 'taskProgress',
+              key: 'export',
               ele: (
                 <ButtonPermission
                   type="text"
                   permissionList={[
                     {
-                      code: `${path}.button.taskProgress`,
+                      code: `${path}.button.export`,
                       type: 'button',
-                      meaning: '并发请求-任务进度',
+                      meaning: '调度日志-导出文件',
                     },
                   ]}
-                  onClick={() => this.showProgressModal(record)}
+                  onClick={() => this.handleDownload(record)}
                 >
-                  {intl.get('hsdr.jobLog.model.jobLog.taskProgress').d('任务进度')}
+                  {intl.get('hsdr.jobLog.view.button.exportFile').d('导出文件')}
                 </ButtonPermission>
               ),
               len: 4,
-              title: intl.get('hsdr.jobLog.model.jobLog.taskProgress').d('任务进度'),
+              title: intl.get('hsdr.jobLog.view.button.exportFile').d('导出文件'),
             });
           }
-          operators.push({
-            key: 'delete',
-            ele: (
-              <Popconfirm
-                placement="topRight"
-                title={intl.get('hzero.common.message.confirm.delete').d('是否删除此条记录？')}
-                onConfirm={() => this.handleDeleteContent(record)}
-              >
-                <ButtonPermission
-                  type="text"
-                  permissionList={[
-                    {
-                      code: `${path}.button.delete`,
-                      type: 'button',
-                      meaning: '并发请求-删除',
-                    },
-                  ]}
-                >
-                  {intl.get('hzero.common.button.delete').d('删除')}
-                </ButtonPermission>
-              </Popconfirm>
-            ),
-            len: 2,
-            title: intl.get('hzero.common.button.delete').d('删除'),
-          });
+
           return operatorRender(operators, record, { limit: 3 });
         },
       },

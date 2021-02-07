@@ -140,7 +140,7 @@ export default class UnitModal extends Component {
               ],
             })(
               <Select>
-                {unitTypeOptions.map(item => (
+                {unitTypeOptions.map((item) => (
                   <Option value={item.value}>{item.meaning}</Option>
                 ))}
               </Select>
@@ -185,9 +185,10 @@ export default class UnitModal extends Component {
             label={intl.get('hpfm.individuationUnit.model.individuationUnit.sqlIds').d('SQL IDs')}
             style={{ display: getFieldValue('unitType') === 'TABPANE' ? 'none' : 'block' }}
           >
-            {getFieldDecorator('sqlIds', {})(
-              <Select mode="tags" dropdownClassName={styles['sqlIds-select-options']} />
-            )}
+            {getFieldDecorator(
+              'sqlIds',
+              {}
+            )(<Select mode="tags" dropdownClassName={styles['sqlIds-select-options']} />)}
           </FormItem>
         </Form>
         <Form

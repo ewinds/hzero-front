@@ -155,7 +155,7 @@ export default class DataHierarchies extends React.Component {
     dispatch({
       type: 'dataHierarchies/updateState',
       payload: {
-        expandedRowKeys: Object.keys(pathMap).map((item) => +item),
+        expandedRowKeys: Object.keys(pathMap).map((item) => item),
       },
     });
   }

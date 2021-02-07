@@ -1,7 +1,7 @@
 /* eslint-disable no-nested-ternary */
 import React, { PureComponent } from 'react';
 import { Button, Col, Form, Input, Row, Spin, Select } from 'hzero-ui';
-import { isEmpty, isNumber, isUndefined } from 'lodash';
+import { isEmpty, isUndefined } from 'lodash';
 import pathParse from 'path-parse';
 
 import Lov from 'components/Lov';
@@ -138,9 +138,9 @@ export default class Detail extends PureComponent {
           .map((item) => ({ ...item, labelId: item.id })),
         tenantId:
           // eslint-disable-next-line no-nested-ternary
-          VERSION_IS_OP && getCurrentOrganizationId() !== 0
+          VERSION_IS_OP && String(getCurrentOrganizationId()) !== '0'
             ? getCurrentOrganizationId()
-            : isNumber(tenantId)
+            : !isUndefined(tenantId)
             ? tenantId
             : currentRowData.tenantId,
       };
@@ -163,8 +163,8 @@ export default class Detail extends PureComponent {
       currentRowData = {},
       labelList = [],
     } = this.props;
-    const parentRoleId =
-      currentRowData.adminFlag === 1 ? currentRowData.id : currentRowData.adminRoleId;
+    // const parentRoleId =
+    //   currentRowData.parentRoleAdminFlag === 1 ? currentRowData.id : currentRowData.parentRoleId;
     validateFields((error, values) => {
       if (!isEmpty(error)) {
         return;
@@ -175,8 +175,10 @@ export default class Detail extends PureComponent {
         description,
         name,
         tenantId:
-          VERSION_IS_OP && getCurrentOrganizationId() !== 0 ? getCurrentOrganizationId() : tenantId,
-        parentRoleId,
+          VERSION_IS_OP && String(getCurrentOrganizationId()) !== '0'
+            ? getCurrentOrganizationId()
+            : tenantId,
+        parentRoleId: currentRowData.parentRoleId,
         _tls,
         roleLabels: labelList
           .filter((item) => roleLabels.includes(item.name))
@@ -186,6 +188,7 @@ export default class Detail extends PureComponent {
       };
       if (actionType === 'inherit') {
         data.inheritRoleId = inheritFormId;
+        // data.tenantId = currentRowData.tenantId;
         inherit(data, this.handleClose.bind(this));
       }
       if (actionType === 'copy') {
@@ -225,7 +228,7 @@ export default class Detail extends PureComponent {
     } = this.props;
     const {
       name,
-      viewCode,
+      code,
       description,
       tenantId,
       tenantName,
@@ -243,16 +246,21 @@ export default class Detail extends PureComponent {
       inherit: intl.get(`hiam.roleManagement.view.title.createRole`).d('创建角色'),
       create: intl.get(`hiam.roleManagement.view.title.createRole`).d('创建角色'),
     };
-    const parentRoleName =
-      // eslint-disable-next-line no-nested-ternary
-      actionType === 'edit' ? currentRowData.parentRoleName : currentRowData.name;
+    const parentRoleName = `${currentRowData.parentRoleName}(${currentRowData.parentRoleTenantName})`;
+    // actionType === 'create' || actionType === 'copy' || actionType === 'inherit' ? `${currentRowData.parentName}(${currentRowData.parentTenantName})` :  `${currentRowData.parentRoleName}(${currentRowData.parentRoleTenantName})`;
+    // eslint-disable-next-line no-nested-ternary
+    // actionType === 'edit'
+    //   ? `${currentRowData.parentRoleName}(${currentRowData.parentRoleTenantName})`
+    //   : `${currentRowData.name}(${currentRowData.tenantName})`;
     // 在 新建/继承/复制 情况下的禁用
     // eslint-disable-next-line no-nested-ternary
     const tenantDisabled = !(actionType === 'inherit'
-      ? currentRowData.level === 'organization' && currentRowData.tenantId === 0
-      : currentRowData.adminFlag === 1
-      ? currentRowData.level === 'organization' && currentRowData.tenantId === 0
-      : currentRowData.adminRoleLevel === 'organization' && currentRowData.adminRoleTenantId === 0);
+      ? currentRowData.inheritRoleLevel === 'organization' &&
+        String(currentRowData.inheritedRoleTenantId) === '0'
+      : currentRowData.parentRoleAdminFlag === 1
+      ? currentRowData.level === 'organization' && String(currentRowData.tenantId) === '0'
+      : currentRowData.adminRoleLevel === 'organization' &&
+        String(currentRowData.parentRoleTenantId) === 0);
 
     const drawerProps = {
       title: drawerTitle[actionType],
@@ -314,10 +322,20 @@ export default class Detail extends PureComponent {
                     initialValue:
                       // eslint-disable-next-line no-nested-ternary
                       actionType === 'inherit'
-                        ? currentRowData.name
+                        ? `${currentRowData.inheritedRoleName}(${currentRowData.inheritedRoleTenantName})`
                         : actionType === 'edit'
                         ? currentRowData.inheritedRoleName
+                          ? `${currentRowData.inheritedRoleName}(${currentRowData.inheritedRoleTenantName})`
+                          : undefined
                         : undefined,
+                    // eslint-disable-next-line no-nested-ternary
+                    // actionType === 'inherit'
+                    //   ? `${currentRowData.name}(${currentRowData.tenantName})`
+                    //   : actionType === 'edit'
+                    //   ? currentRowData.inheritedRoleName
+                    //     ? `${currentRowData.inheritedRoleName}(${currentRowData.inheritedRoleTenantName})`
+                    //     : undefined
+                    //   : undefined,
                   })(<Input disabled />)}
                 </FormItem>
               </Col>
@@ -329,8 +347,7 @@ export default class Detail extends PureComponent {
                   {...MODAL_FORM_ITEM_LAYOUT}
                 >
                   {getFieldDecorator('code', {
-                    initialValue:
-                      actionType === 'edit' ? pathParse(viewCode || '').base : undefined,
+                    initialValue: actionType === 'edit' ? pathParse(code || '').base : undefined,
                     rules: [
                       {
                         required: true,
@@ -395,21 +412,6 @@ export default class Detail extends PureComponent {
               </Col>
             </Row>
             <Row>
-              {actionType !== 'create' && (
-                <Col span={12}>
-                  <FormItem
-                    label={intl
-                      .get('hiam.roleManagement.model.roleManagement.levelPath')
-                      .d('角色路径')}
-                    {...MODAL_FORM_ITEM_LAYOUT}
-                  >
-                    {getFieldDecorator('levelPath', {
-                      initialValue:
-                        actionType === 'edit' ? (isHaveParams ? _levelPath : levelPath) : undefined,
-                    })(<Input disabled />)}
-                  </FormItem>
-                </Col>
-              )}
               {!VERSION_IS_OP && (
                 <Col span={12}>
                   <FormItem
@@ -427,9 +429,9 @@ export default class Detail extends PureComponent {
                             ? currentRowData.tenantId
                             : // 新建/复制
                             (actionType === 'create' || actionType === 'copy') &&
-                              currentRowData.adminFlag === 1
+                              currentRowData.parentRoleAdminFlag === 1
                             ? currentRowData.tenantId
-                            : currentRowData.adminRoleTenantId
+                            : currentRowData.parentRoleTenantId
                           : undefined,
                       rules: [
                         {
@@ -452,7 +454,7 @@ export default class Detail extends PureComponent {
                               ? currentRowData.tenantName
                               : // 新建/复制
                               (actionType === 'create' || actionType === 'copy') &&
-                                currentRowData.adminFlag === 1
+                                currentRowData.parentRoleAdminFlag === 1
                               ? currentRowData.tenantName
                               : currentRowData.adminRoleTenantName
                             : undefined
@@ -517,8 +519,6 @@ export default class Detail extends PureComponent {
                   </FormItem>
                 </Col>
               )}
-            </Row>
-            <Row>
               {actionType !== 'create' && !VERSION_IS_OP && (
                 <Col span={12}>
                   <FormItem
@@ -541,6 +541,8 @@ export default class Detail extends PureComponent {
                   </FormItem>
                 </Col>
               )}
+            </Row>
+            <Row>
               {(actionType !== 'create' ? true : !VERSION_IS_OP) && (
                 <Col {...FORM_COL_2_LAYOUT}>
                   <FormItem
@@ -617,6 +619,24 @@ export default class Detail extends PureComponent {
                 </Col>
               </Row>
             )} */}
+            <Row>
+              {actionType !== 'create' && (
+                <Col span={24}>
+                  <FormItem
+                    label={intl
+                      .get('hiam.roleManagement.model.roleManagement.levelPath')
+                      .d('角色路径')}
+                    labelCol={{ span: 3 }}
+                    wrapperCol={{ span: 21 }}
+                  >
+                    {getFieldDecorator('levelPath', {
+                      initialValue:
+                        actionType === 'edit' ? (isHaveParams ? _levelPath : levelPath) : undefined,
+                    })(<Input disabled />)}
+                  </FormItem>
+                </Col>
+              )}
+            </Row>
           </Form>
         </Spin>
       </Drawer>

@@ -487,7 +487,13 @@ export default class LegalForm extends PureComponent {
         >
           {getFieldDecorator('registeredCapital', {
             initialValue: data.registeredCapital,
-          })(<InputNumber style={{ width: '100px' }} precision={0} min={0} />)}
+          })(
+            <InputNumber
+              style={{ width: '100px', display: 'inline-block' }}
+              precision={0}
+              min={0}
+            />
+          )}
           <span style={{ paddingLeft: '12px' }}>
             {intl.get('hzero.common.currency.ten.thousand').d('万元')}
           </span>

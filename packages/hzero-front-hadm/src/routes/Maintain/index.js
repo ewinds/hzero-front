@@ -46,6 +46,7 @@ const Maintain = (props) => {
           );
         },
       },
+      { name: 'creationDate', width: 200 },
       {
         header: intl.get('hzero.common.button.action').d('操作'),
         width: 180,
@@ -154,4 +155,4 @@ const Maintain = (props) => {
   );
 };
 
-export default formatterCollections({ code: ['hadm.maintain'] })(Maintain);
+export default formatterCollections({ code: ['hadm.maintain', 'hadm.common'] })(Maintain);

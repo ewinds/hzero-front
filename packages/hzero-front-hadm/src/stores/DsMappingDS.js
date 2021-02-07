@@ -12,7 +12,7 @@ const tableDs = () => {
       {
         name: 'serviceCodeLov',
         type: 'object',
-        label: intl.get('hadm.dsMapping.model.dsMapping.serviceCode').d('服务编码'),
+        label: intl.get('hadm.common.model.common.serviceCode').d('服务编码'),
         lovPara: { tenantId: getCurrentOrganizationId() },
         lovCode: 'HADM.SERVICE',
         ignore: 'always',
@@ -32,12 +32,12 @@ const tableDs = () => {
       {
         name: 'serviceCode',
         type: 'string',
-        label: intl.get('hadm.dsMapping.model.dsMapping.serviceCode').d('服务编码'),
+        label: intl.get('hadm.common.model.common.serviceCode').d('服务编码'),
       },
       {
         name: 'serviceVersion',
         type: 'string',
-        label: intl.get('hadm.dsMapping.model.dsMapping.serviceVersion').d('服务版本'),
+        label: intl.get('hadm.common.model.common.versionNumber').d('服务版本'),
       },
       {
         name: 'dsUrl',
@@ -90,7 +90,7 @@ const detailDs = () => {
       {
         name: 'serviceVersion',
         type: 'string',
-        label: intl.get('hadm.dsMapping.model.dsMapping.serviceVersion').d('服务版本'),
+        label: intl.get('hadm.common.model.common.versionNumber').d('服务版本'),
         required: true,
       },
       {

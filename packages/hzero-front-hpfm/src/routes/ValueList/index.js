@@ -8,7 +8,7 @@
 
 import React from 'react';
 import { connect } from 'dva';
-import { Tag, Badge } from 'hzero-ui';
+import { Tag, Badge, Popconfirm } from 'hzero-ui';
 import { isEmpty, isUndefined } from 'lodash';
 import { Bind } from 'lodash-decorators';
 import queryString from 'querystring';
@@ -310,6 +310,28 @@ export default class ValueList extends React.Component {
     });
   }
 
+  /**
+   * 删除值集
+   */
+  @Bind()
+  handleDelete(record) {
+    const {
+      dispatch,
+      valueList: { pagination },
+    } = this.props;
+    dispatch({
+      type: 'valueList/deleteLovHeaders',
+      payload: {
+        ...record,
+      },
+    }).then((response) => {
+      if (response) {
+        notification.success();
+        this.handleSearch(pagination);
+      }
+    });
+  }
+
   @Bind()
   handleParentLovChange(record) {
     this.setState({
@@ -373,7 +395,7 @@ export default class ValueList extends React.Component {
   renderOther() {
     const {
       saving,
-      valueList: { lovType, lovTypeFilter },
+      valueList: { lovType, lovTypeFilter, requestMethods = [] },
     } = this.props;
     return (
       <CreateForm
@@ -381,6 +403,7 @@ export default class ValueList extends React.Component {
         onRef={(ref) => {
           this.createForm = ref;
         }}
+        requestMethods={requestMethods}
         handleAdd={this.handleAdd}
         confirmLoading={saving}
         modalVisible={this.state.modalVisible}
@@ -508,7 +531,7 @@ export default class ValueList extends React.Component {
       },
       {
         title: intl.get('hzero.common.button.action').d('操作'),
-        width: 120,
+        width: 180,
         fixed: 'right',
         render: (_, record) => {
           const operators = [
@@ -572,6 +595,34 @@ export default class ValueList extends React.Component {
               len: 2,
               title: intl.get('hzero.common.button.copy').d('复制'),
             },
+            isSiteFlag ||
+              (!isSiteFlag &&
+                record.tenantId === tenantId && {
+                  key: 'delete',
+                  ele: (
+                    <Popconfirm
+                      title={intl
+                        .get('hzero.common.message.confirm.delete')
+                        .d('是否删除此条记录？')}
+                      onConfirm={() => this.handleDelete(record)}
+                    >
+                      <ButtonPermission
+                        type="text"
+                        permissionList={[
+                          {
+                            code: `${match.path}.button.delete`,
+                            type: 'button',
+                            meaning: '值集定义-删除',
+                          },
+                        ]}
+                      >
+                        {intl.get('hzero.common.button.delete').d('删除')}
+                      </ButtonPermission>
+                    </Popconfirm>
+                  ),
+                  len: 2,
+                  title: intl.get('hzero.common.button.delete').d('删除'),
+                }),
           ];
           return operatorRender(operators);
         },

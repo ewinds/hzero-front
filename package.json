@@ -1,16 +1,16 @@
 {
   "name": "hzero-front-integration",
-  "version": "0.10.0",
+  "version": "1.5.0",
   "private": true,
   "description": "HZero Front",
   "scripts": {
     "start": "cross-env NODE_PROFILE=development MULTIPLE_SKIN_ENABLE=true hzero-cli start",
     "build": "npm run lint:fix && hzero-cli build --all-packages",
-    "build:production": "cross-env NODE_PROFILE=production hzero-cli build --only-build-micro --all-packages",
+    "build:production": "cross-env NODE_PROFILE=production SKIP_NO_CHANGE_MODULE=true hzero-cli build --only-build-micro --all-packages --concurrent-build-number 2",
     "build:analyze": "cross-env ANALYZE=true hzero-cli build",
     "build:all-ms": "hzero-cli build --only-build-micro --all-packages",
     "build:ms": "hzero-cli build --only-build-micro",
-    "build:ext-ms": "cross-env BUILD_PUBLIC_MS=true BUILD_DIST_PATH=./dist-ext BUILD_SKIP_PARENT=true DISABLE_BUILD_DLL=true hzero-cli build --only-build-micro",
+    "build:ext-ms": "cross-env BUILD_PUBLIC_MS=true BUILD_DIST_PATH=./dist-ext BUILD_SKIP_PARENT=true hzero-cli build --only-build-micro",
     "test": "node --max_old_space_size=5120 scripts/test.js",
     "build:dll": "hzero-cli build --build-dll",
     "build:dll-dev": "hzero-cli build --build-dll --build-dll-dev",
@@ -32,21 +32,21 @@
     "tree": "tree -I node_modules -L 3",
     "release": "standard-version",
     "release-module": "node scripts/release.js",
-    "icon": "npx cross-env ICON_FONT_URL=//at.alicdn.com/t/font_1440728_2mntu9m71ej.css node scripts/icon.js",
+    "icon": "npx cross-env ICON_FONT_URL=//at.alicdn.com/t/font_2270855_3e9iv1xoa2v.css node scripts/icon.js",
     "hzero-version": "node scripts/version.js"
   },
   "devDependencies": {
     "@babel/plugin-proposal-class-properties": "7.7.4",
     "@babel/plugin-proposal-decorators": "^7.7.4",
-    "@smock/interceptor": "latest",
-    "@smock/mock": "latest",
+    "@smock/umi-plugin-smock": "^0.1.29",
+    "@smock/umi-plugin-sproxy": "^0.1.20",
     "@types/event-emitter": "^0.3.3",
     "@typescript-eslint/eslint-plugin": "2.19.2",
     "@typescript-eslint/parser": "2.19.0",
     "conventional-changelog-cli": "^2.0.12",
-    "hzero-cli-preset-ui": "^2.1.17",
     "hzero-boot": "~2.1.14",
     "hzero-cli": "~2.1.16",
+    "hzero-cli-preset-ui": "^3.0.2",
     "lerna": "^3.13.1",
     "standard-version": "^5.0.2",
     "typescript": "3.7.4",
@@ -57,21 +57,22 @@
     "choerodon-ui": "^1.0.0",
     "core-js": "^3.6.4",
     "react": "^16.8.3",
-    "react-dom": "^16.8.3"
+    "react-dom": "^16.8.3",
+    "hzero-front-hmde": "1.9.4"
   },
   "resolutions": {
+    "mobx": "4.15.3",
+    "mobx-react": "6.1.4",
     "styled-components": "^5.1.1",
     "conventional-changelog": "~3.0.6",
-    "browserslist": "4.8.5",
+    "browserslist": "^4.8.5",
     "choerodon-ui": "^1.0.0",
-    "hzero-ui": "1.0.80",
     "url-loader": "1.1.2",
     "css-loader": "1.0.0",
     "optimize-css-assets-webpack-plugin": "5.0.3",
     "file-loader": "2.0.0",
     "mini-css-extract-plugin": "0.9.0",
     "less-loader": "5.0.0",
-    "caniuse-lite": "1.0.30001028",
     "@babel/cli": "^7.8.4",
     "webpack": "4.42.1",
     "react": "16.12.0",
@@ -79,7 +80,10 @@
     "react-router-dom": "4.3.1",
     "react-dom": "16.12.0",
     "html-webpack-plugin": "4.0.0-alpha.2",
-    "typescript": "3.8.2"
+    "typescript": "3.8.2",
+    "react-dnd": "10.0.2",
+    "hzero-ui": "1.0.80",
+    "react-dnd-html5-backend": "10.0.2"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -106,7 +110,7 @@
     ]
   },
   "engines": {
-    "node": ">=8.10.0"
+    "node": ">=12.0.0"
   },
   "jest": {
     "collectCoverageFrom": [
@@ -159,7 +163,7 @@
   "browserslist": [
     ">0.2%",
     "not dead",
-    "not ie <= 10",
+    "not ie <= 11",
     "not op_mini all"
   ]
 }

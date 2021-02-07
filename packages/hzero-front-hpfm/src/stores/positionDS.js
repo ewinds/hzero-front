@@ -4,7 +4,7 @@ import { HZERO_PLATFORM } from 'utils/config';
 
 const organizationId = getCurrentOrganizationId();
 const treeDS = () => ({
-  autoQuery: true,
+  autoQuery: false,
   selection: 'single',
   primaryKey: 'positionId',
   idField: 'positionId',

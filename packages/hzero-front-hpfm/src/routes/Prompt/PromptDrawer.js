@@ -37,6 +37,7 @@ export default class PromptForm extends React.Component {
       fetchPromptDetailLoading,
       onCancel,
       promptDetail = {},
+      currentLanguage,
     } = this.props;
     const { getFieldDecorator } = form;
     const { promptId, promptKey, promptCode } = initData;
@@ -88,6 +89,12 @@ export default class PromptForm extends React.Component {
                           .get('hzero.common.validation.code')
                           .d('大小写及数字，必须以字母、数字开头，可包含“-”、“_”、“.”、“/”'),
                       },
+                      {
+                        max: 60,
+                        message: intl.get('hzero.common.validation.max', {
+                          max: 60,
+                        }),
+                      },
                     ],
                   })(<Input inputChinese={false} disabled={promptId !== undefined} />)}
                 </FormItem>
@@ -113,12 +120,18 @@ export default class PromptForm extends React.Component {
                           .get('hzero.common.validation.code')
                           .d('大小写及数字，必须以字母、数字开头，可包含“-”、“_”、“.”、“/”'),
                       },
+                      {
+                        max: 240,
+                        message: intl.get('hzero.common.validation.max', {
+                          max: 240,
+                        }),
+                      },
                     ],
                   })(<Input trim inputChinese={false} disabled={promptId !== undefined} />)}
                 </FormItem>
               </Col>
             </Row>
-            {languageList.map(item => {
+            {languageList.map((item) => {
               return (
                 <Row>
                   <Col {...FORM_COL_2_LAYOUT}>
@@ -138,9 +151,15 @@ export default class PromptForm extends React.Component {
                         initialValue: promptId !== undefined ? promptConfigs[item.code] : null,
                         rules: [
                           {
-                            required: true,
+                            required: item.code === currentLanguage,
                             message: intl.get('hzero.common.validation.notNull', {
                               name: intl.get('hpfm.prompt.model.prompt.description').d('描述'),
+                            }),
+                          },
+                          {
+                            max: 750,
+                            message: intl.get('hzero.common.validation.max', {
+                              max: 750,
                             }),
                           },
                         ],

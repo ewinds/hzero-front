@@ -1,6 +1,16 @@
 import React from 'react';
 import { withRouter } from 'react-router';
-import { Form, TextField, Switch, Select, Lov, Password, Spin, DataSet } from 'choerodon-ui/pro';
+import {
+  Form,
+  TextField,
+  Switch,
+  Select,
+  Lov,
+  Password,
+  Spin,
+  DataSet,
+  IntlField,
+} from 'choerodon-ui/pro';
 import { Bind } from 'lodash-decorators';
 
 import intl from 'utils/intl';
@@ -8,6 +18,7 @@ import { isTenantRoleLevel } from 'utils/utils';
 
 import { detailDs } from '../../stores/CallServerDS';
 
+let newDetailDs = new DataSet(detailDs());
 @withRouter
 export default class Drawer extends React.PureComponent {
   constructor(props) {
@@ -17,20 +28,19 @@ export default class Drawer extends React.PureComponent {
       dataSource: {},
       otherFields: [],
     };
-    this.newDetailDs = new DataSet(detailDs());
   }
 
   async componentDidMount() {
     const { isCopy, currentEditData, otherFields, isEdit } = this.props;
-    this.newDetailDs.create({});
+    newDetailDs.create({});
     // 新建的时候也要传给父组件
-    this.props.onTest(this.newDetailDs);
+    this.props.onTest(newDetailDs);
     if (isCopy) {
-      this.newDetailDs.get(0).set('serverCode', currentEditData.serverCode);
-      this.newDetailDs.get(0).set('serverName', currentEditData.serverName);
-      this.newDetailDs.get(0).set('serverTypeCode', currentEditData.serverTypeCode);
-      this.newDetailDs.get(0).set('serverId', currentEditData.serverId);
-      this.newDetailDs.get(0).set('enabledFlag', currentEditData.enabledFlag);
+      newDetailDs.get(0).set('serverCode', currentEditData.serverCode);
+      newDetailDs.get(0).set('serverName', currentEditData.serverName);
+      newDetailDs.get(0).set('serverTypeCode', currentEditData.serverTypeCode);
+      newDetailDs.get(0).set('serverId', currentEditData.serverId);
+      newDetailDs.get(0).set('enabledFlag', currentEditData.enabledFlag);
       // 复制的时候传给父组件
       this.props.formConfigDs.setQueryParameter(
         'formCode',
@@ -43,22 +53,22 @@ export default class Drawer extends React.PureComponent {
           type: 'string',
           required: item.requiredFlag === 1,
         }));
-        const fields = [...detailDs.fields, ...newFields];
-        const init = this.newDetailDs.toData()[0];
-        this.newDetailDs = new DataSet({
+        const fields = [...detailDs().fields, ...newFields];
+        const init = newDetailDs.toData()[0];
+        newDetailDs = new DataSet({
           ...detailDs(),
           fields,
         });
-        this.newDetailDs.create(init);
-        this.props.onTest(this.newDetailDs);
+        newDetailDs.create(init);
+        this.props.onTest(newDetailDs);
         this.setState({
           otherFields: res,
         });
       });
     }
     if (isEdit) {
-      this.newDetailDs.setQueryParameter('serverId', currentEditData.serverId);
-      await this.newDetailDs.query().then((res) => {
+      newDetailDs.setQueryParameter('serverId', currentEditData.serverId);
+      await newDetailDs.query().then((res) => {
         if (res) {
           const ext = `${res.extParam}`;
           const dataSource = {
@@ -82,8 +92,8 @@ export default class Drawer extends React.PureComponent {
           type: 'string',
           required: item.requiredFlag === 1,
         }));
-        const fields = [...detailDs.fields, ...newFields];
-        this.newDetailDs = new DataSet({
+        const fields = [...detailDs().fields, ...newFields];
+        newDetailDs = new DataSet({
           ...detailDs(),
           fields,
           data: [
@@ -92,7 +102,7 @@ export default class Drawer extends React.PureComponent {
             },
           ],
         });
-        this.props.onTest(this.newDetailDs);
+        this.props.onTest(newDetailDs);
         this.setState({
           otherFields: res,
         });
@@ -111,23 +121,23 @@ export default class Drawer extends React.PureComponent {
         type: 'string',
         required: item.requiredFlag === 1,
       }));
-      const fields = [...detailDs.fields, ...newFields];
-      const init = this.newDetailDs.toData()[0];
-      this.newDetailDs = new DataSet({
+      const fields = [...detailDs().fields, ...newFields];
+      const init = newDetailDs.toData()[0];
+      newDetailDs = new DataSet({
         ...detailDs(),
         fields,
         // data: [
         //   {
-        //     ...this.newDetailDs.toData()[0],
+        //     ...newDetailDs.toData()[0],
         //   },
         // ],
       });
       if (isEdit) {
-        this.newDetailDs.loadData([init]);
+        newDetailDs.loadData([init]);
       } else {
-        this.newDetailDs.create(init);
+        newDetailDs.create(init);
       }
-      this.props.onTest(this.newDetailDs);
+      this.props.onTest(newDetailDs);
       this.setState({
         otherFields: res,
       });
@@ -140,10 +150,10 @@ export default class Drawer extends React.PureComponent {
     return (
       <>
         <Spin spinning={isSpin}>
-          <Form dataSet={this.newDetailDs} labelWidth={110}>
+          <Form dataSet={newDetailDs} labelWidth={110}>
             {!isTenantRoleLevel() && <Lov name="tenantIdLov" disabled={isEdit} />}
             <TextField name="serverCode" disabled={isEdit} />
-            <TextField name="serverName" />
+            <IntlField name="serverName" />
             <Select name="serverTypeCode" onChange={this.handelChange} />
             <TextField name="accessKey" />
             <Password

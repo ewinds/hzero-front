@@ -7,7 +7,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { cloneDeep, forEach, isEmpty, isNumber, isUndefined, join, map, omit, find } from 'lodash';
+import { cloneDeep, forEach, isUndefined, join, map, omit, find } from 'lodash';
 import {
   Checkbox,
   Col,
@@ -99,7 +99,7 @@ export default class EditForm extends React.Component {
     if (level !== prevState.level) {
       nextState.level = level;
       nextState.levelMap = {};
-      forEach(level, l => {
+      forEach(level, (l) => {
         nextState.levelMap[l.value] = l;
       });
     }
@@ -186,13 +186,13 @@ export default class EditForm extends React.Component {
         const excludeArray = [];
         const memberRoleList = [];
         const validatingDataSource = dataSource.filter(
-          r => r._status === 'create' || r._status === 'update'
+          (r) => r._status === 'create' || r._status === 'update'
         );
         const validateDataSource = getEditTableData(validatingDataSource);
         // defaultRoleIds 不使用了, 使用 [ { roleId, tenantId, defaultFlag } ]
         const defaultRoles = [];
-        forEach(dataSource, record => {
-          const r = find(validateDataSource, or => or.id === record.id);
+        forEach(dataSource, (record) => {
+          const r = find(validateDataSource, (or) => or.id === record.id);
           if (r) {
             // 是可以修改的数据
             const { startDateActive, endDateActive } = r;
@@ -220,6 +220,7 @@ export default class EditForm extends React.Component {
               startDateActive: startDateActive && startDateActive.format(DEFAULT_DATE_FORMAT),
               endDateActive: endDateActive && endDateActive.format(DEFAULT_DATE_FORMAT),
             };
+
             // (VERSION_IS_OP && getCurrentOrganizationId() !== 0)
             // // 只有填写 分配层级 与 分配层级值 的角色才可以保存
             // switch (newRecord.assignLevel) {
@@ -235,11 +236,11 @@ export default class EditForm extends React.Component {
             //     break;
             // }
             // 由于这种写法 判断不了 哪些数据没有更新 所以全部保存
-            if (!isEmpty(newRecord.assignLevel) && isNumber(newRecord.assignLevelValue)) {
+            if (!isUndefined(newRecord.roleId)) {
               // 只有 当 旧数据修改后 才传给后端
               if (
                 !oldDataSource.some(
-                  oldR =>
+                  (oldR) =>
                     oldR.id === record.id &&
                     record.assignLevel === oldR.assignLevel &&
                     record.assignLevelValue === oldR.assignLevelValue
@@ -286,7 +287,7 @@ export default class EditForm extends React.Component {
     const { dataSource = [], pagination = {} } = this.state;
     this.setState({
       dataSource: [
-        ...map(roles, r => ({
+        ...map(roles, (r) => ({
           ...omit(r, ['assignLevel', 'assignLevelValue']), // FIXME: 将角色之前的 层级信息 去掉
           memberType: 'user',
           // sourceType: r.level,
@@ -343,7 +344,7 @@ export default class EditForm extends React.Component {
     if (!isCreate) {
       roleModalProps.excludeUserIds.push(initialValue.id);
     }
-    dataSource.forEach(r => {
+    dataSource.forEach((r) => {
       if (r.isNew) {
         roleModalProps.excludeRoleIds.push(r.id);
       }
@@ -389,7 +390,7 @@ export default class EditForm extends React.Component {
       onOk() {
         const ids = [];
         const newDataSource = [];
-        dataSource.forEach(item => {
+        dataSource.forEach((item) => {
           if (!item.isNew && selectedRowKeys.indexOf(item.id) >= 0) {
             ids.push({
               roleId: item.id,
@@ -401,14 +402,16 @@ export default class EditForm extends React.Component {
           }
         });
         if (ids.length > 0) {
-          deleteRoles(ids).then(() => {
+          deleteRoles(ids).then((res) => {
             that.setState({
               dataSource: newDataSource,
               selectedRowKeys: [],
               // pagination: isCreate ? false: delItemsToPagination(selectedRowKeys.length, dataSource.length, pagination),
             });
             that.handleRoleTableChange();
-            notification.success();
+            if (res) {
+              notification.success();
+            }
           });
         } else {
           that.setState({
@@ -436,7 +439,7 @@ export default class EditForm extends React.Component {
     const defaultChangeTo = !record.defaultRole;
     const { dataSource = [] } = this.state;
     this.setState({
-      dataSource: dataSource.map(item => {
+      dataSource: dataSource.map((item) => {
         if (item.id === record.id) {
           return {
             ...item,
@@ -473,10 +476,10 @@ export default class EditForm extends React.Component {
     if (!isCreate) {
       this.showRoleTableLoading();
       fetchUserRoles({ page, sort, userId: initialValue.id })
-        .then(roleContent => {
+        .then((roleContent) => {
           // 在前面中已经 getResponse 了
           if (roleContent) {
-            const dataSource = roleContent.content.map(r => ({ ...r, _status: 'update' })) || [];
+            const dataSource = roleContent.content.map((r) => ({ ...r, _status: 'update' })) || [];
             this.setState({
               oldDataSource: cloneDeep(dataSource),
               dataSource,
@@ -650,9 +653,10 @@ export default class EditForm extends React.Component {
               key="birthday"
               label={intl.get('hiam.subAccount.model.user.birthday').d('出生日期')}
             >
-              {form.getFieldDecorator('birthday', {})(
-                <DatePicker format={dateFormat} style={{ width: '100%' }} placeholder="" />
-              )}
+              {form.getFieldDecorator(
+                'birthday',
+                {}
+              )(<DatePicker format={dateFormat} style={{ width: '100%' }} placeholder="" />)}
             </Form.Item>
           </Col>
           <Col key="nickname" {...FORM_COL_2_LAYOUT}>
@@ -677,9 +681,12 @@ export default class EditForm extends React.Component {
               {...MODAL_FORM_ITEM_LAYOUT}
               label={intl.get('hzero.common.gender').d('性别')}
             >
-              {form.getFieldDecorator('gender', {})(
+              {form.getFieldDecorator(
+                'gender',
+                {}
+              )(
                 <Select allowClear>
-                  {map(gender, item => (
+                  {map(gender, (item) => (
                     <Select.Option value={item.value} key={item.value}>
                       {item.meaning}
                     </Select.Option>
@@ -693,7 +700,10 @@ export default class EditForm extends React.Component {
               {...MODAL_FORM_ITEM_LAYOUT}
               label={intl.get('hiam.subAccount.model.user.countryId').d('国家')}
             >
-              {form.getFieldDecorator('countryId', {})(
+              {form.getFieldDecorator(
+                'countryId',
+                {}
+              )(
                 <Lov
                   code="HPFM.COUNTRY"
                   onChange={this.changeCountryId}
@@ -710,7 +720,10 @@ export default class EditForm extends React.Component {
               {...MODAL_FORM_ITEM_LAYOUT}
               label={intl.get('hiam.subAccount.model.user.regionId').d('地区')}
             >
-              {form.getFieldDecorator('regionId', {})(
+              {form.getFieldDecorator(
+                'regionId',
+                {}
+              )(
                 <Lov
                   code="HPFM.REGION"
                   queryParams={{
@@ -786,7 +799,7 @@ export default class EditForm extends React.Component {
                     initialValue: (idd[0] && idd[0].value) || '+86',
                   })(
                     <Select onChange={this.reValidationPhone}>
-                      {map(idd, r => (
+                      {map(idd, (r) => (
                         <Select.Option key={r.value} value={r.value}>
                           {r.meaning}
                         </Select.Option>
@@ -854,7 +867,7 @@ export default class EditForm extends React.Component {
                   format={dateFormat}
                   style={{ width: '100%' }}
                   placeholder={null}
-                  disabledDate={currentDate =>
+                  disabledDate={(currentDate) =>
                     form.getFieldValue('endDateActive') &&
                     moment(form.getFieldValue('endDateActive')).isBefore(currentDate, 'day')
                   }
@@ -879,7 +892,7 @@ export default class EditForm extends React.Component {
                   format={dateFormat}
                   style={{ width: '100%' }}
                   placeholder={null}
-                  disabledDate={currentDate =>
+                  disabledDate={(currentDate) =>
                     form.getFieldValue('startDateActive') &&
                     moment(form.getFieldValue('startDateActive')).isAfter(currentDate, 'day')
                   }
@@ -1006,7 +1019,7 @@ export default class EditForm extends React.Component {
                 initialValue: isUndefined(initialValue.gender) ? '' : `${initialValue.gender}`,
               })(
                 <Select allowClear>
-                  {map(gender, item => (
+                  {map(gender, (item) => (
                     <Select.Option value={item.value} key={item.value}>
                       {item.meaning}
                     </Select.Option>
@@ -1037,6 +1050,7 @@ export default class EditForm extends React.Component {
           <Col key="regionId" {...FORM_COL_2_LAYOUT}>
             <Form.Item
               {...MODAL_FORM_ITEM_LAYOUT}
+              style={{ height: '39px' }}
               label={intl.get('hiam.subAccount.model.user.regionId').d('地区')}
             >
               {form.getFieldDecorator('regionId', {
@@ -1048,6 +1062,7 @@ export default class EditForm extends React.Component {
                     countryId: form.getFieldValue('countryId'),
                   }}
                   textValue={initialValue.regionName}
+
                   // textField="tenantName"
                   // disabled={!isCreate}
                 />
@@ -1155,7 +1170,7 @@ export default class EditForm extends React.Component {
                       initialValue.internationalTelCode || (idd[0] && idd[0].value) || '+86',
                   })(
                     <Select onChange={this.reValidationPhone}>
-                      {map(idd, r => (
+                      {map(idd, (r) => (
                         <Select.Option key={r.value} value={r.value}>
                           {r.meaning}
                         </Select.Option>
@@ -1189,7 +1204,7 @@ export default class EditForm extends React.Component {
                   format={dateFormat}
                   style={{ width: '100%' }}
                   placeholder={null}
-                  disabledDate={currentDate =>
+                  disabledDate={(currentDate) =>
                     form.getFieldValue('endDateActive') &&
                     moment(form.getFieldValue('endDateActive')).isBefore(currentDate, 'day')
                   }
@@ -1209,7 +1224,7 @@ export default class EditForm extends React.Component {
                   format={dateFormat}
                   style={{ width: '100%' }}
                   placeholder={null}
-                  disabledDate={currentDate =>
+                  disabledDate={(currentDate) =>
                     form.getFieldValue('startDateActive') &&
                     moment(form.getFieldValue('startDateActive')).isAfter(currentDate, 'day')
                   }
@@ -1257,18 +1272,33 @@ export default class EditForm extends React.Component {
       roleTableFetchLoading,
       pagination = false,
     } = this.state;
-    const { isAdmin, initialValue = {}, isCreate } = this.props;
+    const { initialValue = {}, isCreate } = this.props;
     const rowSelection = {
       selectedRowKeys,
       onChange: this.handleRoleSelectionChange,
-      getCheckboxProps: record => ({
-        disabled: (isAdmin && !record.isNew) || record.manageableFlag === 0,
+      getCheckboxProps: (record) => ({
+        disabled: record.removableFlag === 0,
       }),
     };
     const columns = [
       {
         title: intl.get('hiam.subAccount.model.role.name').d('角色名称'),
         dataIndex: 'name',
+        render: (v, record) => {
+          if (record.tipMessage) {
+            return (
+              <>
+                <span>{v}</span>
+                <Tooltip title={record.tipMessage}>
+                  &nbsp;
+                  <Icon type="exclamation-circle-o" />
+                </Tooltip>
+              </>
+            );
+          } else {
+            return v;
+          }
+        },
       },
       !VERSION_IS_OP && {
         title: intl.get('entity.tenant.name').d('租户名称'),
@@ -1293,9 +1323,9 @@ export default class EditForm extends React.Component {
                 <DatePicker
                   format={dateFormat}
                   style={{ width: '100%' }}
-                  disabled={record.manageableFlag === 0}
+                  disabled={record.removableFlag === 0 || record.manageableFlag === 0}
                   placeholder={null}
-                  disabledDate={currentDate => {
+                  disabledDate={(currentDate) => {
                     return (
                       $form.getFieldValue('endDateActive') &&
                       moment($form.getFieldValue('endDateActive')).isBefore(currentDate, 'day')
@@ -1325,9 +1355,9 @@ export default class EditForm extends React.Component {
                 <DatePicker
                   format={dateFormat}
                   style={{ width: '100%' }}
-                  disabled={record.manageableFlag === 0}
+                  disabled={record.removableFlag === 0 || record.manageableFlag === 0}
                   placeholder={null}
-                  disabledDate={currentDate =>
+                  disabledDate={(currentDate) =>
                     $form.getFieldValue('startDateActive') &&
                     moment($form.getFieldValue('startDateActive')).isAfter(currentDate, 'day')
                   }
@@ -1342,8 +1372,8 @@ export default class EditForm extends React.Component {
         key: 'defaultRole',
         width: 60,
         render: (_, record) => {
-          const { defaultRole, assignLevel } = record;
-          if (assignLevel === 'organization' || assignLevel === 'org') {
+          const { defaultRole, level } = record;
+          if (level === 'organization' || level === 'org' || level === 'site') {
             return (
               <Checkbox
                 checked={defaultRole}
@@ -1383,131 +1413,134 @@ export default class EditForm extends React.Component {
       loadingDistributeUsers,
       deleteRolesLoading = false,
       currentUser: { currentRoleCode = '' },
+      labelList,
     } = this.props;
     return (
       <>
         <Form>
           {this.renderForm()}
-          {// eslint-disable-next-line no-nested-ternary
-          currentRoleCode === 'role/organization/default/administrator' ? (
-            <>
-              <Row style={{ textAlign: 'right' }}>
-                <Col span={23}>
-                  <Form.Item>
-                    <ButtonPermission
-                      permissionList={[
-                        {
-                          code: `${path}.button.deleteEdit`,
-                          type: 'button',
-                          meaning: '子账户管理-删除账号编辑',
-                        },
-                      ]}
-                      style={
-                        initialValue.userType === 'P' || isCreate
-                          ? { marginRight: 8 }
-                          : { display: 'none' }
-                      }
-                      onClick={this.handleRoleRemoveBtnClick}
-                      disabled={selectedRowKeys.length === 0}
-                      loading={deleteRolesLoading}
-                    >
-                      {intl.get('hzero.common.button.delete').d('删除')}
-                    </ButtonPermission>
-                    <ButtonPermission
-                      permissionList={[
-                        {
-                          code: `${path}.button.createEdit`,
-                          type: 'button',
-                          meaning: '子账户管理-新建账号编辑',
-                        },
-                      ]}
-                      type="primary"
-                      onClick={() => this.handleRoleAddBtnClick()}
-                      style={
-                        initialValue.userType !== 'P' && !isCreate
-                          ? { display: 'none' }
-                          : { marginRight: 10 }
-                      }
-                    >
-                      {intl.get('hzero.common.button.create').d('新建')}
-                    </ButtonPermission>
+          {
+            // eslint-disable-next-line no-nested-ternary
+            currentRoleCode === 'role/organization/default/administrator' ? (
+              <>
+                <Row style={{ textAlign: 'right' }}>
+                  <Col span={23}>
+                    <Form.Item>
+                      <ButtonPermission
+                        permissionList={[
+                          {
+                            code: `${path}.button.deleteEdit`,
+                            type: 'button',
+                            meaning: '子账户管理-删除账号编辑',
+                          },
+                        ]}
+                        style={
+                          initialValue.userType === 'P' || isCreate
+                            ? { marginRight: 8 }
+                            : { display: 'none' }
+                        }
+                        onClick={this.handleRoleRemoveBtnClick}
+                        disabled={selectedRowKeys.length === 0}
+                        loading={deleteRolesLoading}
+                      >
+                        {intl.get('hzero.common.button.delete').d('删除')}
+                      </ButtonPermission>
+                      <ButtonPermission
+                        permissionList={[
+                          {
+                            code: `${path}.button.createEdit`,
+                            type: 'button',
+                            meaning: '子账户管理-新建账号编辑',
+                          },
+                        ]}
+                        type="primary"
+                        onClick={() => this.handleRoleAddBtnClick()}
+                        style={
+                          initialValue.userType !== 'P' && !isCreate
+                            ? { display: 'none' }
+                            : { marginRight: 10 }
+                        }
+                      >
+                        {intl.get('hzero.common.button.create').d('新建')}
+                      </ButtonPermission>
+                    </Form.Item>
+                  </Col>
+                  <Col span={1} />
+                </Row>
+                <Row type="flex">
+                  <Col span={3} />
+                  <Col span={20} className={styles['rule-table']}>
+                    {this.renderRoleTable()}
+                  </Col>
+                </Row>
+              </>
+            ) : isAdmin ? (
+              <Row>
+                <Col>
+                  <Form.Item
+                    label={intl.get('hiam.subAccount.view.message.title.role').d('角色')}
+                    labelCol={{ span: 3 }}
+                    wrapperCol={{ span: 20 }}
+                    className={styles['rule-table']}
+                  >
+                    {this.renderRoleTable()}
                   </Form.Item>
                 </Col>
-                <Col span={1} />
               </Row>
-              <Row type="flex">
-                <Col span={3} />
-                <Col span={20} className={styles['rule-table']}>
-                  {this.renderRoleTable()}
-                </Col>
-              </Row>
-            </>
-          ) : isAdmin ? (
-            <Row>
-              <Col>
-                <Form.Item
-                  label={intl.get('hiam.subAccount.view.message.title.role').d('角色')}
-                  labelCol={{ span: 3 }}
-                  wrapperCol={{ span: 20 }}
-                  className={styles['rule-table']}
-                >
-                  {this.renderRoleTable()}
-                </Form.Item>
-              </Col>
-            </Row>
-          ) : (
-            <>
-              <Row style={{ textAlign: 'right' }}>
-                <Col span={23}>
-                  <Form.Item>
-                    <ButtonPermission
-                      permissionList={[
-                        {
-                          code: `${path}.button.deleteEdit`,
-                          type: 'button',
-                          meaning: '子账户管理-删除账号编辑',
-                        },
-                      ]}
-                      style={
-                        initialValue.userType === 'P' || isCreate
-                          ? { marginRight: 8 }
-                          : { display: 'none' }
-                      }
-                      onClick={this.handleRoleRemoveBtnClick}
-                      disabled={selectedRowKeys.length === 0}
-                    >
-                      {intl.get('hzero.common.button.delete').d('删除')}
-                    </ButtonPermission>
-                    <ButtonPermission
-                      permissionList={[
-                        {
-                          code: `${path}.button.createEdit`,
-                          type: 'button',
-                          meaning: '子账户管理-新建账号编辑',
-                        },
-                      ]}
-                      type="primary"
-                      onClick={() => this.handleRoleAddBtnClick()}
-                      style={
-                        initialValue.userType !== 'P' && !isCreate
-                          ? { display: 'none' }
-                          : { marginRight: 10 }
-                      }
-                    >
-                      {intl.get('hzero.common.button.create').d('新建')}
-                    </ButtonPermission>
-                  </Form.Item>
-                </Col>
-                <Col span={1} />
-              </Row>
-              <Row type="flex">
-                <Col span={3} />
-                <Col span={20} className={styles['rule-table']}>
-                  {this.renderRoleTable()}
-                </Col>
-              </Row>
-            </>
-          )}
+            ) : (
+              <>
+                <Row style={{ textAlign: 'right' }}>
+                  <Col span={23}>
+                    <Form.Item>
+                      <ButtonPermission
+                        permissionList={[
+                          {
+                            code: `${path}.button.deleteEdit`,
+                            type: 'button',
+                            meaning: '子账户管理-删除账号编辑',
+                          },
+                        ]}
+                        style={
+                          initialValue.userType === 'P' || isCreate
+                            ? { marginRight: 8 }
+                            : { display: 'none' }
+                        }
+                        onClick={this.handleRoleRemoveBtnClick}
+                        disabled={selectedRowKeys.length === 0}
+                      >
+                        {intl.get('hzero.common.button.delete').d('删除')}
+                      </ButtonPermission>
+                      <ButtonPermission
+                        permissionList={[
+                          {
+                            code: `${path}.button.createEdit`,
+                            type: 'button',
+                            meaning: '子账户管理-新建账号编辑',
+                          },
+                        ]}
+                        type="primary"
+                        onClick={() => this.handleRoleAddBtnClick()}
+                        style={
+                          initialValue.userType !== 'P' && !isCreate
+                            ? { display: 'none' }
+                            : { marginRight: 10 }
+                        }
+                      >
+                        {intl.get('hzero.common.button.create').d('新建')}
+                      </ButtonPermission>
+                    </Form.Item>
+                  </Col>
+                  <Col span={1} />
+                </Row>
+                <Row type="flex">
+                  <Col span={3} />
+                  <Col span={20} className={styles['rule-table']}>
+                    {this.renderRoleTable()}
+                  </Col>
+                </Row>
+              </>
+            )
+          }
         </Form>
         {!!visible && (
           <RoleModal
@@ -1517,6 +1550,8 @@ export default class EditForm extends React.Component {
             fetchRoles={this.fetchRoles}
             onSave={this.handleRoleAddSaveBtnClick}
             onCancel={this.handleRoleAddCancelBtnClick}
+            id={initialValue.id}
+            labelList={labelList}
           />
         )}
       </>

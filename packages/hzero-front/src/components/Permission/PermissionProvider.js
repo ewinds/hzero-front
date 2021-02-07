@@ -44,7 +44,7 @@ export default class PermissionProvider extends React.Component {
    */
   fetchPermission() {
     const handlers = Array.from(this.handlers);
-    checkPermission(Array.from(this.queue)).then(data => {
+    checkPermission(Array.from(this.queue)).then((data) => {
       if (getResponse(data)) {
         data.forEach(({ code, approve, controllerType }) => {
           // 存储权限对象
@@ -85,15 +85,12 @@ export default class PermissionProvider extends React.Component {
       handler(SUCCESS);
     } else {
       const { permissionList = [] } = props;
-      const codeList = permissionList.map(item =>
-        item.code
-          .replace(/^\//g, '')
-          .replace(/\//g, '.')
-          .replace(/:/g, '-')
+      const codeList = permissionList.map((item) =>
+        item.code.replace(/^\//g, '').replace(/\//g, '.').replace(/:/g, '-')
       );
       const queue = new Set();
       // 遍历找到对应的需要验证权限的对象
-      const isCheckThrough = codeList.every(item => {
+      const isCheckThrough = codeList.every((item) => {
         if (item) {
           this.allPermissionCodeList.add(item);
           const key = item;
@@ -119,8 +116,9 @@ export default class PermissionProvider extends React.Component {
           this.start();
         } else {
           // 鉴权失败后执行回调函数
-          codeList.some(() => {
-            handler(FAILURE);
+          codeList.some((item) => {
+            const ctlType = this.controllerTypes.get(item) || undefined;
+            handler(FAILURE, ctlType);
             return true;
           });
         }

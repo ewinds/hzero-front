@@ -31,7 +31,7 @@ export default class serviceManageForm extends React.Component {
    */
   @Bind()
   handleCancel() {
-    const { onCancel = e => e } = this.props;
+    const { onCancel = (e) => e } = this.props;
     this.setState({
       key: [],
       uuid: 0,
@@ -103,7 +103,7 @@ export default class serviceManageForm extends React.Component {
   handleDelete(k) {
     const { key } = this.state;
     this.setState({
-      key: key.filter(r => r !== k),
+      key: key.filter((r) => r !== k),
     });
   }
 
@@ -171,10 +171,10 @@ export default class serviceManageForm extends React.Component {
     const { key = [] } = this.state;
     const formItems =
       key &&
-      key.map(k => {
+      key.map((k) => {
         return (
           <Card
-            title={intl.get('hadm.serviceRoute.view.message.title.serviceRoute').d('服务路由')}
+            title={intl.get('hadm.common.title.serviceRoute').d('服务路由')}
             extra={
               <>
                 <Tooltip title={intl.get('hzero.common.button.save').d('保存')}>
@@ -489,138 +489,202 @@ export default class serviceManageForm extends React.Component {
               </>
             )}
             {actionType === 'route' &&
-              (initData &&
-                initData.map(item => {
-                  return (
-                    <>
-                      <Card
-                        title={intl
-                          .get('hadm.serviceRoute.view.message.title.serviceRoute')
-                          .d('服务路由')}
-                        extra={
-                          <>
-                            <Tooltip title={intl.get('hzero.common.button.save').d('保存')}>
-                              <Icon
-                                style={{ fontSize: 20, marginRight: 6, cursor: 'pointer' }}
-                                type="save"
-                                onClick={() => this.handleSaveInit(item)}
-                              />
-                            </Tooltip>
-                            <Tooltip title={intl.get('hzero.common.button.delete').d('删除')}>
-                              <Popconfirm
-                                title={intl
-                                  .get('hzero.common.message.confirm.delete')
-                                  .d('是否删除此条记录？')}
-                                onConfirm={() => this.handleDeleteInit(item)}
-                              >
-                                <Icon style={{ fontSize: 20, cursor: 'pointer' }} type="close" />
-                              </Popconfirm>
-                            </Tooltip>
-                          </>
-                        }
-                        style={{ marginBottom: 20 }}
+              initData &&
+              initData.map((item) => {
+                return (
+                  <>
+                    <Card
+                      title={intl.get('hadm.common.model.common.serviceRoute').d('服务路由')}
+                      extra={
+                        <>
+                          <Tooltip title={intl.get('hzero.common.button.save').d('保存')}>
+                            <Icon
+                              style={{ fontSize: 20, marginRight: 6, cursor: 'pointer' }}
+                              type="save"
+                              onClick={() => this.handleSaveInit(item)}
+                            />
+                          </Tooltip>
+                          <Tooltip title={intl.get('hzero.common.button.delete').d('删除')}>
+                            <Popconfirm
+                              title={intl
+                                .get('hzero.common.message.confirm.delete')
+                                .d('是否删除此条记录？')}
+                              onConfirm={() => this.handleDeleteInit(item)}
+                            >
+                              <Icon style={{ fontSize: 20, cursor: 'pointer' }} type="close" />
+                            </Popconfirm>
+                          </Tooltip>
+                        </>
+                      }
+                      style={{ marginBottom: 20 }}
+                    >
+                      <FormItem
+                        {...MODAL_FORM_ITEM_LAYOUT}
+                        labelCol={{
+                          span: 7,
+                        }}
+                        label={intl.get('hadm.serviceRoute.model.serviceRoute.name').d('路由标识')}
                       >
-                        <FormItem
-                          {...MODAL_FORM_ITEM_LAYOUT}
-                          labelCol={{
-                            span: 7,
-                          }}
-                          label={intl
-                            .get('hadm.serviceRoute.model.serviceRoute.name')
-                            .d('路由标识')}
-                        >
-                          {getFieldDecorator(`name${item.serviceRouteId}${item.serviceCode}`, {
-                            initialValue: item.name,
-                            rules: [
-                              {
-                                required: true,
-                                message: intl.get('hzero.common.validation.notNull', {
-                                  name: intl
-                                    .get('hadm.serviceRoute.model.serviceRoute.name')
-                                    .d('路由标识'),
-                                }),
-                              },
-                              {
+                        {getFieldDecorator(`name${item.serviceRouteId}${item.serviceCode}`, {
+                          initialValue: item.name,
+                          rules: [
+                            {
+                              required: true,
+                              message: intl.get('hzero.common.validation.notNull', {
+                                name: intl
+                                  .get('hadm.serviceRoute.model.serviceRoute.name')
+                                  .d('路由标识'),
+                              }),
+                            },
+                            {
+                              max: 60,
+                              message: intl.get('hzero.common.validation.max', {
                                 max: 60,
-                                message: intl.get('hzero.common.validation.max', {
-                                  max: 60,
-                                }),
-                              },
-                              {
-                                pattern: CODE,
-                                message: intl
-                                  .get('hzero.common.validation.code')
-                                  .d(
-                                    '大小写及数字，必须以字母、数字开头，可包含“-”、“_”、“.”、“/”'
-                                  ),
-                              },
-                            ],
-                          })(<Input trim disabled={!!name} inputChinese={false} />)}
-                        </FormItem>
-                        <FormItem
-                          {...MODAL_FORM_ITEM_LAYOUT}
-                          labelCol={{
-                            span: 7,
-                          }}
-                          label={
-                            <span>
-                              {intl
-                                .get('hadm.serviceRoute.model.serviceRoute.matchPath')
-                                .d('匹配路径')}
-                              &nbsp;
-                              <Tooltip
-                                title={intl
-                                  .get('hadm.serviceRoute.view.message.matchPathMsg')
-                                  .d('匹配该路径规则的请求将会被路由到当前服务')}
-                              >
-                                <Icon type="question-circle-o" />
-                              </Tooltip>
-                            </span>
-                          }
-                        >
-                          {getFieldDecorator(`path${item.serviceRouteId}${item.serviceCode}`, {
-                            initialValue: item.path,
-                            rules: [
-                              {
-                                required: true,
-                                message: intl.get('hzero.common.validation.notNull', {
-                                  name: intl
-                                    .get('hadm.serviceRoute.model.serviceRoute.matchPath')
-                                    .d('匹配路径'),
-                                }),
-                              },
-                              {
+                              }),
+                            },
+                            {
+                              pattern: CODE,
+                              message: intl
+                                .get('hzero.common.validation.code')
+                                .d('大小写及数字，必须以字母、数字开头，可包含“-”、“_”、“.”、“/”'),
+                            },
+                          ],
+                        })(<Input trim disabled={!!name} inputChinese={false} />)}
+                      </FormItem>
+                      <FormItem
+                        {...MODAL_FORM_ITEM_LAYOUT}
+                        labelCol={{
+                          span: 7,
+                        }}
+                        label={
+                          <span>
+                            {intl
+                              .get('hadm.serviceRoute.model.serviceRoute.matchPath')
+                              .d('匹配路径')}
+                            &nbsp;
+                            <Tooltip
+                              title={intl
+                                .get('hadm.serviceRoute.view.message.matchPathMsg')
+                                .d('匹配该路径规则的请求将会被路由到当前服务')}
+                            >
+                              <Icon type="question-circle-o" />
+                            </Tooltip>
+                          </span>
+                        }
+                      >
+                        {getFieldDecorator(`path${item.serviceRouteId}${item.serviceCode}`, {
+                          initialValue: item.path,
+                          rules: [
+                            {
+                              required: true,
+                              message: intl.get('hzero.common.validation.notNull', {
+                                name: intl
+                                  .get('hadm.serviceRoute.model.serviceRoute.matchPath')
+                                  .d('匹配路径'),
+                              }),
+                            },
+                            {
+                              max: 120,
+                              message: intl.get('hzero.common.validation.max', {
                                 max: 120,
-                                message: intl.get('hzero.common.validation.max', {
-                                  max: 120,
-                                }),
-                              },
-                            ],
-                          })(<Input trim disabled={!!item.path} inputChinese={false} />)}
-                        </FormItem>
-                        <FormItem
-                          {...MODAL_FORM_ITEM_LAYOUT}
-                          labelCol={{
-                            span: 7,
-                          }}
-                          label={
-                            <span>
-                              {intl.get('hadm.serviceRoute.model.serviceRoute.url').d('物理路径')}
-                              &nbsp;
-                              <Tooltip
-                                title={intl
-                                  .get('hadm.serviceRoute.view.message.urlMsg')
-                                  .d(
-                                    '路由到的物理路径。需要注意，该配置优先于根据服务名进行请求转发，例如：同时配置服务名称、物理路径时，请求将不会被转发到指定服务，而是被转发到该物理路径。'
-                                  )}
-                              >
-                                <Icon type="question-circle-o" />
-                              </Tooltip>
-                            </span>
-                          }
-                        >
-                          {getFieldDecorator(`url${item.serviceRouteId}${item.serviceCode}`, {
-                            initialValue: item.url,
+                              }),
+                            },
+                          ],
+                        })(<Input trim disabled={!!item.path} inputChinese={false} />)}
+                      </FormItem>
+                      <FormItem
+                        {...MODAL_FORM_ITEM_LAYOUT}
+                        labelCol={{
+                          span: 7,
+                        }}
+                        label={
+                          <span>
+                            {intl.get('hadm.serviceRoute.model.serviceRoute.url').d('物理路径')}
+                            &nbsp;
+                            <Tooltip
+                              title={intl
+                                .get('hadm.serviceRoute.view.message.urlMsg')
+                                .d(
+                                  '路由到的物理路径。需要注意，该配置优先于根据服务名进行请求转发，例如：同时配置服务名称、物理路径时，请求将不会被转发到指定服务，而是被转发到该物理路径。'
+                                )}
+                            >
+                              <Icon type="question-circle-o" />
+                            </Tooltip>
+                          </span>
+                        }
+                      >
+                        {getFieldDecorator(`url${item.serviceRouteId}${item.serviceCode}`, {
+                          initialValue: item.url,
+                          rules: [
+                            {
+                              max: 240,
+                              message: intl.get('hzero.common.validation.max', {
+                                max: 240,
+                              }),
+                            },
+                            {
+                              pattern: '([A-Za-z_]+)://(w+)(.w+)*(:[0-9_]+)?',
+                              message: intl
+                                .get('hadm.serviceRoute.model.serviceRoute.correctPhysicalPath')
+                                .d('请输入正确的物理路径'),
+                            },
+                          ],
+                        })(<Input inputChinese={false} />)}
+                      </FormItem>
+                      <FormItem
+                        {...MODAL_FORM_ITEM_LAYOUT}
+                        labelCol={{
+                          span: 7,
+                        }}
+                        label={
+                          <span>
+                            {intl
+                              .get('hadm.serviceRoute.model.serviceRoute.stripPrefix')
+                              .d('去掉前缀')}
+                            &nbsp;
+                            <Tooltip
+                              title={intl
+                                .get('hadm.serviceRoute.view.message.stripPrefixMsg')
+                                .d(
+                                  '请求经过路由转发后，是否去掉路径前缀，例如：/hdemo/v1/test经过路由转发后，到后端服务的请求路径将会变成/v1/test'
+                                )}
+                            >
+                              <Icon type="question-circle-o" />
+                            </Tooltip>
+                          </span>
+                        }
+                      >
+                        {getFieldDecorator(`stripPrefix${item.serviceRouteId}${item.serviceCode}`, {
+                          initialValue: item.stripPrefix,
+                        })(<Switch />)}
+                      </FormItem>
+                      <FormItem
+                        {...MODAL_FORM_ITEM_LAYOUT}
+                        labelCol={{
+                          span: 7,
+                        }}
+                        label={
+                          <span>
+                            {intl
+                              .get('hadm.serviceRoute.model.serviceRoute.delHttpHeaderList')
+                              .d('去除Http头列表')}
+                            &nbsp;
+                            <Tooltip
+                              title={intl
+                                .get('hadm.serviceRoute.view.message.delHttpHeaderMsg')
+                                .d(
+                                  '请求经过路由转发后，移除http头列表，一般是为了避免头信息传递给下层服务。可配置多个请求头，用“,”隔开。例如：Cookie,Set-Cookie'
+                                )}
+                            >
+                              <Icon type="question-circle-o" />
+                            </Tooltip>
+                          </span>
+                        }
+                      >
+                        {getFieldDecorator(
+                          `sensitiveHeaders${item.serviceRouteId}${item.serviceCode}`,
+                          {
+                            initialValue: item.sensitiveHeaders,
                             rules: [
                               {
                                 max: 240,
@@ -628,87 +692,14 @@ export default class serviceManageForm extends React.Component {
                                   max: 240,
                                 }),
                               },
-                              {
-                                pattern: '([A-Za-z_]+)://(w+)(.w+)*(:[0-9_]+)?',
-                                message: intl
-                                  .get('hadm.serviceRoute.model.serviceRoute.correctPhysicalPath')
-                                  .d('请输入正确的物理路径'),
-                              },
                             ],
-                          })(<Input inputChinese={false} />)}
-                        </FormItem>
-                        <FormItem
-                          {...MODAL_FORM_ITEM_LAYOUT}
-                          labelCol={{
-                            span: 7,
-                          }}
-                          label={
-                            <span>
-                              {intl
-                                .get('hadm.serviceRoute.model.serviceRoute.stripPrefix')
-                                .d('去掉前缀')}
-                              &nbsp;
-                              <Tooltip
-                                title={intl
-                                  .get('hadm.serviceRoute.view.message.stripPrefixMsg')
-                                  .d(
-                                    '请求经过路由转发后，是否去掉路径前缀，例如：/hdemo/v1/test经过路由转发后，到后端服务的请求路径将会变成/v1/test'
-                                  )}
-                              >
-                                <Icon type="question-circle-o" />
-                              </Tooltip>
-                            </span>
                           }
-                        >
-                          {getFieldDecorator(
-                            `stripPrefix${item.serviceRouteId}${item.serviceCode}`,
-                            {
-                              initialValue: item.stripPrefix,
-                            }
-                          )(<Switch />)}
-                        </FormItem>
-                        <FormItem
-                          {...MODAL_FORM_ITEM_LAYOUT}
-                          labelCol={{
-                            span: 7,
-                          }}
-                          label={
-                            <span>
-                              {intl
-                                .get('hadm.serviceRoute.model.serviceRoute.delHttpHeaderList')
-                                .d('去除Http头列表')}
-                              &nbsp;
-                              <Tooltip
-                                title={intl
-                                  .get('hadm.serviceRoute.view.message.delHttpHeaderMsg')
-                                  .d(
-                                    '请求经过路由转发后，移除http头列表，一般是为了避免头信息传递给下层服务。可配置多个请求头，用“,”隔开。例如：Cookie,Set-Cookie'
-                                  )}
-                              >
-                                <Icon type="question-circle-o" />
-                              </Tooltip>
-                            </span>
-                          }
-                        >
-                          {getFieldDecorator(
-                            `sensitiveHeaders${item.serviceRouteId}${item.serviceCode}`,
-                            {
-                              initialValue: item.sensitiveHeaders,
-                              rules: [
-                                {
-                                  max: 240,
-                                  message: intl.get('hzero.common.validation.max', {
-                                    max: 240,
-                                  }),
-                                },
-                              ],
-                            }
-                          )(<Input inputChinese={false} />)}
-                        </FormItem>
-                      </Card>
-                    </>
-                  );
-                }))}
+                        )(<Input inputChinese={false} />)}
+                      </FormItem>
+                    </Card>
+                  </>
+                );
+              })}
             {actionType === 'route' && (
               <>
                 {formItems}

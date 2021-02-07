@@ -6,8 +6,8 @@ import Lov from 'components/Lov';
 import TLEditor from 'components/TLEditor';
 import SideBar from 'components/Modal/SideBar';
 
-import { isTenantRoleLevel } from 'utils/utils';
 import intl from 'utils/intl';
+import { isTenantRoleLevel } from 'utils/utils';
 import { CODE_UPPER } from 'utils/regExp';
 
 const { Option } = Select;
@@ -51,7 +51,7 @@ export default class CreateForm extends React.Component {
   }
 
   renderForm() {
-    const { form, lovType = [], onParentLovChange = (e) => e } = this.props;
+    const { form, lovType = [], requestMethods = [], onParentLovChange = (e) => e } = this.props;
     return (
       <Form>
         <Form.Item
@@ -73,6 +73,12 @@ export default class CreateForm extends React.Component {
                   .get('hzero.common.validation.codeUpper')
                   .d('全大写及数字，必须以字母、数字开头，可包含“-”、“_”、“.”、“/”'),
               },
+              {
+                max: 60,
+                message: intl.get('hzero.common.validation.max', {
+                  max: 60,
+                }),
+              },
             ],
           })(<Input trim typeCase="upper" inputChinese={false} />)}
         </Form.Item>
@@ -87,6 +93,12 @@ export default class CreateForm extends React.Component {
                 required: true,
                 message: intl.get('hzero.common.validation.notNull', {
                   name: intl.get('hpfm.valueList.model.header.lovName').d('值集名称'),
+                }),
+              },
+              {
+                max: 240,
+                message: intl.get('hzero.common.validation.max', {
+                  max: 240,
                 }),
               },
             ],
@@ -180,6 +192,33 @@ export default class CreateForm extends React.Component {
                 },
               ],
             })(<Input />)}
+          </Form.Item>
+        ) : null}
+        {form.getFieldsValue().lovTypeCode === 'URL' ? (
+          <Form.Item
+            labelCol={{ span: 6 }}
+            wrapperCol={{ span: 16 }}
+            label={intl.get('hpfm.valueList.model.header.requestMethod').d('请求方式')}
+          >
+            {form.getFieldDecorator('requestMethod', {
+              initialValue: 'GET',
+              rules: [
+                {
+                  required: true,
+                  message: intl.get('hzero.common.validation.notNull', {
+                    name: intl.get('hpfm.valueList.model.header.requestMethod').d('请求方式'),
+                  }),
+                },
+              ],
+            })(
+              <Select style={{ width: '100%' }}>
+                {requestMethods.map((item) => (
+                  <Option value={item.value} key={item.value}>
+                    {item.meaning}
+                  </Option>
+                ))}
+              </Select>
+            )}
           </Form.Item>
         ) : null}
         {form.getFieldsValue().lovTypeCode === 'SQL' ? (

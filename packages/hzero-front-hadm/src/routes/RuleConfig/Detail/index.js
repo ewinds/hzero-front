@@ -48,7 +48,7 @@ const TargetDrawer = (props) => {
     () =>
       new DataSet({
         ...detailTableDS(),
-        fields: [...detailTableDS.fields],
+        fields: [...detailTableDS().fields],
         events: {
           select: ({ dataSet }) => {
             setDisabledFlag(
@@ -389,8 +389,8 @@ const TargetDrawer = (props) => {
       key: 'update',
       width: 1000,
       title: flag
-        ? intl.get('hadm.ruleConfig.view.message.crete').d('新建')
-        : intl.get('hadm.ruleConfig.view.message.edit').d('编辑'),
+        ? intl.get('hzero.common.view.title.create').d('新建')
+        : intl.get('hzero.common.view.title.edit').d('编辑'),
       drawer: true,
       children: <Drawer {...drawerProps} />,
       onOk: async () => {
@@ -615,7 +615,7 @@ const TargetDrawer = (props) => {
       </Header>
       <Content className={styles['head-form']}>
         <Spin dataSet={detailDs}>
-          <Card bordered={false} title={intl.get('hadm.rule.view.title.baseInfo').d('基本信息')}>
+          <Card bordered={false} title={intl.get('hadm.common.title.baseInfo').d('基本信息')}>
             <Form dataSet={detailDs} columns={2} labelWidth={150}>
               <Lov name="datasourceGroupObj" />
               <TextField name="proxySchemaName" maxLength={60} />

@@ -745,7 +745,7 @@ export default class Department extends React.Component {
       const { unitId = '', positionId = '', primaryPositionFlag = 1, ...other } = employeeData;
       const list = employeePositionData.map((record) => ({
         unitId: record.unitId || '',
-        positionId: record.partTimePositionId || '',
+        positionId: record.partTimePositionLov.positionId || '',
         primaryPositionFlag: 0,
       }));
       list.push({ unitId, positionId, primaryPositionFlag });

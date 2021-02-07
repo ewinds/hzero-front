@@ -1,5 +1,18 @@
 module.exports = [
   {
+    path: '/hpfm/api-customize',
+    components: [
+      {
+        path: '/hpfm/api-customize/list',
+        component: () => import('../routes/ApiIndividuation'),
+      },
+      {
+        path: '/hpfm/api-customize/:type/:id',
+        component: () => import('../routes/ApiIndividuation/Detail'),
+      },
+    ],
+  },
+  {
     path: '/hpfm/card-manage',
     component: () => import('../routes/CardManage'),
     models: [() => import('../models/cardManage')],
@@ -144,7 +157,7 @@ module.exports = [
       {
         path: '/hpfm/dynamic-form/list',
         models: [() => import('../models/dynamicForm/header')],
-        component: () => import('../routes/dynamicForm/header/index'),
+        component: () => import('../routes/DynamicForm/Header/index'),
       },
       {
         path: '/hpfm/dynamic-form/detail/:formHeaderId',
@@ -152,7 +165,7 @@ module.exports = [
           () => import('../models/dynamicForm/header'),
           () => import('../models/dynamicForm/line'),
         ],
-        component: () => import('../routes/dynamicForm/line/index'),
+        component: () => import('../routes/DynamicForm/Line/index'),
       },
     ],
   },
@@ -244,11 +257,6 @@ module.exports = [
     ],
   },
   {
-    path: '/hpfm/database',
-    component: () => import('../routes/Database'),
-    models: [() => import('../models/database')],
-  },
-  {
     path: '/hpfm/data-hierarchies',
     component: () => import('../routes/DataHierarchies'),
     models: [() => import('../models/dataHierarchies')],
@@ -274,10 +282,15 @@ module.exports = [
         models: [() => import('../models/event')],
       },
       {
-        path: '/hpfm/event/message/:id',
-        component: () => import('../routes/Event/EventMessage'),
+        path: '/hpfm/event/graph/:id',
+        component: () => import('../routes/Event/Flow/FlowPage'),
         models: [() => import('../models/event')],
       },
+      // {
+      //   path: '/hpfm/event/message/:id',
+      //   component: () => import('../routes/Event/EventMessage'),
+      //   models: [() => import('../models/event')],
+      // },
     ],
   },
   {
@@ -577,6 +590,7 @@ module.exports = [
     component: () => import('../routes/himp/CommentImport'),
     models: [],
   },
+
   {
     path: '/hpfm/rule-engine',
     models: [() => import('../models/ruleEngine')],
@@ -715,12 +729,12 @@ module.exports = [
         component: () => import('../routes/ValueList/ValueDetail'),
         models: [() => import('../models/valueList')],
       },
+      {
+        path: '/hpfm/value-list/import-data/:code',
+        component: () => import('../routes/himp/CommentImport'),
+        models: [],
+      },
     ],
-  },
-  {
-    path: '/hpfm/value-list/import-data/:code',
-    component: () => import('../routes/himp/CommentImport'),
-    models: [],
   },
   {
     path: '/hpfm/customize',
@@ -883,6 +897,20 @@ module.exports = [
         key: '/hpfm/ds-routes',
         path: '/hpfm/ds-routes/detail/:dsRouteId',
         component: () => import('../routes/DsRoutes/Detail'),
+      },
+    ],
+  },
+  // 通用模板管理
+  {
+    path: '/hpfm/general-template',
+    components: [
+      {
+        path: '/hpfm/general-template/list',
+        component: () => import('../routes/GeneralTemplate'),
+      },
+      {
+        path: '/hpfm/general-template/detail/:action/:id',
+        component: () => import('../routes/GeneralTemplate/Detail'),
       },
     ],
   },

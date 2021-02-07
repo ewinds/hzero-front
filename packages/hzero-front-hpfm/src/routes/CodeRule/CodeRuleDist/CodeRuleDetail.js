@@ -266,6 +266,12 @@ const AddForm = Form.create({ fieldNameProp: null })((props) => {
                     name: intl.get('hpfm.codeRule.model.codeRule.seqLength').d('位数'),
                   }),
                 },
+                {
+                  max: 20,
+                  message: intl.get('hzero.common.validation.max', {
+                    max: 20,
+                  }),
+                },
               ],
             })(
               form.getFieldValue('fieldType') === 'UUID' ? (

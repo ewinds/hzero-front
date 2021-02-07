@@ -176,3 +176,34 @@ export async function fetchRequestDetail(params) {
     }
   );
 }
+
+/**
+ * 获取redash报表
+ * @async
+ * @function buildReport
+ * @param {object} params - 查询条件
+ * @returns {object} fetch Promise
+ */
+export async function fetchRedashReport(params) {
+  const { reportUuid, type, strParam, ...others } = params;
+  const otherParam = getUrlParam(others);
+  if (strParam) {
+    const newParam = otherParam ? `${otherParam}&${strParam}` : `?${strParam}`;
+    return request(
+      organizationRoleLevel
+        ? `${prefix}/${organizationId}/redash/${reportUuid}/data${newParam}`
+        : `${prefix}/redash/${reportUuid}/data${newParam}`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+  return request(
+    organizationRoleLevel
+      ? `${prefix}/${organizationId}/redash/${reportUuid}/data${otherParam}`
+      : `${prefix}/redash/${reportUuid}/data${otherParam}`,
+    {
+      method: 'GET',
+    }
+  );
+}

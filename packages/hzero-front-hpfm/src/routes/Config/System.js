@@ -10,9 +10,10 @@ import { Col, Form, Input, Row, Select } from 'hzero-ui';
 import { Bind } from 'lodash-decorators';
 
 import Upload from 'components/Upload/UploadButton';
+import TLEditor from 'components/TLEditor';
 
 import intl from 'utils/intl';
-import { BKT_PUBLIC } from 'utils/config';
+import { BKT_PUBLIC, MULTIPLE_SKIN_ENABLE } from 'utils/config';
 
 const FormItem = Form.Item;
 const formLayout = {
@@ -30,19 +31,21 @@ export default class System extends Component {
   render() {
     const {
       form: { getFieldDecorator },
+      languageList = [],
       config: {
         data = [],
         lov: {
           menuLayout: lovMenuLayout = [],
           menuLayoutTheme: lovMenuLayoutTheme = [],
           roleMergeFlag: lovRoleMergeFlag = [],
+          roleMergeFlag: watermarkFlag = [],
         },
       },
     } = this.props;
     let iconFileList = [];
     let faviconFileList = [];
     if (data.length > 0) {
-      data.forEach(item => {
+      data.forEach((item) => {
         switch (item.configCode) {
           case 'LOGO':
             iconFileList = [
@@ -75,6 +78,16 @@ export default class System extends Component {
     const menuLayout = this.findConfigField('MENU_LAYOUT', data);
     const menuLayoutTheme = this.findConfigField('MENU_LAYOUT_THEME', data);
     const roleMergeFlag = this.findConfigField('ROLE_MERGE', data);
+    const titleData = this.findConfigData('TITLE', data);
+    const defaultLanguage = this.findConfigData('TENANT_DEFAULT_LANGUAGE', data);
+    const watermark = this.findConfigField('WATERMARK', data);
+
+    let isUed = false;
+    try {
+      isUed = MULTIPLE_SKIN_ENABLE ? JSON.parse(MULTIPLE_SKIN_ENABLE) : false;
+    } catch (e) {
+      isUed = false;
+    }
     return (
       <Form>
         <Row>
@@ -97,7 +110,13 @@ export default class System extends Component {
                     message: intl.get('hzero.common.validation.max', { max: 80 }),
                   },
                 ],
-              })(<Input />)}
+              })(
+                <TLEditor
+                  label={intl.get('hpfm.config.model.config.title').d('系统标题')}
+                  field="configValue"
+                  token={titleData && titleData._token}
+                />
+              )}
             </FormItem>
           </Col>
         </Row>
@@ -177,7 +196,7 @@ export default class System extends Component {
                 ],
               })(
                 <Select>
-                  {lovMenuLayout.map(item => {
+                  {lovMenuLayout.map((item) => {
                     return (
                       <Select.Option key={item.value} value={item.value}>
                         {item.meaning}
@@ -189,36 +208,40 @@ export default class System extends Component {
             </FormItem>
           </Col>
         </Row>
-        <Row>
-          <Col span={16}>
-            <FormItem
-              label={intl.get('hpfm.config.model.config.menuLayoutTheme').d('菜单布局主题')}
-              {...formLayout}
-            >
-              {getFieldDecorator('menuLayoutTheme', {
-                initialValue: menuLayoutTheme,
-                rules: [
-                  {
-                    required: true,
-                    message: intl.get('hzero.common.validation.notNull', {
-                      name: intl.get('hpfm.config.model.config.menuLayoutTheme').d('菜单布局主题'),
-                    }),
-                  },
-                ],
-              })(
-                <Select>
-                  {lovMenuLayoutTheme.map(item => {
-                    return (
-                      <Select.Option key={item.value} value={item.value}>
-                        {item.meaning}
-                      </Select.Option>
-                    );
-                  })}
-                </Select>
-              )}
-            </FormItem>
-          </Col>
-        </Row>
+        {isUed && (
+          <Row>
+            <Col span={16}>
+              <FormItem
+                label={intl.get('hpfm.config.model.config.menuLayoutTheme').d('菜单布局主题')}
+                {...formLayout}
+              >
+                {getFieldDecorator('menuLayoutTheme', {
+                  initialValue: menuLayoutTheme,
+                  rules: [
+                    {
+                      required: true,
+                      message: intl.get('hzero.common.validation.notNull', {
+                        name: intl
+                          .get('hpfm.config.model.config.menuLayoutTheme')
+                          .d('菜单布局主题'),
+                      }),
+                    },
+                  ],
+                })(
+                  <Select>
+                    {lovMenuLayoutTheme.map((item) => {
+                      return (
+                        <Select.Option key={item.value} value={item.value}>
+                          {item.meaning}
+                        </Select.Option>
+                      );
+                    })}
+                  </Select>
+                )}
+              </FormItem>
+            </Col>
+          </Row>
+        )}
         <Row>
           <Col span={16}>
             <FormItem
@@ -237,7 +260,67 @@ export default class System extends Component {
                 ],
               })(
                 <Select>
-                  {lovRoleMergeFlag.map(item => {
+                  {lovRoleMergeFlag.map((item) => {
+                    return (
+                      <Select.Option key={item.value} value={item.value}>
+                        {item.meaning}
+                      </Select.Option>
+                    );
+                  })}
+                </Select>
+              )}
+            </FormItem>
+          </Col>
+        </Row>
+        <Row>
+          <Col span={16}>
+            <FormItem
+              label={intl.get('hpfm.config.model.config.defaultLanguage').d('默认语言配置')}
+              {...formLayout}
+            >
+              {getFieldDecorator('defaultLanguage', {
+                initialValue: defaultLanguage?.configValue || '',
+                rules: [
+                  {
+                    required: true,
+                    message: intl.get('hzero.common.validation.notNull', {
+                      name: intl.get('hpfm.config.model.config.defaultLanguage').d('默认语言配置'),
+                    }),
+                  },
+                ],
+              })(
+                <Select>
+                  {languageList.map((item) => {
+                    return (
+                      <Select.Option key={item.value} value={item.value}>
+                        {item.meaning}
+                      </Select.Option>
+                    );
+                  })}
+                </Select>
+              )}
+            </FormItem>
+          </Col>
+        </Row>
+        <Row>
+          <Col span={16}>
+            <FormItem
+              label={intl.get('hpfm.config.model.config.watermark').d('水印')}
+              {...formLayout}
+            >
+              {getFieldDecorator('watermark', {
+                initialValue: watermark,
+                rules: [
+                  {
+                    required: true,
+                    message: intl.get('hzero.common.validation.notNull', {
+                      name: intl.get('hpfm.config.model.config.watermark').d('水印'),
+                    }),
+                  },
+                ],
+              })(
+                <Select>
+                  {watermarkFlag.map((item) => {
                     return (
                       <Select.Option key={item.value} value={item.value}>
                         {item.meaning}
@@ -261,10 +344,25 @@ export default class System extends Component {
   @Bind()
   findConfigField(field, data) {
     if (data.length > 0) {
-      const dataFilter = data.find(item => {
+      const dataFilter = data.find((item) => {
         return item.configCode === field;
       });
       return dataFilter ? dataFilter.configValue : null;
+    }
+  }
+
+  /**
+   * 从配置列表查找配置项
+   * @param {Number|String} field 查询配置字段的 ID 或 Code
+   * @param {Array} data 获取到的原配置数组
+   */
+  @Bind()
+  findConfigData(field, data) {
+    if (data.length > 0) {
+      const dataFilter = data.find((item) => {
+        return item.configCode === field;
+      });
+      return dataFilter ? dataFilter : null;
     }
   }
 

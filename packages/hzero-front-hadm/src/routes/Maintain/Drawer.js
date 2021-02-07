@@ -135,7 +135,7 @@ const Drawer = (props) => {
       title: intl.get('hadm.maintain.view.message.title.error').d('错误信息'),
       drawer: false,
       closable: true,
-      children: <div>{record.message}</div>,
+      children: <pre dangerouslySetInnerHTML={{ __html: record.message.replace(/↵/g, '<br/>') }} />,
       onOk: () => true,
       onCancel: () => true,
       footer: null,

@@ -107,7 +107,7 @@ export default class Company extends PureComponent {
       payload: {
         body: record,
       },
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
         this.fetchCompany();
@@ -227,11 +227,11 @@ export default class Company extends PureComponent {
                     this.handleCompanyAble(record, false);
                   }}
                 >
-                  {intl.get('hzero.common.status.disable').d('禁用')}
+                  {intl.get('hzero.common.button.disable').d('禁用')}
                 </ButtonPermission>
               ),
               len: 2,
-              title: intl.get('hzero.common.status.disable').d('禁用'),
+              title: intl.get('hzero.common.button.disable').d('禁用'),
             });
           } else {
             operators.push({

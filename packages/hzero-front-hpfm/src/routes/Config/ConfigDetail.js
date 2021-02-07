@@ -104,7 +104,11 @@ export default class ConfigDetail extends Component {
                 }
                 key="system"
               >
-                <System config={config} wrappedComponentRef={this.systemRef} />
+                <System
+                  config={config}
+                  wrappedComponentRef={this.systemRef}
+                  languageList={languageList}
+                />
               </Tabs.TabPane>
               <Tabs.TabPane
                 tab={
@@ -273,6 +277,7 @@ export default class ConfigDetail extends Component {
               configCode: 'TITLE',
               tenantId: organizationId,
               ...this.findConfig('TITLE', data),
+              _tls: obj._tls,
               configValue: obj.title,
             });
             break;
@@ -319,6 +324,24 @@ export default class ConfigDetail extends Component {
               tenantId: organizationId,
               ...this.findConfig('ROLE_MERGE', data),
               configValue: obj.roleMergeFlag,
+            });
+            break;
+          case 'defaultLanguage':
+            values.push({
+              category: 'system',
+              configCode: 'TENANT_DEFAULT_LANGUAGE',
+              tenantId: organizationId,
+              ...this.findConfig('TENANT_DEFAULT_LANGUAGE', data),
+              configValue: obj.defaultLanguage,
+            });
+            break;
+          case 'watermark':
+            values.push({
+              category: 'system',
+              configCode: 'WATERMARK',
+              tenantId: organizationId,
+              ...this.findConfig('WATERMARK', data),
+              configValue: obj.watermark,
             });
             break;
           case 'password':

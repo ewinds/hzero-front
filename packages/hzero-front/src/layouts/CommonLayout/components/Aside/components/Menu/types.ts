@@ -13,6 +13,7 @@ export interface MenuItem {
   icon?: string; // root menu have icon
   key: string; // generator for all menu, uniq
   pathToRegexp?: RegExp; // for route match
+  quickIndex?: string;
 }
 
 export interface OriginMenu {

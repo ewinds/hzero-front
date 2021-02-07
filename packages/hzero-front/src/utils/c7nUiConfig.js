@@ -19,11 +19,11 @@ import {
   getAccessToken,
   getCurrentOrganizationId,
   isTenantRoleLevel,
+  getRequestId,
   setSession,
   getSession,
 } from 'utils/utils';
 import { getEnvConfig, getDvaApp } from 'utils/iocUtils';
-
 import { getMenuId } from './menuTab';
 
 const jsonMimeType = 'application/json';
@@ -123,6 +123,7 @@ if (!withTokenAxios._HZERO_AXIOS_IS_CONFIGED) {
             ...config.headers,
             Authorization: `bearer ${getAccessToken()}`,
             'H-Menu-Id': `${getMenuId()}`,
+            'H-Request-Id': `${getRequestId()}`,
             ...patchRequestHeader,
           },
         };
@@ -133,6 +134,7 @@ if (!withTokenAxios._HZERO_AXIOS_IS_CONFIGED) {
           headers: {
             ...config.headers,
             Authorization: `bearer ${getAccessToken()}`,
+            'H-Request-Id': `${getRequestId()}`,
             ...patchRequestHeader,
           },
         };
@@ -176,7 +178,7 @@ const QueryBarMore = ({ queryFields, buttons, queryFieldsLimit = 3, dataSet, que
     setHidden(!hidden);
   };
   const query = async () => {
-    if (await dataSet.validate(false, false)) {
+    if (await queryDataSet.validate(false, false)) {
       await dataSet.query();
     }
   };
@@ -224,11 +226,17 @@ const QueryBarMore = ({ queryFields, buttons, queryFieldsLimit = 3, dataSet, que
   );
 };
 
-const lovDefineAxiosConfig = (code) => {
+const lovDefineAxiosConfig = (code, field) => {
+  let publicFlag = false;
+  if (field && field.get('lovPara')) {
+    const { publicMode } = field.get('lovPara');
+    publicFlag = publicMode;
+  }
   const { API_HOST, HZERO_PLATFORM } = getEnvConfig();
   return {
     url: `${API_HOST}${HZERO_PLATFORM}/v1/${
-      isTenantRoleLevel() ? `${getCurrentOrganizationId()}/` : ''
+      // eslint-disable-next-line no-nested-ternary
+      publicFlag ? 'pub/' : isTenantRoleLevel() ? `${getCurrentOrganizationId()}/` : ''
     }lov-view/info?viewCode=${code}`,
     method: 'GET',
     transformResponse: [
@@ -262,7 +270,7 @@ const lovDefineAxiosConfig = (code) => {
           title = `lov ${code} loading...`;
         }
         const lovItems = [];
-        let tableWidth = 0;
+        // let tableWidth = 0;
         queryFields.forEach((queryItem = {}) => {
           const lovItem = {
             lovId: viewCode,
@@ -316,7 +324,7 @@ const lovDefineAxiosConfig = (code) => {
             gridFieldSequence: 1,
           };
           lovItems.push(lovItem);
-          tableWidth += tableItem.width;
+          // tableWidth += tableItem.width;
         });
 
         let queryColumns = 0;
@@ -353,7 +361,7 @@ const lovDefineAxiosConfig = (code) => {
           idField: null,
           parentIdField: null,
           lovItems,
-          width: tableWidth ? tableWidth + 300 : 700,
+          width: 700,
           height,
         };
       },

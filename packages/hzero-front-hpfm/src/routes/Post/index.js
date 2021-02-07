@@ -13,6 +13,7 @@ import { routerRedux } from 'dva/router';
 import uuidv4 from 'uuid/v4';
 import { Bind } from 'lodash-decorators';
 import { isUndefined } from 'lodash';
+import queryString from 'query-string';
 
 import { Content, Header } from 'components/Page';
 import { Button as ButtonPermission } from 'components/Permission';
@@ -98,14 +99,14 @@ export default class Post extends Component {
   findAndSetNodeProps(collections, cursorList = [], data) {
     let newCursorList = cursorList;
     const cursor = newCursorList[0];
-    return collections.map(n => {
+    return collections.map((n) => {
       const m = n;
       if (m.positionId === cursor) {
         if (newCursorList[1]) {
           if (!m.children) {
             m.children = [];
           }
-          newCursorList = newCursorList.filter(o => newCursorList.indexOf(o) !== 0);
+          newCursorList = newCursorList.filter((o) => newCursorList.indexOf(o) !== 0);
           m.children = this.findAndSetNodeProps(m.children, newCursorList, data);
         } else {
           m.children = data;
@@ -204,8 +205,10 @@ export default class Post extends Component {
       tenantId,
       match,
       post: { companyId, expandedRowKeys = [], renderTree = [] },
+      location: { search },
     } = this.props;
     const params = getEditTableData(renderTree, ['children', 'positionId']);
+    const { fromSource } = queryString.parse(search.substring(1));
     if (Array.isArray(params) && params.length !== 0) {
       dispatch({
         type: 'post/saveData',
@@ -213,9 +216,9 @@ export default class Post extends Component {
           tenantId,
           saveData: params,
           unitId: match.params.unitId,
-          unitCompanyId: companyId,
+          unitCompanyId: fromSource === 'company' ? match.params.unitId : companyId,
         },
-      }).then(res => {
+      }).then((res) => {
         if (res) {
           notification.success();
           this.handleSearch({ expandedRowKeys, addData: {}, expandFlag: true });
@@ -239,14 +242,14 @@ export default class Post extends Component {
     if (record.parentPositionId) {
       // 找到父节点的children, 更新children数组
       const parent = this.findNode(renderTree, pathMap[record.parentPositionId], 'positionId');
-      const newChildren = parent.children.filter(item => item.positionId !== record.positionId);
+      const newChildren = parent.children.filter((item) => item.positionId !== record.positionId);
       newRenderTree = this.findAndSetNodeProps(
         renderTree,
         pathMap[record.parentPositionId],
         newChildren
       );
     } else {
-      newRenderTree = renderTree.filter(item => item.positionId !== record.positionId);
+      newRenderTree = renderTree.filter((item) => item.positionId !== record.positionId);
     }
     dispatch({
       type: 'post/updateState',
@@ -311,18 +314,20 @@ export default class Post extends Component {
       tenantId,
       match,
       post: { expandedRowKeys = [], companyId },
+      location: { search },
     } = this.props;
+    const { fromSource } = queryString.parse(search.substring(1));
     dispatch({
       type: 'post/forbindLine',
       payload: {
         tenantId,
-        unitCompanyId: companyId,
+        unitCompanyId: fromSource === 'company' ? match.params.unitId : companyId,
         unitId: match.params.unitId,
         positionId: record.positionId,
         objectVersionNumber: record.objectVersionNumber,
         _token: record._token,
       },
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
         this.handleSearch({ expandedRowKeys, expandFlag: true });
@@ -341,18 +346,20 @@ export default class Post extends Component {
       tenantId,
       match,
       post: { expandedRowKeys = [], companyId },
+      location: { search },
     } = this.props;
+    const { fromSource } = queryString.parse(search.substring(1));
     dispatch({
       type: 'post/enabledLine',
       payload: {
         tenantId,
-        unitCompanyId: companyId,
+        unitCompanyId: fromSource === 'company' ? match.params.unitId : companyId,
         unitId: match.params.unitId,
         positionId: record.positionId,
         objectVersionNumber: record.objectVersionNumber,
         _token: record._token,
       },
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
         this.handleSearch({ expandedRowKeys, expandFlag: true });
@@ -373,7 +380,7 @@ export default class Post extends Component {
     } = this.props;
     const rowKeys = isExpand
       ? [...expandedRowKeys, record.positionId]
-      : expandedRowKeys.filter(item => item !== record.positionId);
+      : expandedRowKeys.filter((item) => item !== record.positionId);
     dispatch({
       type: 'post/updateState',
       payload: {
@@ -389,10 +396,14 @@ export default class Post extends Component {
    */
   @Bind()
   handleGotoSubGrade(record = {}) {
-    const { dispatch } = this.props;
+    const {
+      dispatch,
+      location: { search },
+    } = this.props;
     dispatch(
       routerRedux.push({
         pathname: `/hpfm/hr/org/staff/${record.positionId}`,
+        search,
       })
     );
   }
@@ -408,17 +419,19 @@ export default class Post extends Component {
       tenantId,
       match,
       post: { expandedRowKeys = [], companyId },
+      location: { search },
     } = this.props;
+    const { fromSource } = queryString.parse(search.substring(1));
     dispatch({
       type: 'post/saveEdit',
       payload: {
         tenantId,
-        unitCompanyId: companyId,
+        unitCompanyId: fromSource === 'company' ? match.params.unitId : companyId,
         unitId: match.params.unitId,
         positionId: record.positionId,
         data: { ...record },
       },
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         this.setState({ activePostData: {}, drawerVisible: false });
         notification.success();
@@ -440,7 +453,7 @@ export default class Post extends Component {
     dispatch({
       type: 'post/updateState',
       payload: {
-        expandedRowKeys: Object.keys(pathMap).map(item => +item),
+        expandedRowKeys: Object.keys(pathMap).map((item) => item),
       },
     });
   }
@@ -523,8 +536,14 @@ export default class Post extends Component {
    * @returns React.element
    */
   render() {
-    const { loading, saveLoading, editLoading, post = {}, match } = this.props;
-
+    const {
+      loading,
+      saveLoading,
+      editLoading,
+      post = {},
+      match,
+      location: { search },
+    } = this.props;
     const { unitCode, unitName, renderTree = [], expandedRowKeys = [] } = post;
     const { activePostData = {}, drawerVisible = false, cacheFormData } = this.state;
     const filterProps = {
@@ -548,6 +567,7 @@ export default class Post extends Component {
       onEdit: this.handleActiveLine,
       cacheFormData,
     };
+    const { fromSource } = queryString.parse(search.substring(1));
     const drawerProps = {
       onCancel: this.handleDrawerCancel,
       onOk: this.handleDrawerOk,
@@ -557,11 +577,15 @@ export default class Post extends Component {
       itemData: activePostData,
       loading: editLoading || loading,
     };
+    const backPath =
+      fromSource === 'company'
+        ? '/hpfm/hr/org/company'
+        : `/hpfm/hr/org/department/${post.companyId}`;
     return (
       <Fragment>
         <Header
           title={intl.get('hpfm.position.view.message.title').d('部门分配岗位')}
-          backPath={`/hpfm/hr/org/department/${post.companyId}`}
+          backPath={backPath}
         >
           <ButtonPermission
             icon="save"

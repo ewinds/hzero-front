@@ -88,7 +88,7 @@ const tableDS = () => {
       {
         name: 'enabledFlag',
         type: 'number',
-        label: intl.get('hadm.urlMappingConfig.model.urlMappingConfig.alertName').d('状态'),
+        label: intl.get('hzero.common.status').d('状态'),
       },
       {
         name: 'sourceTenantName',

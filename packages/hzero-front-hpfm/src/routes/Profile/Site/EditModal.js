@@ -15,6 +15,7 @@ import { Bind } from 'lodash-decorators';
 import { Content } from 'components/Page';
 import ValueList from 'components/ValueList';
 import Lov from 'components/Lov';
+import TLEditor from 'components/TLEditor';
 import EditTable from 'components/EditTable';
 import { Button as ButtonPermission } from 'components/Permission';
 
@@ -40,7 +41,7 @@ export default class EditModal extends React.Component {
       const { profileValue = {} } = nextProps;
       return {
         profileValue: nextProps.profileValue,
-        dataSource: cloneDeep(profileValue.profileValueDTOList || []).map(record => ({
+        dataSource: cloneDeep(profileValue.profileValueDTOList || []).map((record) => ({
           ...record,
           _status: 'update',
         })),
@@ -98,7 +99,7 @@ export default class EditModal extends React.Component {
                 })(
                   <ValueList
                     options={levelCode}
-                    onChange={value => {
+                    onChange={(value) => {
                       return this.handleRecordLevelCodeChange(value, record);
                     }}
                     className={styles['full-width']}
@@ -125,7 +126,7 @@ export default class EditModal extends React.Component {
                     disabled={tenantId === undefined}
                     textValue={record.levelValueDescription}
                     code="HIAM.SITE.USER"
-                    onChange={value => this.handleRecordChange(value, record)}
+                    onChange={(value) => this.handleRecordChange(value, record)}
                     queryParams={{ organizationId: tenantId, enabled: 1 }}
                     className={styles['full-width']}
                   />
@@ -137,7 +138,7 @@ export default class EditModal extends React.Component {
                     disabled={tenantId === undefined}
                     textValue={record.levelValueDescription}
                     code="HIAM.SITE.ROLE"
-                    onChange={value => this.handleRecordChange(value, record)}
+                    onChange={(value) => this.handleRecordChange(value, record)}
                     queryParams={{ tenantId, isEnabled: 1 }}
                     className={styles['full-width']}
                   />
@@ -199,7 +200,7 @@ export default class EditModal extends React.Component {
                       }),
                     },
                   ],
-                })(<Input onChange={e => this.handleRecordChange(e.target.value, record)} />)}
+                })(<Input onChange={(e) => this.handleRecordChange(e.target.value, record)} />)}
               </FormItem>
             );
           },
@@ -305,7 +306,13 @@ export default class EditModal extends React.Component {
                     }),
                   },
                 ],
-              })(<Input />)}
+              })(
+                <TLEditor
+                  label={intl.get('hpfm.profile.model.profile.description').d('配置描述')}
+                  field="description"
+                  token={profileValue ? profileValue._token : null}
+                />
+              )}
             </FormItem>
           </Col>
           <Col md={12} sm={24}>
@@ -456,16 +463,16 @@ export default class EditModal extends React.Component {
     if (removeRecord._status === 'create') {
       // 如果是新建的,直接删除
       this.setState({
-        dataSource: filter(dataSource, r => {
+        dataSource: filter(dataSource, (r) => {
           return r.profileValueId !== removeRecord.profileValueId;
         }),
       });
     } else {
       // 如果是之前存在的,调接口删除
-      onRecordRemove(removeRecord).then(response => {
+      onRecordRemove(removeRecord).then((response) => {
         if (response) {
           this.setState({
-            dataSource: filter(dataSource, r => {
+            dataSource: filter(dataSource, (r) => {
               return r.profileValueId !== removeRecord.profileValueId;
             }),
           });
@@ -489,6 +496,7 @@ export default class EditModal extends React.Component {
           saveProfile.profileName = fields.profileName;
           saveProfile.description = fields.description;
           saveProfile.profileLevel = fields.profileLevel;
+          saveProfile._tls = fields._tls;
 
           const saveDataSource = getEditTableData(dataSource, ['profileValueId', 'updateStatus']);
           if (dataSource.length !== 0 && saveDataSource.length !== dataSource.length) {
@@ -497,7 +505,7 @@ export default class EditModal extends React.Component {
           }
           // 租户级
           saveProfile.tenantId = fields.tenantId;
-          saveProfile.profileValueList = map(saveDataSource, profileValue => {
+          saveProfile.profileValueList = map(saveDataSource, (profileValue) => {
             return {
               levelCode: profileValue.levelCode,
               levelValue: profileValue.levelValue,
@@ -513,9 +521,10 @@ export default class EditModal extends React.Component {
           hasHeadError = false;
           saveProfile = { ...profileValue };
           saveProfile.description = fields.description;
+          saveProfile._tls = fields._tls;
           // 租户级
           saveProfile.tenantId = profileValue.tenantId;
-          const editDataSource = filter(dataSource, r => r.updateStatus);
+          const editDataSource = filter(dataSource, (r) => r.updateStatus);
           const saveDataSource = getEditTableData(editDataSource, [
             'profileValueId',
             'updateStatus',

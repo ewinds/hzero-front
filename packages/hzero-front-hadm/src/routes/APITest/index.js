@@ -238,7 +238,7 @@ const apiTest = () => {
         value: url,
       },
       {
-        name: intl.get(`${intlPrefix}.remark`).d('描述'),
+        name: intl.get(`hzero.common.view.description`).d('描述'),
         value: remark,
       },
       {
@@ -613,7 +613,13 @@ const apiTest = () => {
               <input type="text" value={requestUrl || ''} readOnly />
             </Tooltip>
             {!isSending ? (
-              <Button funcType="raised" color="primary" htmlType="submit" onClick={handleSubmit}>
+              <Button
+                funcType="raised"
+                color="primary"
+                loading={false}
+                htmlType="submit"
+                onClick={handleSubmit}
+              >
                 {intl.get('hzero.common.button.send').d('发送')}
               </Button>
             ) : (

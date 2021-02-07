@@ -10,6 +10,8 @@ import uuid from 'uuid/v4';
 import { Icon, Input, Form, Select, InputNumber } from 'hzero-ui';
 import { Bind, Throttle } from 'lodash-decorators';
 import { isNil, isEmpty } from 'lodash';
+import { routerRedux } from 'dva/router';
+import queryString from 'query-string';
 
 import { Button as ButtonPermission } from 'components/Permission';
 import EditTable from 'components/EditTable';
@@ -28,7 +30,7 @@ import EditDrawer from '../components/Drawer';
 import styles from './styles.less';
 
 function buildNewTreeDataSource(treeDataSource = [], iterFunc) {
-  return treeDataSource.map(item => {
+  return treeDataSource.map((item) => {
     if (item.children) {
       const newItem = iterFunc(item);
       return {
@@ -102,7 +104,7 @@ export default class LazyTree extends React.Component {
       saveAddData({
         tenantId: organizationId,
         data: params,
-      }).then(res => {
+      }).then((res) => {
         if (res) {
           notification.success();
           const { loadData } = this.props;
@@ -119,7 +121,7 @@ export default class LazyTree extends React.Component {
   getSaveBtnDisabled() {
     const { dataSource = [] } = this.props;
     let createCount = 0;
-    buildNewTreeDataSource(dataSource, item => {
+    buildNewTreeDataSource(dataSource, (item) => {
       if (item._status === 'create') {
         createCount += 1;
       }
@@ -139,10 +141,10 @@ export default class LazyTree extends React.Component {
     const { updateModelState, dataSource = [], expandKeys = [] } = this.props;
     let needRemoveExpandKey = false;
     const newDataSource = isNil(record.parentUnitId)
-      ? dataSource.filter(item => item.unitId !== record.unitId)
-      : buildNewTreeDataSource(dataSource, item => {
+      ? dataSource.filter((item) => item.unitId !== record.unitId)
+      : buildNewTreeDataSource(dataSource, (item) => {
           if (record.parentUnitId === item.unitId) {
-            const newChildren = item.children.filter(child => child.unitId !== record.unitId);
+            const newChildren = item.children.filter((child) => child.unitId !== record.unitId);
             const newItem = { ...item };
             if (newChildren.length === 0) {
               needRemoveExpandKey = true;
@@ -160,7 +162,7 @@ export default class LazyTree extends React.Component {
     updateModelState({
       treeDataSource: newDataSource,
       expandKeys: needRemoveExpandKey
-        ? expandKeys.filter(item => item !== record.parentUnitId)
+        ? expandKeys.filter((item) => item !== record.parentUnitId)
         : expandKeys,
     });
   }
@@ -201,7 +203,7 @@ export default class LazyTree extends React.Component {
       indent: record.indent + 1,
     };
     let needAddExpandKey = false;
-    const newDataSource = buildNewTreeDataSource(dataSource, item => {
+    const newDataSource = buildNewTreeDataSource(dataSource, (item) => {
       if (item.unitId === record.unitId) {
         if (item.hasNextFlag !== 1) {
           // 本身没有子节点
@@ -239,7 +241,7 @@ export default class LazyTree extends React.Component {
       unitId: record.unitId,
       objectVersionNumber: record.objectVersionNumber,
       _token: record._token,
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
         const { loadData } = this.props;
@@ -260,7 +262,7 @@ export default class LazyTree extends React.Component {
       unitId: record.unitId,
       objectVersionNumber: record.objectVersionNumber,
       _token: record._token,
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
         const { loadData } = this.props;
@@ -275,10 +277,28 @@ export default class LazyTree extends React.Component {
    */
   @Bind()
   handleGotoSubGradeRecord(record) {
-    const { push } = this.props;
-    push({
-      pathname: `/hpfm/hr/org/department/${record.unitId}`,
-    });
+    const { dispatch } = this.props;
+    dispatch(
+      routerRedux.push({
+        pathname: `/hpfm/hr/org/department/${record.unitId}`,
+      })
+    );
+  }
+
+  /**
+   * 分配岗位
+   * 进行岗位分配，跳转到下一级页面
+   * @param {*} record 操作对象
+   */
+  @Bind()
+  handleGotoSubPostRecord(record = {}) {
+    const { dispatch } = this.props;
+    dispatch(
+      routerRedux.push({
+        pathname: `/hpfm/hr/org/post/${record.unitId}`,
+        search: queryString.stringify({ fromSource: 'company' }),
+      })
+    );
   }
 
   /**
@@ -304,7 +324,7 @@ export default class LazyTree extends React.Component {
     if (!expanded) {
       const { updateModelState, expandKeys = [] } = this.props;
       updateModelState({
-        expandKeys: expandKeys.filter(k => k !== record.unitId),
+        expandKeys: expandKeys.filter((k) => k !== record.unitId),
       });
     }
   }
@@ -332,6 +352,7 @@ export default class LazyTree extends React.Component {
               className={classNames(styles['hpfm-organization-lazy-tree-expand-icon'], {
                 [styles['hpfm-organization-lazy-tree-expand-icon-loading']]: loading,
               })}
+              // eslint-disable-next-line no-nested-ternary
               type={loading ? 'loading' : isExpand ? 'minus-square-o' : 'plus-square-o'}
               onClick={loading ? undefined : () => this.handleTableExpand(!isExpand, record)}
             />
@@ -392,8 +413,8 @@ export default class LazyTree extends React.Component {
                     }),
                   },
                   {
-                    max: 40,
-                    message: intl.get('hzero.common.validation.max', { max: 40 }),
+                    max: 240,
+                    message: intl.get('hzero.common.validation.max', { max: 240 }),
                   },
                 ],
               })(
@@ -428,7 +449,7 @@ export default class LazyTree extends React.Component {
                 ],
               })(
                 <Select style={{ width: 100 }}>
-                  {unitType.map(item => (
+                  {unitType.map((item) => (
                     <Select.Option key={item.value} value={item.value}>
                       {item.meaning}
                     </Select.Option>
@@ -561,11 +582,11 @@ export default class LazyTree extends React.Component {
                       ]}
                       onClick={() => this.handleDisabledRecord(record)}
                     >
-                      {intl.get('hzero.common.status.disable').d('禁用')}
+                      {intl.get('hzero.common.button.disable').d('禁用')}
                     </ButtonPermission>
                   ),
                   len: 2,
-                  title: intl.get('hzero.common.status.disable').d('禁用'),
+                  title: intl.get('hzero.common.button.disable').d('禁用'),
                 });
                 operators.push({
                   key: 'assign-grade',
@@ -586,6 +607,26 @@ export default class LazyTree extends React.Component {
                   ),
                   len: 4,
                   title: intl.get('hpfm.organization.view.option.assign').d('分配部门'),
+                });
+                operators.push({
+                  key: 'assign-post',
+                  ele: (
+                    <ButtonPermission
+                      type="text"
+                      permissionList={[
+                        {
+                          code: `${match.path}.button.assign.post`,
+                          type: 'button',
+                          meaning: '组织架构维护-分配岗位',
+                        },
+                      ]}
+                      onClick={() => this.handleGotoSubPostRecord(record)}
+                    >
+                      {intl.get('hpfm.organization.view.option.assign.post').d('分配岗位')}
+                    </ButtonPermission>
+                  ),
+                  len: 4,
+                  title: intl.get('hpfm.organization.view.option.assign.post').d('分配岗位'),
                 });
                 break;
               case 0:
@@ -636,18 +677,18 @@ export default class LazyTree extends React.Component {
                       type="text"
                       permissionList={[
                         {
-                          code: `${match.path}.button.assign`,
+                          code: `${match.path}.button.assign.post`,
                           type: 'button',
-                          meaning: '组织架构维护-分配部门',
+                          meaning: '组织架构维护-分配岗位',
                         },
                       ]}
-                      onClick={() => this.handleGotoSubGradeRecord(record)}
+                      onClick={() => this.handleGotoSubPostRecord(record)}
                     >
-                      {intl.get('hpfm.organization.view.option.assign').d('分配部门')}
+                      {intl.get('hpfm.organization.view.option.assign.post').d('分配岗位')}
                     </ButtonPermission>
                   ),
                   len: 4,
-                  title: intl.get('hpfm.organization.view.option.assign').d('分配部门'),
+                  title: intl.get('hpfm.organization.view.option.assign.post').d('分配岗位'),
                 });
                 break;
               default:
@@ -672,7 +713,7 @@ export default class LazyTree extends React.Component {
     saveEditData({
       tenantId: organizationId,
       values,
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         this.setState({
           drawerVisible: false,

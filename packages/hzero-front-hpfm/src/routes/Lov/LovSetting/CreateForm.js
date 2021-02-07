@@ -18,7 +18,7 @@ import { isTenantRoleLevel } from 'utils/utils';
  * @reactProps {Function} showCreateModal - 控制modal显示隐藏方法
  * @return React.element
  */
-const CreateForm = Form.create({ fieldNameProp: null })(props => {
+const CreateForm = Form.create({ fieldNameProp: null })((props) => {
   const { form, modalVisible, handleAdd, showCreateModal, confirmLoading } = props;
   const okHandle = () => {
     form.validateFields((err, fieldsValue) => {
@@ -51,9 +51,9 @@ const CreateForm = Form.create({ fieldNameProp: null })(props => {
                 }),
               },
               {
-                max: 30,
+                max: 80,
                 message: intl.get('hzero.common.validation.max', {
-                  max: 30,
+                  max: 80,
                 }),
               },
               {

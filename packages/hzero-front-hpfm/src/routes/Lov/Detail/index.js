@@ -734,7 +734,7 @@ export default class Detail extends React.Component {
                   <Col {...FORM_COL_3_LAYOUT}>
                     <Form.Item
                       {...EDIT_FORM_ITEM_LAYOUT}
-                      label={intl.get('hzero.common.status.enabled').d('启用')}
+                      label={intl.get('hzero.common.status.enable').d('启用')}
                     >
                       {isTenant && isNotCurrentTenant
                         ? enableRender(enabledFlag === undefined ? 0 : enabledFlag)

@@ -41,7 +41,7 @@ export default class EventRuleForm extends React.Component {
   render() {
     const { modalVisible, hideModal, confirmLoading = false, title, ...otherProps } = this.props;
 
-    const { form, eventRule = {} } = this.props;
+    const { form, eventRule = {}, apiList = [], typeList = [] } = this.props;
     const {
       matchingRule,
       beanName,
@@ -53,7 +53,9 @@ export default class EventRuleForm extends React.Component {
       resultFlag = 0,
       syncFlag = 0,
       orderSeq = 1,
-      callType = 'M',
+      callType,
+      serverCode,
+      messageCode,
     } = eventRule;
     return (
       <SideBar
@@ -92,14 +94,18 @@ export default class EventRuleForm extends React.Component {
             label={intl.get('hpfm.event.model.eventRule.callType').d('调用类型')}
           >
             {form.getFieldDecorator('callType', {
-              initialValue: callType,
+              initialValue: callType || 'M',
             })(
               <Select style={{ width: '100%' }}>
-                <Option value="M">{intl.get('hzero.common.view.message.method').d('方法')}</Option>
-                <Option value="A">API</Option>
+                {typeList.map((item) => (
+                  <Option key={item.value} value={item.value}>
+                    {item.meaning}
+                  </Option>
+                ))}
               </Select>
             )}
           </Form.Item>
+          {/* eslint-disable-next-line no-nested-ternary */}
           {form.getFieldValue('callType') === 'M' ? (
             <React.Fragment>
               <Form.Item labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="BeanName">
@@ -145,7 +151,7 @@ export default class EventRuleForm extends React.Component {
                 })(<Input trim inputChinese={false} />)}
               </Form.Item>
             </React.Fragment>
-          ) : (
+          ) : form.getFieldValue('callType') === 'A' ? (
             <React.Fragment>
               <Form.Item labelCol={{ span: 6 }} wrapperCol={{ span: 16 }} label="API URL">
                 {form.getFieldDecorator('apiUrl', {
@@ -168,7 +174,9 @@ export default class EventRuleForm extends React.Component {
                   rules: [
                     {
                       required: true,
-                      message: intl.get('hzero.common.validation.notNull', { name: 'API Method' }),
+                      message: intl.get('hzero.common.validation.notNull', {
+                        name: 'API Method',
+                      }),
                     },
                     {
                       max: 240,
@@ -177,16 +185,53 @@ export default class EventRuleForm extends React.Component {
                   ],
                 })(
                   <Select style={{ width: '100%' }}>
-                    <Option value="GET">GET</Option>
-                    <Option value="POST">POST</Option>
-                    <Option value="PUT">PUT</Option>
-                    <Option value="DELETE">DELETE</Option>
+                    {apiList.map((item) => (
+                      <Option key={item.value} value={item.value}>
+                        {item.meaning}
+                      </Option>
+                    ))}
                   </Select>
                 )}
               </Form.Item>
             </React.Fragment>
+          ) : (
+            <React.Fragment>
+              <Form.Item
+                labelCol={{ span: 6 }}
+                wrapperCol={{ span: 16 }}
+                label={intl.get('hpfm.event.model.eventRule.serverCode').d('WebHook接收方')}
+              >
+                {form.getFieldDecorator('serverCode', {
+                  initialValue: serverCode,
+                  rules: [
+                    {
+                      required: true,
+                      message: intl.get('hzero.common.validation.notNull', {
+                        name: intl.get('hpfm.event.model.eventRule.serverCode').d('WebHook接收方'),
+                      }),
+                    },
+                  ],
+                })(<Input />)}
+              </Form.Item>
+              <Form.Item
+                labelCol={{ span: 6 }}
+                wrapperCol={{ span: 16 }}
+                label={intl.get('hpfm.event.model.eventRule.messageCode').d('消息编码')}
+              >
+                {form.getFieldDecorator('messageCode', {
+                  initialValue: messageCode,
+                  rules: [
+                    {
+                      required: true,
+                      message: intl.get('hzero.common.validation.notNull', {
+                        name: intl.get('hpfm.event.model.eventRule.messageCode').d('消息编码'),
+                      }),
+                    },
+                  ],
+                })(<Input />)}
+              </Form.Item>
+            </React.Fragment>
           )}
-
           <Form.Item
             labelCol={{ span: 6 }}
             wrapperCol={{ span: 16 }}

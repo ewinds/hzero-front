@@ -137,7 +137,7 @@ class FieldPermissionDrawer extends Component {
           ) : // eslint-disable-next-line no-nested-ternary
           record.get('editing') === true ? (
             <a onClick={() => this.handleCancel(record)}>
-              {intl.get('hzero.common.status.cancel').d('取消')}
+              {intl.get('hzero.common.button.cancel').d('取消')}
             </a>
           ) : record.get('deleteEnableFlag') === 1 ? (
             <>
@@ -227,6 +227,7 @@ class FieldPermissionDrawer extends Component {
         buttons={
           isSelf
             ? [
+                // eslint-disable-next-line react/jsx-indent
                 <Button
                   key="create"
                   icon="playlist_add"

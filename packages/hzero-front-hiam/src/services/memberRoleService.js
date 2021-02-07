@@ -22,7 +22,7 @@ import { HZERO_IAM, HZERO_PLATFORM } from 'utils/config';
 export async function queryMembers(params, organizationId) {
   return request(
     `${HZERO_IAM}/hzero/v1/${
-      organizationId === 0 ? '' : `${organizationId}/`
+      String(organizationId) === '0' ? '' : `${organizationId}/`
     }member-roles/users/roles`,
     {
       query: params,
@@ -41,7 +41,7 @@ export async function queryMembers(params, organizationId) {
 export async function queryRolesLevelUserCount(params = {}, organizationId) {
   return request(
     `${HZERO_IAM}/hzero/v1/${
-      organizationId === 0 ? '' : `${organizationId}/`
+      String(organizationId) === '0' ? '' : `${organizationId}/`
     }member-roles/roles/roles-with-usercount`,
     {
       body: params,
@@ -60,7 +60,9 @@ export async function queryRolesLevelUserCount(params = {}, organizationId) {
  */
 export async function queryRoles(params = {}, organizationId) {
   return request(
-    `${HZERO_IAM}/hzero/v1/${organizationId === 0 ? '' : `${organizationId}/`}member-roles/users`,
+    `${HZERO_IAM}/hzero/v1/${
+      String(organizationId) === '0' ? '' : `${organizationId}/`
+    }member-roles/users`,
     {
       query: params,
     }
@@ -95,7 +97,7 @@ export async function queryRoles(params = {}, organizationId) {
 export async function queryCreateRolesSublist(params, organizationId) {
   return request(
     `${HZERO_IAM}/hzero/v1/${
-      organizationId === 0 ? '' : `${organizationId}/`
+      String(organizationId) === '0' ? '' : `${organizationId}/`
     }member-roles/create-roles-sublist`,
     {
       query: params,
@@ -130,7 +132,7 @@ export async function createMember(memberIds = [], params, organizationId) {
 export async function batchAssign(memberIds = [], params, isEdit, organizationId) {
   return request(
     `${HZERO_IAM}/hzero/v1/${
-      organizationId === 0 ? '' : `${organizationId}/`
+      String(organizationId) === '0' ? '' : `${organizationId}/`
     }member-roles/batch-assign`,
     {
       method: 'POST',

@@ -188,7 +188,7 @@ export default class ServiceManage extends React.PureComponent {
     dispatch({
       type: 'hadmServiceManage/deleteService',
       payload: record,
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
         this.fetchServiceManageList();
@@ -243,7 +243,7 @@ export default class ServiceManage extends React.PureComponent {
         serviceDetail.serviceId !== undefined ? 'updateService' : 'createService'
       }`,
       payload: params,
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         this.hideModal();
         notification.success();
@@ -271,7 +271,7 @@ export default class ServiceManage extends React.PureComponent {
         // ...serviceDetail,
         ...fieldsValue,
       },
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
       }
@@ -313,7 +313,7 @@ export default class ServiceManage extends React.PureComponent {
       payload: {
         serviceName: serviceCode,
       },
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
       }
@@ -466,7 +466,7 @@ export default class ServiceManage extends React.PureComponent {
     ];
     const versionsProps = {
       visible: versionsModalVisible,
-      title: intl.get('hadm.serviceManage.view.message.versionsTitle').d('服务版本'),
+      title: intl.get('hadm.common.model.common.versionNumber').d('服务版本'),
       onChange: this.paginationChange,
       onCancel: this.setVersionModalVisible,
       onOk: this.setVersionModalVisible,

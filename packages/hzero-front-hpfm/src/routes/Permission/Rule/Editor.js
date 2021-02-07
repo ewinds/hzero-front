@@ -4,6 +4,7 @@ import { isEmpty } from 'lodash';
 
 import { Content } from 'components/Page';
 import Lov from 'components/Lov';
+import TLEditor from 'components/TLEditor';
 
 import intl from 'utils/intl';
 import { isTenantRoleLevel } from 'utils/utils';
@@ -97,6 +98,7 @@ export default class DrawerForm extends PureComponent {
       ruleId,
       ruleCode,
       ruleName,
+      _token,
       sqlValue,
       enabledFlag = 1,
       description,
@@ -191,7 +193,13 @@ export default class DrawerForm extends PureComponent {
                       }),
                     },
                   ],
-                })(<Input />)}
+                })(
+                  <TLEditor
+                    label={intl.get('hpfm.permission.model.permission.ruleName').d('规则名称')}
+                    field="ruleName"
+                    token={_token}
+                  />
+                )}
               </FormItem>
               <FormItem
                 label={intl.get('hpfm.permission.model.permission.ruleType').d('规则类型')}

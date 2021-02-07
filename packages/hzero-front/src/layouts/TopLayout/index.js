@@ -62,6 +62,10 @@ class TopLayout extends React.Component {
       dispatch({
         type: 'global/initActiveTabMenuId',
       });
+      dispatch({
+        type: 'global/changeLayoutCollapsed',
+        payload: { collapsed: false },
+      });
     });
     dispatch({
       type: 'user/queryDataHierarchies',
@@ -74,6 +78,11 @@ class TopLayout extends React.Component {
     const { collapsed = false } = this.state;
     this.setState({
       collapsed: !collapsed,
+    });
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'global/changeLayoutCollapsed',
+      payload: { collapsed: !collapsed },
     });
   }
 

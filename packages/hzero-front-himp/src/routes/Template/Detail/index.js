@@ -16,6 +16,7 @@ import { Content, Header } from 'components/Page';
 import Lov from 'components/Lov';
 import Switch from 'components/Switch';
 import Upload from 'components/Upload/UploadButton';
+import TLEditor from 'components/TLEditor';
 
 import notification from 'utils/notification';
 import intl from 'utils/intl';
@@ -240,6 +241,7 @@ export default class Detail extends PureComponent {
       templateFileName,
       templateName = '',
       templateType = 'C',
+      _token,
     } = headerData;
     const fileList = templateUrl
       ? [
@@ -316,7 +318,13 @@ export default class Detail extends PureComponent {
                         },
                       ],
                       initialValue: templateName,
-                    })(<Input />)}
+                    })(
+                      <TLEditor
+                        label={intl.get(`entity.template.name`).d('模板名称')}
+                        field="templateName"
+                        token={_token}
+                      />
+                    )}
                   </Form.Item>
                 </Col>
                 <Col {...FORM_COL_3_LAYOUT}>

@@ -23,7 +23,7 @@ const formLayout = {
 export default class MessageForm extends React.PureComponent {
   @Bind()
   handleOK() {
-    const { form, onOk = e => e } = this.props;
+    const { form, onOk = (e) => e } = this.props;
     form.validateFields((err, fieldsValue) => {
       if (!err) {
         onOk(fieldsValue);
@@ -73,6 +73,12 @@ export default class MessageForm extends React.PureComponent {
                     }),
                   },
                   {
+                    max: 180,
+                    message: intl.get('hzero.common.validation.max', {
+                      max: 180,
+                    }),
+                  },
+                  {
                     pattern: CODE,
                     message: intl
                       .get('hzero.common.validation.code')
@@ -98,7 +104,7 @@ export default class MessageForm extends React.PureComponent {
                 ],
               })(
                 <Select>
-                  {messageType.map(item => (
+                  {messageType.map((item) => (
                     <Option key={item.meaning} value={item.meaning}>
                       {item.meaning}
                     </Option>
@@ -124,7 +130,7 @@ export default class MessageForm extends React.PureComponent {
                 ],
               })(
                 <Select disabled={messageId !== undefined}>
-                  {languageList.map(item => (
+                  {languageList.map((item) => (
                     <Option key={item.code} value={item.code}>
                       {item.description}
                     </Option>
@@ -144,6 +150,12 @@ export default class MessageForm extends React.PureComponent {
                     required: true,
                     message: intl.get('hzero.common.validation.notNull', {
                       name: intl.get('hpfm.message.model.message.description').d('消息描述'),
+                    }),
+                  },
+                  {
+                    max: 1000,
+                    message: intl.get('hzero.common.validation.max', {
+                      max: 1000,
                     }),
                   },
                 ],

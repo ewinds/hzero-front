@@ -46,11 +46,11 @@ const Detail = (props) => {
     match: { path },
   } = props;
 
-  const detailTableDS = React.useMemo(() => new DataSet(detailTableDs), []);
+  const detailTableDS = React.useMemo(() => new DataSet(detailTableDs()), []);
 
-  const detailDS = React.useMemo(() => new DataSet(detailDs), []);
+  const detailDS = React.useMemo(() => new DataSet(detailDs()), []);
 
-  const detailTableDetailDS = React.useMemo(() => new DataSet(detailTableDetailDs), []);
+  const detailTableDetailDS = React.useMemo(() => new DataSet(detailTableDetailDs()), []);
 
   const [loading, setLoading] = React.useState(false);
 

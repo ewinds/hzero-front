@@ -884,12 +884,20 @@
     .action-link-loop(@i:0) when (@i =< @maxItemLen) {
       .action-link-item-@{i} {
         display: inline-block;
-        width: @i * 12px;
+        width: @i * 12px+0.5;
         .text-over-flow();
         vertical-align: middle;
       }
       .action-link-loop(@i + 1);
     }
     .action-link-loop(0);
+  }
+  // 放在type为text类型的权限按钮上，解决在表格内超出打点部分，禁用无效的问题
+  .hzero-permission-text-btn {
+    display: inline-block;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+    overflow: hidden;
+    width: 100%;
   }
 }

@@ -6,7 +6,7 @@ import { Button as ButtonPermission } from 'components/Permission';
 
 import intl from 'utils/intl';
 import { enableRender, operatorRender } from 'utils/renderer';
-import { tableScrollWidth } from 'utils/utils';
+import { tableScrollWidth, isTenantRoleLevel } from 'utils/utils';
 import { VERSION_IS_OP } from 'utils/config';
 
 /**
@@ -50,7 +50,15 @@ export default class ListTable extends PureComponent {
   }
 
   render() {
-    const { smsData, loading, pagination, onChange, tenantRoleLevel, path } = this.props;
+    const {
+      smsData,
+      loading,
+      pagination,
+      onChange,
+      tenantRoleLevel,
+      path,
+      handleShowFilter,
+    } = this.props;
     const columns = [
       !tenantRoleLevel && {
         title: intl.get('hmsg.smsConfig.model.smsConfig.tenant').d('租户'),
@@ -167,6 +175,28 @@ export default class ListTable extends PureComponent {
               ),
               len: 2,
               title: intl.get('hzero.common.button.delete').d('删除'),
+            });
+          }
+          if (tenantId.toString() === record.tenantId.toString() || !isTenantRoleLevel()) {
+            operators.push({
+              key: 'filter',
+              ele: (
+                <ButtonPermission
+                  type="text"
+                  permissionList={[
+                    {
+                      code: `${path}.button.filter`,
+                      type: 'button',
+                      meaning: '手机账户-设置黑白名单',
+                    },
+                  ]}
+                  onClick={() => handleShowFilter(record)}
+                >
+                  {intl.get('hmsg.smsConfig.view.title.filter').d('设置黑白名单')}
+                </ButtonPermission>
+              ),
+              len: 6,
+              title: intl.get('hmsg.smsConfig.view.title.filter').d('设置黑白名单'),
             });
           }
           return operatorRender(operators);

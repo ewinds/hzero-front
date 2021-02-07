@@ -237,7 +237,7 @@ export default class Hystrix extends PureComponent {
         },
       },
       {
-        title: intl.get(`hadm.hystrix.model.hystrix.remark`).d('描述'),
+        title: intl.get(`hzero.common.view.description`).d('描述'),
         dataIndex: 'remark',
       },
       {

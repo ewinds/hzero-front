@@ -3,6 +3,7 @@ import { Form, Button, Input, Row, Col } from 'hzero-ui';
 import { Bind } from 'lodash-decorators';
 
 import cacheComponent from 'components/CacheComponent';
+import Lov from 'components/Lov';
 
 import { SEARCH_FORM_ITEM_LAYOUT, FORM_COL_4_LAYOUT } from 'utils/constants';
 import intl from 'utils/intl';
@@ -83,6 +84,14 @@ export default class FilterForm extends PureComponent {
                   label={intl.get('entity.employee.name').d('员工姓名')}
                 >
                   {getFieldDecorator('name', {})(<Input />)}
+                </Form.Item>
+              </Col>
+              <Col {...FORM_COL_4_LAYOUT}>
+                <Form.Item
+                  {...SEARCH_FORM_ITEM_LAYOUT}
+                  label={intl.get('entity.employee.userId').d('用户')}
+                >
+                  {getFieldDecorator('userId')(<Lov code="HIAM.USER.ORG" />)}
                 </Form.Item>
               </Col>
             </Row>

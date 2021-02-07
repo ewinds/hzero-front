@@ -47,6 +47,7 @@ import {
   MODAL_FORM_ITEM_LAYOUT,
 } from 'utils/constants';
 import { VERSION_IS_OP } from 'utils/config';
+import notification from 'utils/notification';
 import { validatePasswordRule } from '@/utils/validator';
 
 import styles from '../../index.less';
@@ -184,6 +185,21 @@ export default class EditModal extends React.Component {
       {
         title: intl.get('hiam.subAccount.model.role.name').d('角色名称'),
         dataIndex: 'name',
+        render: (v, record) => {
+          if (record.tipMessage) {
+            return (
+              <>
+                <span>{v}</span>
+                <Tooltip title={record.tipMessage}>
+                  &nbsp;
+                  <Icon type="exclamation-circle-o" />
+                </Tooltip>
+              </>
+            );
+          } else {
+            return v;
+          }
+        },
       },
       !VERSION_IS_OP && {
         title: intl.get('entity.tenant.name').d('租户名称'),
@@ -209,7 +225,7 @@ export default class EditModal extends React.Component {
                   format={dateFormat}
                   style={{ width: '100%' }}
                   placeholder={null}
-                  disabled={record.manageableFlag === 0}
+                  disabled={record.removableFlag === 0 || record.manageableFlag === 0}
                   disabledDate={(currentDate) => {
                     return (
                       $form.getFieldValue('endDateActive') &&
@@ -240,7 +256,7 @@ export default class EditModal extends React.Component {
                 <DatePicker
                   format={dateFormat}
                   style={{ width: '100%' }}
-                  disabled={record.manageableFlag === 0}
+                  disabled={record.removableFlag === 0 || record.manageableFlag === 0}
                   placeholder={null}
                   disabledDate={(currentDate) =>
                     $form.getFieldValue('startDateActive') &&
@@ -257,8 +273,8 @@ export default class EditModal extends React.Component {
         key: 'defaultRoleId',
         width: 80,
         render: (_, record) => {
-          const { defaultRole, assignLevel } = record;
-          if (assignLevel === 'organization' || assignLevel === 'org') {
+          const { defaultRole, level } = record;
+          if (level === 'organization' || level === 'org' || level === 'site') {
             return (
               <Checkbox
                 checked={defaultRole}
@@ -331,10 +347,12 @@ export default class EditModal extends React.Component {
           onRoleRemove(remoteRemoveDataSource).then((res) => {
             if (res) {
               this.removeLocaleRoles();
+              notification.success();
             }
           });
         } else {
           this.removeLocaleRoles();
+          notification.success();
         }
       },
     });
@@ -489,13 +507,11 @@ export default class EditModal extends React.Component {
             }
             if (
               // 数据校验
-              !isUndefined(newRole.assignLevel) &&
-              !isUndefined(newRole.assignLevelValue) &&
+              !isUndefined(newRole.roleId) &&
+              !isUndefined(newRole.tenantId) &&
               // 重复校验
               (oldR._status === 'create' ||
-                (oldR._status === 'update' &&
-                  (oldR.assignLevel !== newRole.assignLevel ||
-                    oldR.assignLevelValue !== newRole.assignLevelValue)) ||
+                oldR._status === 'update' ||
                 (oldR._status === 'update' && oldR.startDateActive !== newRole.startDateActive) ||
                 oldR.endDateActive !== newRole.endDateActive)
               // 如果是正常流程 这两个是一定相同的
@@ -646,7 +662,7 @@ export default class EditModal extends React.Component {
       selectedRowKeys,
       onChange: this.handleRowSelectChange,
       getCheckboxProps: (record) => ({
-        disabled: (isAdmin && record._isRemote) || record.manageableFlag === 0,
+        disabled: record.removableFlag === 0,
       }),
     };
     const isSiteFlag = currentRoleCode === 'role/site/default/administrator';
@@ -1231,10 +1247,11 @@ export default class EditModal extends React.Component {
   render() {
     const {
       form,
-      editRecord,
+      editRecord = {},
       isCreate,
       fetchRoles,
       queryDetailLoading = false,
+      labelList,
       ...modalProps
     } = this.props;
     // todo 租户id 明天问下 明伟哥。
@@ -1262,6 +1279,8 @@ export default class EditModal extends React.Component {
               onSave={this.handleRoleCreateSave}
               onCancel={this.handleRoleCreateCancel}
               tenantId={tenantId}
+              id={editRecord.id}
+              labelList={labelList}
             />
           )}
         </Spin>

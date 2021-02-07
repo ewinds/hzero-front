@@ -6,7 +6,7 @@
  * @copyright Copyright (c) 2018, Hand
  */
 import React from 'react';
-import { Spin, Form } from 'hzero-ui';
+import { Spin, Form, Tooltip, Icon } from 'hzero-ui';
 import { connect } from 'dva';
 import { routerRedux } from 'dva/router';
 import { stringify } from 'qs';
@@ -30,6 +30,7 @@ import {
   delItemToPagination,
   // getCurrentUser,
 } from 'utils/utils';
+import { DEFAULT_DATE_FORMAT } from 'utils/constants';
 
 import AssignMember from './AssignMember';
 import AssignSecGrpDrawer from './AssignSecGrp';
@@ -91,7 +92,9 @@ const formLayout = {
     roleDataAuthorityDataSource,
     roleDataAuthorityValueList,
     roleDataAuthorityDataGroup,
-    queryListLoading: loading.effects['roleManagement/queryList'],
+    queryListLoading:
+      loading.effects['roleManagement/queryList'] ||
+      loading.effects['roleManagement/queryCurrentRole'],
     saveMembersLoading: loading.effects['roleManagement/saveMembers'],
     deleteMembersLoading: loading.effects['roleManagement/deleteMembers'],
     queryMemberRolesUsersLoading: loading.effects['roleManagement/queryMemberRolesUsers'],
@@ -197,6 +200,7 @@ export default class RoleManagement extends React.Component {
    */
   componentDidMount() {
     const { roleManagement = {}, dispatch } = this.props;
+    // const { list = {} } = roleManagement;
     const { code } = roleManagement;
 
     //  const currentUser = getCurrentUser();
@@ -218,7 +222,29 @@ export default class RoleManagement extends React.Component {
     });
 
     this.fetchSearchLabels();
-    this.fetchCurrentRole();
+    this.fetchCurrentRole().then((res) => {
+      if (res) {
+        this.setState({
+          currentRole: res,
+          record: res,
+          createDisabled: !res.adminFlag,
+        });
+      }
+      // if (isEmpty(list.dataSource) || (location.state || {}).refresh) {
+      //
+      // }
+      let params = {
+        enabled: 1,
+      };
+      if (this.queryForm) {
+        const { getFieldsValue = (e) => e } = this.queryForm;
+        params = {
+          ...params,
+          ...getFieldsValue(),
+        };
+      }
+      this.fetchList(params);
+    });
     // if (isEmpty(list.dataSource) || (location.state || {}).refresh) {
     //   this.fetchList();
     // }
@@ -334,6 +360,27 @@ export default class RoleManagement extends React.Component {
     });
   }
 
+  @Bind()
+  fetchUserList(payload) {
+    const { dispatch } = this.props;
+    return dispatch({
+      type: 'roleManagement/fetchUserList',
+      payload,
+    });
+  }
+
+  @Bind()
+  clearMemberList() {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'roleManagement/updateState',
+      payload: {
+        memberModalList: [],
+        memberModalPagination: {},
+      },
+    });
+  }
+
   fetchDetailForm(roleId) {
     const { dispatch } = this.props;
     return dispatch({ type: 'roleManagement/queryDetailForm', roleId });
@@ -350,20 +397,8 @@ export default class RoleManagement extends React.Component {
   }
 
   fetchCurrentRole() {
-    const { roleManagement = {}, location = {}, dispatch } = this.props;
-    const { list = {} } = roleManagement;
-    return dispatch({ type: 'roleManagement/queryCurrentRole' }).then((res) => {
-      if (res) {
-        this.setState({
-          currentRole: res,
-          record: res,
-          createDisabled: !res.adminFlag,
-        });
-      }
-      if (isEmpty(list.dataSource) || (location.state || {}).refresh) {
-        this.fetchList();
-      }
-    });
+    const { dispatch } = this.props;
+    return dispatch({ type: 'roleManagement/queryCurrentRole' });
   }
 
   // #endregion
@@ -454,7 +489,11 @@ export default class RoleManagement extends React.Component {
       roleId,
       data,
     }).then((res) => {
-      if (res) {
+      if (res && res.failed) {
+        notification.error({
+          description: res.message,
+        });
+      } else if (res) {
         notification.success();
         cb();
       }
@@ -529,6 +568,15 @@ export default class RoleManagement extends React.Component {
     this.setClientsDrawerVisible(true);
   }
 
+  @Bind()
+  fetchClientListModal(payload) {
+    const { dispatch } = this.props;
+    return dispatch({
+      type: 'roleManagement/fetchClientList',
+      payload,
+    });
+  }
+
   /**
    * closeMembersDrawer - 关闭分配用户抽屉
    */
@@ -558,6 +606,9 @@ export default class RoleManagement extends React.Component {
       type: 'roleManagement/updateState',
       payload: {
         clientList: [],
+        clientPagination: {},
+        clientModalList: [],
+        clientModalPagination: {},
       },
     });
   }
@@ -689,12 +740,12 @@ export default class RoleManagement extends React.Component {
    * @param {!string} action - 事件类型
    * @param {!object} record - 当前行数据
    */
-  handleAction(action, record, isTree) {
+  handleAction(action, record) {
     const {
       dispatch = (e) => e,
       roleManagement: { list },
     } = this.props;
-    const { record: currentRecord } = this.state;
+    const { record: parentRecord } = this.state;
     const { getFieldsValue = (e) => e } = this.queryForm;
     const openDetail = (actionType, options = {}) => {
       if (!isEmpty(actionType)) {
@@ -702,12 +753,51 @@ export default class RoleManagement extends React.Component {
           type: 'roleManagement/queryLabelList',
           payload: { level: record.level === 'site' ? 'SITE' : 'TENANT', type: 'ROLE' },
         });
+        // if (actionType === 'inherit') {
+        //   dispatch({
+        //     type: 'roleManagement/queryAdminRole',
+        //     payload: { roleId: record.id },
+        //   }).then((res) => {
+        //     if (res) {
+        //       this.setState({
+        //         actionType,
+        //         currentRowData:
+        //           // eslint-disable-next-line no-nested-ternary
+        //           {
+        //             ...record,
+        //             tenantName: res.tenantName,
+        //             tenantId: res.tenantId,
+        //             id: res.id,
+        //             adminFlag: currentRecord.adminFlag,
+        //             name: res.name,
+        //             adminRoleTenantName: res.tenantName,
+        //             adminRoleTenantId: res.tenantId,
+        //             inheritedRoleName: record.name,
+        //           },
+        //         detailDrawerVisible: true,
+        //         ...options,
+        //       });
+        //     }
+        //   });
+        // }
         this.setState({
           actionType,
           currentRowData:
             // eslint-disable-next-line no-nested-ternary
             actionType === 'create' || actionType === 'copy' || actionType === 'inherit'
-              ? { ...record, name: isTree ? record.name : currentRecord.name }
+              ? {
+                  ...record,
+                  parentRoleId: parentRecord.id,
+                  parentRoleName: parentRecord.name,
+                  parentRoleTenantId: parentRecord.tenantId,
+                  parentRoleTenantName: parentRecord.tenantName,
+                  parentRoleAdminFlag: parentRecord.adminFlag,
+                  inheritRoleId: record.id,
+                  inheritRoleLevel: record.level,
+                  inheritedRoleName: record.name,
+                  inheritedRoleTenantName: record.tenantName,
+                  inheritedRoleTenantId: record.tenantId,
+                }
               : actionType === 'edit'
               ? record
               : {},
@@ -1110,16 +1200,21 @@ export default class RoleManagement extends React.Component {
   handleSaveMembers(data, isEdit = false, cb) {
     const {
       dispatch,
-      roleManagement: { list },
+      // roleManagement: { list },
     } = this.props;
-    const { getFieldsValue = (e) => e } = this.queryForm;
+    const newData = data.map((item) => ({
+      ...item,
+      startDateActive: item.startDateActive && item.startDateActive.format(DEFAULT_DATE_FORMAT),
+      endDateActive: item.endDateActive && item.endDateActive.format(DEFAULT_DATE_FORMAT),
+    }));
+    // const { getFieldsValue = (e) => e } = this.queryForm;
     dispatch({
       type: 'roleManagement/saveMembers',
-      data,
+      data: newData,
       isEdit,
     }).then((res) => {
       if (res) {
-        this.fetchList({ page: list.pagination, ...getFieldsValue() } || {});
+        // this.fetchList({ page: list.pagination, ...getFieldsValue() } || {});
         if (isFunction(cb)) {
           cb();
         }
@@ -1400,6 +1495,42 @@ export default class RoleManagement extends React.Component {
     });
   }
 
+  @Bind()
+  handleModalClientSave(data = []) {
+    const {
+      dispatch,
+      roleManagement: { clientList = [], clientPagination = {} },
+    } = this.props;
+    const { currentRowData } = this.state;
+    const newData = data.map((i) => ({
+      ...i,
+      _status: 'create',
+      memberId: i.id,
+      assignLevel: currentRowData.assignLevel,
+      assignLevelMeaning: currentRowData.assignLevelMeaning,
+      assignLevelValueMeaning: currentRowData.assignLevelValueMeaning,
+    }));
+    dispatch({
+      type: 'roleManagement/updateState',
+      payload: {
+        clientList: [...newData, ...clientList],
+        clientPagination: addItemToPagination(clientList.length, clientPagination),
+      },
+    });
+  }
+
+  @Bind()
+  clearClientModalList() {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'roleManagement/updateState',
+      payload: {
+        clientModalList: [],
+        clientModalPagination: {},
+      },
+    });
+  }
+
   /**
    * 删除新建行
    * @param {*} record
@@ -1473,20 +1604,43 @@ export default class RoleManagement extends React.Component {
   @Bind
   handleSaveClient(data, isEdit = false, cb) {
     const { dispatch } = this.props;
+    const { currentRowData } = this.state;
+    const newData = data.map((item) => {
+      const { _status, id, ...restR } = item;
+      return {
+        ...restR,
+        roleId: currentRowData.id,
+        assignLevel: 'organization',
+        assignLevelValue: currentRowData.tenantId,
+        memberType: 'client',
+        startDateActive: item.startDateActive && item.startDateActive.format(DEFAULT_DATE_FORMAT),
+        endDateActive: item.endDateActive && item.endDateActive.format(DEFAULT_DATE_FORMAT),
+      };
+    });
     dispatch({
       type: 'roleManagement/saveMembers',
-      data,
+      data: newData,
       isEdit,
-    }).then((res) => {
-      if (res) {
-        notification.success();
-        this.handleQueryClients();
-        this.setClientsDrawerVisible(false);
-        if (isFunction(cb)) {
-          cb();
+    })
+      .then((res) => {
+        if (res) {
+          notification.success();
+          this.handleQueryClients();
+          this.setClientsDrawerVisible(false);
+          if (isFunction(cb)) {
+            cb();
+          }
         }
-      }
-    });
+      })
+      .then(() => {
+        dispatch({
+          type: 'roleManagement/updateState',
+          payload: {
+            clientModalList: [],
+            clientModalPagination: {},
+          },
+        });
+      });
   }
 
   /**
@@ -1534,7 +1688,7 @@ export default class RoleManagement extends React.Component {
   @Bind()
   handleChangeLov(_, record = {}) {
     const { getFieldsValue = (e) => e } = this.queryForm;
-    this.setState({ record, createDisabled: !record.adminFlag }, () => {
+    this.setState({ record, currentRole: record, createDisabled: !record.adminFlag }, () => {
       this.fetchList({
         ...getFieldsValue(),
       });
@@ -1641,6 +1795,10 @@ export default class RoleManagement extends React.Component {
         secGrpDimensionList = [],
         secGrpDimensionPagination = {},
         secGrpDataPermissionTabList = [],
+        memberModalList = [],
+        memberModalPagination = {},
+        clientModalList = [],
+        clientModalPagination = {},
       },
     } = this.props;
     const {
@@ -1683,6 +1841,7 @@ export default class RoleManagement extends React.Component {
       handleQueryList: this.fetchList,
       code: code['HIAM.ROLE_SOURCE'] || [],
       roleLevel: code['HIAM.RESOURCE_LEVEL'] || [],
+      flagList: code['HPFM.ENABLED_FLAG'] || [],
       loading: queryListLoading,
       tenantRoleLevel,
       searchLabels,
@@ -1731,6 +1890,10 @@ export default class RoleManagement extends React.Component {
       onDeleteMember: this.handleDeleteMember,
       dataSource: membersDrawerDataSource,
       pagination: membersDrawerPagination,
+      fetchUserList: this.fetchUserList,
+      clearMemberList: this.clearMemberList,
+      memberModalList,
+      memberModalPagination,
     };
 
     const clientsDrawerProps = {
@@ -1754,6 +1917,11 @@ export default class RoleManagement extends React.Component {
       onSave: this.handleSaveClient,
       onClientPageChange: this.handleClientPageChange,
       onFormSearch: this.handleClientSearch,
+      onModalSearch: this.fetchClientListModal,
+      clientModalList,
+      clientModalPagination,
+      onModalSave: this.handleModalClientSave,
+      clearClientModalList: this.clearClientModalList,
     };
 
     const secGrpDrawerProps = {
@@ -1930,7 +2098,20 @@ export default class RoleManagement extends React.Component {
           </ButtonPermission>
           <Form.Item
             {...formLayout}
-            label={intl.get(`hiam.roleManagement.model.roleManagement.currentRole`).d('当前角色')}
+            label={
+              <span>
+                {intl.get(`hiam.roleManagement.model.roleManagement.currentRole`).d('当前角色')}
+                &nbsp;
+                <Tooltip
+                  title={intl
+                    .get('hiam.roleManagement.view.message.currentRole.tooltip')
+                    .d('可模拟切换至当前角色进行角色管理')}
+                >
+                  <Icon type="question-circle-o" />
+                </Tooltip>
+              </span>
+            }
+            // label={intl.get(`hiam.roleManagement.model.roleManagement.currentRole`).d('当前角色')}
             style={{ marginTop: '16px' }}
           >
             {form.getFieldDecorator(`currentRole`, {
@@ -1951,9 +2132,9 @@ export default class RoleManagement extends React.Component {
           <Search {...searchProps} />
           <List {...listProps} />
         </Content>
-        <AssignMember {...membersDrawerProps} />
-        <ClientsDrawer {...clientsDrawerProps} />
-        <AssignSecGrpDrawer {...secGrpDrawerProps} />
+        {membersDrawerVisible && <AssignMember {...membersDrawerProps} />}
+        {clientsDrawerVisible && <ClientsDrawer {...clientsDrawerProps} />}
+        {secGrpDrawerVisible && <AssignSecGrpDrawer {...secGrpDrawerProps} />}
         <AuthDrawer
           title={intl.get(`hiam.roleManagement.view.title.editPermission`).d('维护数据权限')}
           path={path}

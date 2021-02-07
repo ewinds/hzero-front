@@ -6,7 +6,19 @@
  */
 
 import React, { Component } from 'react';
-import { Col, Divider, Form, InputNumber, Row, Select, Spin, Tree, Input } from 'hzero-ui';
+import {
+  Col,
+  Divider,
+  Form,
+  InputNumber,
+  Row,
+  Select,
+  Spin,
+  Tree,
+  Input,
+  Tooltip,
+  Icon,
+} from 'hzero-ui';
 
 import intl from 'utils/intl';
 
@@ -29,6 +41,8 @@ export default class ExportPage extends Component {
       onSelect,
       enableAsync,
       exportAsync = false,
+      showAsync,
+      defaultRequestMode,
     } = this.props;
     return (
       <Spin spinning={fetchColumnLoading}>
@@ -64,51 +78,107 @@ export default class ExportPage extends Component {
               </Col>
             </Row>
             <Row>
+              {showAsync && (
+                <Col span={12}>
+                  <Form.Item
+                    {...formItemLayout}
+                    label={intl.get(`hzero.common.components.export.async`).d('异步')}
+                  >
+                    {form.getFieldDecorator('async', {
+                      initialValue: defaultRequestMode === 'ASYNC' ? 'true' : 'false',
+                    })(
+                      <Select disabled={!exportAsync || !enableAsync}>
+                        <Select.Option value="false" key="false">
+                          {intl.get('hzero.common.status.no').d('否')}
+                        </Select.Option>
+                        <Select.Option value="true" key="true">
+                          {intl.get('hzero.common.status.yes').d('是')}
+                        </Select.Option>
+                      </Select>
+                    )}
+                  </Form.Item>
+                </Col>
+              )}
               <Col span={12}>
                 <Form.Item
                   {...formItemLayout}
-                  label={intl.get(`hzero.common.components.export.async`).d('异步')}
+                  label={
+                    <span>
+                      {intl.get(`hzero.common.components.export.singleSheet`).d('单sheet最大行数')}
+                      &nbsp;
+                      <Tooltip
+                        title={intl
+                          .get('hzero.common.components.export.singleSheetTip')
+                          .d(
+                            '限制excel中单个sheet页的数据量，当数据量超过单sheet页最大数量时，会自动分片到下一个sheet页。'
+                          )}
+                      >
+                        <Icon type="question-circle-o" />
+                      </Tooltip>
+                    </span>
+                  }
                 >
-                  {form.getFieldDecorator('async', {
-                    initialValue: 'false',
+                  {form.getFieldDecorator('singleSheetMaxRow', {
+                    initialValue: 1048575,
                   })(
-                    <Select disabled={!exportAsync || !enableAsync}>
-                      <Select.Option value="false" key="false">
-                        {intl.get('hzero.common.status.no').d('否')}
-                      </Select.Option>
-                      <Select.Option value="true" key="true">
-                        {intl.get('hzero.common.status.yes').d('是')}
-                      </Select.Option>
-                    </Select>
+                    <InputNumber min={1} max={1048575} precision={0} style={{ width: '138px' }} />
                   )}
                 </Form.Item>
               </Col>
-              <Col span={12}>
-                <Form.Item
-                  {...formItemLayout}
-                  label={intl.get(`hzero.common.components.export.maxSheet`).d('最大sheet页')}
-                >
-                  {form.getFieldDecorator(
-                    'singleExcelMaxSheetNum',
-                    {}
-                  )(<InputNumber min={1} precision={0} style={{ width: '114px' }} />)}
-                </Form.Item>
-              </Col>
+              {!showAsync && (
+                <Col span={12}>
+                  <Form.Item
+                    {...formItemLayout}
+                    label={
+                      <span>
+                        {intl.get(`hzero.common.components.export.maxSheet`).d('文件最大sheet数')}
+                        &nbsp;
+                        <Tooltip
+                          title={intl
+                            .get('hzero.common.components.export.maxSheetTip')
+                            .d(
+                              '限制单个excel的sheet页数量，当数据量超过一个excel时，会分片成多个excel，以压缩包形式导出。'
+                            )}
+                        >
+                          <Icon type="question-circle-o" />
+                        </Tooltip>
+                      </span>
+                    }
+                  >
+                    {form.getFieldDecorator('singleExcelMaxSheetNum', {
+                      initialValue: 5,
+                    })(<InputNumber min={1} precision={0} style={{ width: '138px' }} />)}
+                  </Form.Item>
+                </Col>
+              )}
             </Row>
             <Row>
-              <Col span={12}>
-                <Form.Item
-                  {...formItemLayout}
-                  label={intl
-                    .get(`hzero.common.components.export.singleSheet`)
-                    .d('单sheet最大数量')}
-                >
-                  {form.getFieldDecorator(
-                    'singleSheetMaxRow',
-                    {}
-                  )(<InputNumber min={1} precision={0} style={{ width: '114px' }} />)}
-                </Form.Item>
-              </Col>
+              {showAsync && (
+                <Col span={12}>
+                  <Form.Item
+                    {...formItemLayout}
+                    label={
+                      <span>
+                        {intl.get(`hzero.common.components.export.maxSheet`).d('文件最大sheet数')}
+                        &nbsp;
+                        <Tooltip
+                          title={intl
+                            .get('hzero.common.components.export.maxSheetTip')
+                            .d(
+                              '限制单个excel的sheet页数量，当数据量超过一个excel时，会分片成多个excel，以压缩包形式导出。'
+                            )}
+                        >
+                          <Icon type="question-circle-o" />
+                        </Tooltip>
+                      </span>
+                    }
+                  >
+                    {form.getFieldDecorator('singleExcelMaxSheetNum', {
+                      initialValue: 5,
+                    })(<InputNumber min={1} precision={0} style={{ width: '138px' }} />)}
+                  </Form.Item>
+                </Col>
+              )}
             </Row>
           </Form>
         </>

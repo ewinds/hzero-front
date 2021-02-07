@@ -2,6 +2,6 @@
   "package": {
     "initLoad": true,
     "indexRouter": "/himp/template",
-    "registerRegex": "\\/hzero-front-himp\\/"
+    "registerRegex": "(\\/(private|public|pub))?\\/himp\\/"
   }
 }

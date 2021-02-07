@@ -115,10 +115,19 @@ export const useSideMenu = (inputs = []) => {
   const [computeMenus, setComputeMenus] = React.useState([]);
   const [currentMenu, setCurrentMenu] = React.useState({});
   React.useMemo(() => {
-    const [menus, activeTabKey] = inputs;
-    const [cms, cm] = calculateComputeMenusAndCurrent(menus, activeTabKey);
-    setComputeMenus(cms);
-    setCurrentMenu(cm);
+    const [menus, activeTabKey, menuQuickIndex] = inputs;
+    if (menuQuickIndex && activeTabKey === '/workplace') {
+      const cm = menus.filter((item) => {
+        return item.quickIndex === menuQuickIndex;
+      });
+      const [cms] = calculateComputeMenusAndCurrent(menus);
+      setComputeMenus(cms);
+      setCurrentMenu(cm[0]);
+    } else {
+      const [cms, cm] = calculateComputeMenusAndCurrent(menus, activeTabKey);
+      setComputeMenus(cms);
+      setCurrentMenu(cm);
+    }
   }, [...inputs, setComputeMenus, setCurrentMenu]);
   return [computeMenus, currentMenu];
 };

@@ -61,7 +61,7 @@ const PersonalReport = ({ match }) => {
   const handleDetail = React.useCallback(
     (record) => {
       Modal.open({
-        title: intl.get('hrpt.common.view.title.detail').d('详情'),
+        title: intl.get('hzero.common.view.title.detail').d('详情'),
         drawer: true,
         key: modalKey,
         children: <PersonalReportDetail requestId={record.requestId} />,
@@ -133,7 +133,7 @@ const PersonalReport = ({ match }) => {
       {
         lock: 'right',
         width: 150,
-        header: intl.get('hzero.common.button.operator').d('操作'),
+        header: intl.get('hzero.common.button.action').d('操作'),
         renderer({ record }) {
           const { path } = match;
           const operators = [];

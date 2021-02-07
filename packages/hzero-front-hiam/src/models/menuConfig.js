@@ -88,6 +88,7 @@ export default {
           menuPrefix: menuPrefixList = [],
           menuType: menuTypeList = [],
           controllerType = [],
+          enabledFlag = [],
         } = code;
         yield put({
           type: 'updateStateReducer',
@@ -95,6 +96,7 @@ export default {
             menuPrefixList,
             controllerType,
             menuTypeList,
+            enabledFlag,
           },
         });
       }

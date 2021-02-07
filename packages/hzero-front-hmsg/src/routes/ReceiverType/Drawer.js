@@ -44,8 +44,8 @@ export default class Drawer extends PureComponent {
     anchor: 'left',
     title: '',
     visible: false,
-    onOk: e => e,
-    onCancel: e => e,
+    onOk: (e) => e,
+    onCancel: (e) => e,
   };
 
   /**
@@ -62,6 +62,21 @@ export default class Drawer extends PureComponent {
         }
       });
     }
+  }
+
+  /**
+   * 更新表格数据
+   * @param {*} data
+   */
+  @Bind()
+  handleUpdateState(data) {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'receiverType/updateState',
+      payload: {
+        assignDataSource: data,
+      },
+    });
   }
 
   /**
@@ -90,6 +105,11 @@ export default class Drawer extends PureComponent {
       queryNoAssignUnitList,
       queryNoAssignUserGroupListLoading,
       queryNoAssignUserGroupList,
+      extTypeList = [],
+      dispatch,
+      assignDataSource = [],
+      assignPagination = {},
+      receiverType = {},
     } = this.props;
     const { getFieldDecorator } = form;
     const formLayout = {
@@ -100,7 +120,7 @@ export default class Drawer extends PureComponent {
       <Modal
         destroyOnClose
         title={title}
-        width={520}
+        width={700}
         wrapClassName={`ant-modal-sidebar-${anchor}`}
         transitionName={`move-${anchor}`}
         visible={visible}
@@ -184,7 +204,7 @@ export default class Drawer extends PureComponent {
                 initialValue: tableRecord.typeModeCode,
               })(
                 <Select disabled={!isUndefined(tableRecord.receiverTypeId)}>
-                  {typeModes.map(item => (
+                  {typeModes.map((item) => (
                     <Select.Option key={item.value} value={item.value}>
                       {item.meaning}
                     </Select.Option>
@@ -308,6 +328,12 @@ export default class Drawer extends PureComponent {
                 queryNoAssignUnitList={queryNoAssignUnitList}
                 queryNoAssignUserGroupListLoading={queryNoAssignUserGroupListLoading}
                 queryNoAssignUserGroupList={queryNoAssignUserGroupList}
+                extTypeList={extTypeList}
+                dispatch={dispatch}
+                dataSource={assignDataSource}
+                pagination={assignPagination}
+                receiverType={receiverType}
+                updateState={this.handleUpdateState}
               />
             )}
         </Form>

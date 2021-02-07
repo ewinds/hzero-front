@@ -15,6 +15,7 @@ import {
   Select,
   Table,
   TextField,
+  IntlField,
   Button,
 } from 'choerodon-ui/pro';
 import { Card } from 'choerodon-ui';
@@ -293,8 +294,9 @@ const LabelTemplateDetail = ({
             },
           ]}
           icon="save"
-          className="ant-btn-primary"
-          style={{ color: '#fff' }}
+          // className="ant-btn-primary"
+          // style={{ color: '#fff' }}
+          color="primary"
           onClick={handleSave}
         >
           {intl.get('hzero.common.button.save').d('保存')}
@@ -316,7 +318,7 @@ const LabelTemplateDetail = ({
               <Form columns={3} dataSet={labelDS}>
                 {!isTenant && <Lov name="tenantLov" disabled />}
                 <TextField name="templateCode" disabled />
-                <TextField name="templateName" />
+                <IntlField name="templateName" />
                 <Lov name="datasetLov" />
                 <NumberField name="templateWidth" />
                 <NumberField name="templateHigh" />

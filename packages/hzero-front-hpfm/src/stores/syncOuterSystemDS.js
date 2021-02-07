@@ -140,7 +140,7 @@ const tableDetailDs = () => ({
     {
       name: 'enabledFlag',
       type: 'boolean',
-      label: intl.get('hpfm.syncOuterSystem.model.wechatConfig.authType').d('启用'),
+      label: intl.get('hzero.common.status.enable').d('启用'),
       required: true,
       defaultValue: 1,
       falseValue: 0,

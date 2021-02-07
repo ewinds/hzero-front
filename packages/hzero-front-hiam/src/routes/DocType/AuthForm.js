@@ -346,12 +346,12 @@ export default class AuthForm extends React.Component {
               </>
             ) : record._status === 'update' ? (
               <a onClick={() => this.handleEditLine(record, false)}>
-                {intl.get('hzero.common.status.cancel').d('取消')}
+                {intl.get('hzero.common.button.cancel').d('取消')}
               </a>
             ) : (
               <>
                 <a onClick={() => this.handleEditLine(record, true)}>
-                  {intl.get('hzero.common.status.edit').d('编辑')}
+                  {intl.get('hzero.common.button.edit').d('编辑')}
                 </a>
                 <Popconfirm
                   title={intl.get('hzero.common.message.confirm.delete').d('是否删除此条记录？')}
@@ -516,12 +516,12 @@ export default class AuthForm extends React.Component {
               </>
             ) : record._status === 'update' ? (
               <a onClick={() => this.handleEditLine(record, false, true)}>
-                {intl.get('hzero.common.status.cancel').d('取消')}
+                {intl.get('hzero.common.button.cancel').d('取消')}
               </a>
             ) : (
               <>
                 <a onClick={() => this.handleEditLine(record, true, true)}>
-                  {intl.get('hzero.common.status.edit').d('编辑')}
+                  {intl.get('hzero.common.button.edit').d('编辑')}
                 </a>
                 <Popconfirm
                   title={intl.get('hzero.common.message.confirm.delete').d('是否删除此条记录？')}

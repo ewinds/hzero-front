@@ -58,6 +58,14 @@ class NormalLayout extends Component {
     collapsed: false,
   };
 
+  componentDidMount() {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'global/changeLayoutCollapsed',
+      payload: { collapsed: false },
+    });
+  }
+
   componentWillUnmount() {
     this.handleToggleCollapse.cancel();
   }
@@ -94,6 +102,11 @@ class NormalLayout extends Component {
     const { collapsed } = this.state;
     this.setState({
       collapsed: !collapsed,
+    });
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'global/changeLayoutCollapsed',
+      payload: { collapsed: !collapsed },
     });
   }
 

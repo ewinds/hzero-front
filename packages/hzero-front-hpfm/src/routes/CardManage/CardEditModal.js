@@ -87,6 +87,12 @@ export default class CardEditModal extends React.Component {
                       .get('hzero.common.validation.code')
                       .d('大小写及数字，必须以字母、数字开头，可包含“-”、“_”、“.”、“/”'),
                   },
+                  {
+                    max: 250,
+                    message: intl.get('hzero.common.validation.max', {
+                      max: 250,
+                    }),
+                  },
                 ],
               })(<Input trim inputChinese={false} disabled={isEdit} />)}
             </Form.Item>
@@ -133,6 +139,12 @@ export default class CardEditModal extends React.Component {
                       name: intl.get('hpfm.card.model.card.name').d('卡片名称'),
                     }),
                   },
+                  {
+                    max: 32,
+                    message: intl.get('hzero.common.validation.max', {
+                      max: 32,
+                    }),
+                  },
                 ],
               })(
                 <TLEditor
@@ -174,7 +186,7 @@ export default class CardEditModal extends React.Component {
                 ],
               })(
                 <Select>
-                  {catalogType.map(item => (
+                  {catalogType.map((item) => (
                     <Select.Option value={item.value} key={item.value}>
                       {item.meaning}
                     </Select.Option>
@@ -200,7 +212,7 @@ export default class CardEditModal extends React.Component {
                   ],
                 })(
                   <Select>
-                    {fdLevel.map(item => (
+                    {fdLevel.map((item) => (
                       <Select.Option value={item.value} key={item.value}>
                         {item.meaning}
                       </Select.Option>

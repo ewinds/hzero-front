@@ -22,7 +22,7 @@ export default class QueryForm extends PureComponent {
   constructor(props) {
     super(props);
     this.state = {
-      expandForm: false,
+      expandForm: true,
     };
   }
 
@@ -78,6 +78,7 @@ export default class QueryForm extends PureComponent {
       form: { getFieldDecorator = (e) => e },
       searchLabels = [],
       levelCode,
+      enabledFlag,
     } = this.props;
     const { expandForm } = this.state;
     const levelCodeList = (levelCode && levelCode.filter((o) => o.value !== 'org')) || [];
@@ -174,6 +175,24 @@ export default class QueryForm extends PureComponent {
                     {searchLabels.map((n) => (
                       <Select.Option key={n.id} value={n.name}>
                         {n.name}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                )}
+              </FormItem>
+            </Col>
+            <Col {...FORM_COL_4_LAYOUT}>
+              <FormItem
+                {...SEARCH_FORM_ITEM_LAYOUT}
+                label={intl.get(`hzero.common.status`).d('状态')}
+              >
+                {getFieldDecorator('enabledFlag', {
+                  initialValue: '1',
+                })(
+                  <Select allowClear>
+                    {enabledFlag.map((n) => (
+                      <Select.Option key={n.value} value={n.value}>
+                        {n.meaning}
                       </Select.Option>
                     ))}
                   </Select>

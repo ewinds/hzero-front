@@ -21,6 +21,7 @@ import {
   getCurrentOrganizationId,
   getCurrentRole,
   getDateTimeFormat,
+  getDateFormat,
   isTenantRoleLevel,
 } from 'utils/utils';
 import formatterCollections from 'utils/intl/formatterCollections';
@@ -383,7 +384,12 @@ export default class ConcRequest extends Component {
         //  eslint-disable-next-line
         if (moment(value).isValid()) {
           //  eslint-disable-next-line
-          newFields[key] = moment(value).format(getDateTimeFormat());
+          const currentKeyData = paramList.find((i) => i.paramName === key);
+          if (currentKeyData && currentKeyData.paramEditTypeCode === 'DATEPICKER') {
+            newFields[key] = moment(value).format(getDateFormat());
+          } else {
+            newFields[key] = moment(value).format(getDateTimeFormat());
+          }
         }
       }
     });

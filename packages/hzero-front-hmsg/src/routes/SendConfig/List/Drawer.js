@@ -178,6 +178,7 @@ export default class Drawer extends PureComponent {
             lang,
             messageCode,
             args,
+            tenantId,
             typeCodeList: weChatTypeCodeList,
             userIdList,
             userList,
@@ -185,6 +186,7 @@ export default class Drawer extends PureComponent {
           };
           dingTalkSender = {
             agentId: dtAgentId,
+            tenantId,
             lang,
             messageCode,
             args,

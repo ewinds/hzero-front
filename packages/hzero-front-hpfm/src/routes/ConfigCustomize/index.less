@@ -417,3 +417,50 @@
     }
   }
 }
+
+.copy-field-modal {
+  :global {
+    .ant-modal-body {
+      padding: 0 !important;
+    }
+  }
+  .modal-content {
+    display: flex;
+    min-height: 500px;
+    &-left {
+      padding: 16px;
+      flex: 1 2;
+    }
+    &-right {
+      padding: 16px;
+      flex: 1 2;
+    }
+    &-center {
+      position: relative;
+      width: 50px;
+      padding: 0 8px;
+      border-left: 1px solid #e8e8e8;
+      border-right: 1px solid #e8e8e8;
+      & > div {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+      }
+      button {
+        display: block;
+        &:first-child {
+          margin-bottom: 4px;
+        }
+      }
+    }
+  }
+}
+
+.input-number-item {
+  :global {
+    .ant-input-number {
+      width: 100%;
+    }
+  }
+}

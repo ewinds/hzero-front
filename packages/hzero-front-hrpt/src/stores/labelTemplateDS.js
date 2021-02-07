@@ -25,7 +25,7 @@ export const labelTemplateListDS = () => ({
     },
     {
       name: 'tenantId',
-      type: 'number',
+      type: 'string',
       bind: 'tenantLov.tenantId',
     },
     {
@@ -61,7 +61,7 @@ export const labelTemplateListDS = () => ({
     },
     {
       name: 'tenantId',
-      type: 'number',
+      type: 'string',
       bind: 'tenantLov.tenantId',
     },
     {
@@ -139,14 +139,24 @@ export const labelTemplateListDS = () => ({
         query: data,
       };
     },
-    create({ data, config }) {
+    create({ data, dataSet }) {
+      const {
+        queryParameter: { copy },
+      } = dataSet;
       return {
-        ...config,
-        url: isTenant
+        // eslint-disable-next-line no-nested-ternary
+        url: copy
+          ? isTenant
+            ? `${HZERO_RPT}/v1/${organizationId}/label-templates/copy`
+            : `${HZERO_RPT}/v1/label-templates/copy`
+          : isTenant
           ? `${HZERO_RPT}/v1/${organizationId}/label-templates`
           : `${HZERO_RPT}/v1/label-templates`,
         method: 'POST',
         data: data[0],
+        params: {
+          tenantId: organizationId,
+        },
       };
     },
     destroy({ data, config }) {
@@ -183,7 +193,7 @@ export const labelTemplateFormDS = (labelTemplateId, labelParameterListDS) => ({
     },
     {
       name: 'tenantId',
-      type: 'number',
+      type: 'string',
       bind: 'tenantLov.tenantId',
     },
     {
@@ -200,7 +210,7 @@ export const labelTemplateFormDS = (labelTemplateId, labelParameterListDS) => ({
     {
       name: 'templateName',
       label: intl.get('hrpt.labelTemplate.model.labelTemplate.templateName').d('模板名称'),
-      type: 'string',
+      type: 'intl',
       required: true,
     },
     {

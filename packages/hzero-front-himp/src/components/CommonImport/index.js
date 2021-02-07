@@ -62,6 +62,8 @@ export default class CommentImport extends PureComponent {
       code, // 导入编码
       action, // 标题
       pathKey, // 通用导入tab页的key
+      historyButton, // 历史记录按钮
+      refreshButton, // 刷新按钮
     } = this.props;
     this.autoRefreshInterval = toSafeInteger(autoRefreshInterval) || AUTO_REFRESH_DEBOUNCE;
     this.state = {
@@ -89,6 +91,8 @@ export default class CommentImport extends PureComponent {
       action, // 标题
       key: pathKey, // 通用导入tab页的key
       languageType: [],
+      historyButton,
+      refreshButton,
     };
   }
 
@@ -686,6 +690,8 @@ export default class CommentImport extends PureComponent {
       action,
       code,
       languageType,
+      historyButton,
+      refreshButton,
     } = this.state;
     const uploadExcelProps = {
       args,
@@ -818,15 +824,17 @@ export default class CommentImport extends PureComponent {
               </Button>
             </React.Fragment>
           )}
-          <Button
-            key="refresh"
-            icon="sync"
-            onClick={this.handleRefresh}
-            disabled={uploadLoading || !batch}
-            loading={queryStatusLoading || loadDataSourceLoading}
-          >
-            {intl.get('hzero.common.button.refresh').d('刷新')}
-          </Button>
+          {refreshButton === 'true' && (
+            <Button
+              key="refresh"
+              icon="sync"
+              onClick={this.handleRefresh}
+              disabled={uploadLoading || !batch}
+              loading={queryStatusLoading || loadDataSourceLoading}
+            >
+              {intl.get('hzero.common.button.refresh').d('刷新')}
+            </Button>
+          )}
           <Button
             key="auto-refresh"
             icon={isAutoRefresh ? 'loading' : 'sync'}
@@ -838,9 +846,11 @@ export default class CommentImport extends PureComponent {
               ? intl.get('hzero.common.button.cancelAutoReload').d('取消自动刷新')
               : intl.get('hzero.common.button.autoReload').d('自动刷新')}
           </Button>
-          <Button icon="profile" onClick={this.handleHistoryBtnClick}>
-            {intl.get('himp.commentImport.view.button.history').d('历史记录')}
-          </Button>
+          {historyButton === 'true' && (
+            <Button icon="profile" onClick={this.handleHistoryBtnClick}>
+              {intl.get('himp.commentImport.view.button.history').d('历史记录')}
+            </Button>
+          )}
         </Header>
         <Content>
           <Form layout="inline" style={{ marginBottom: 16 }}>
@@ -855,7 +865,7 @@ export default class CommentImport extends PureComponent {
               >
                 {templateTargetList.map((item) => (
                   <Select.Option value={item.sheetIndex} key={item.sheetIndex}>
-                    {item.sheetIndexMeaning}
+                    {item.sheetName}
                   </Select.Option>
                 ))}
               </Select>

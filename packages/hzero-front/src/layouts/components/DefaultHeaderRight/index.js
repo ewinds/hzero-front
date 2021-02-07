@@ -16,6 +16,7 @@ import DefaultNoticeIcon from '../DefaultNoticeIcon';
 import DefaultCommonSelect from '../DefaultCommonSelect';
 import DefaultTraceLog from '../DefaultTraceLog';
 import ThemeButton from '../../DefaultLayout/components/NormalHeader/ThemeButton';
+import MarketClientButton from '../../DefaultLayout/components/NormalHeader/MarketClientButton';
 
 class DefaultHeaderRight extends React.Component {
   config = getEnvConfig();
@@ -38,15 +39,6 @@ class DefaultHeaderRight extends React.Component {
     //   hasWebsocketUrl = false;
     // }
 
-    let _extraHeaderRight;
-    if (extraHeaderRight) {
-      if (Array.isArray(extraHeaderRight)) {
-        _extraHeaderRight = extraHeaderRight;
-      } else {
-        _extraHeaderRight = [extraHeaderRight];
-      }
-    }
-
     let isTraceLog = false;
     try {
       isTraceLog = TRACE_LOG_ENABLE ? JSON.parse(TRACE_LOG_ENABLE) : false;
@@ -68,6 +60,15 @@ class DefaultHeaderRight extends React.Component {
       hasMultiLanguage = true;
     }
 
+    let _extraHeaderRight;
+    if (extraHeaderRight) {
+      if (Array.isArray(extraHeaderRight)) {
+        _extraHeaderRight = extraHeaderRight;
+      } else {
+        _extraHeaderRight = [extraHeaderRight];
+      }
+    }
+
     return (
       <>
         {_extraHeaderRight.map((eleOrComponent) =>
@@ -77,6 +78,7 @@ class DefaultHeaderRight extends React.Component {
         )}
         {hasMultiLanguage && <DefaultLanguageSelect key="language-switch" />}
         {isTraceLog && <DefaultTraceLog dispatch={dispatch} />}
+        <MarketClientButton />
         {isUed && <ThemeButton />}
         <DefaultNoticeIcon key="notice-message" popupAlign={{ offset: [25, -8] }} />
         <DefaultCommonSelect key="common-switch" />

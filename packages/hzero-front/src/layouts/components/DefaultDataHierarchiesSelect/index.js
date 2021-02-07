@@ -153,6 +153,7 @@ class DefaultDataHierarchies extends PureComponent {
           });
         }
         notification.success();
+        window.location.reload();
       }
     });
   }

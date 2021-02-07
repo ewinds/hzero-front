@@ -9,6 +9,7 @@ import {
   UrlField,
   TextField,
   Password,
+  IntlField,
 } from 'choerodon-ui/pro';
 
 import intl from 'utils/intl';
@@ -46,7 +47,7 @@ const Drawer = (props) => {
         <Form dataSet={drawerDs} labelWidth={110}>
           {!isTenant && <Lov name="tenantLov" disabled={isEdit} />}
           <TextField name="serverCode" disabled={isEdit} />
-          <TextField name="serverName" />
+          <IntlField name="serverName" />
           <Select name="serverType" />
           <UrlField
             name="webhookAddress"

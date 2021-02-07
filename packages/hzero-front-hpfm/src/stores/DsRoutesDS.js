@@ -195,6 +195,7 @@ const detailDS = () => ({
       name: 'url',
       type: 'string',
       label: intl.get('hpfm.dsRoutes.model.dsRoutes.url').d('URL'),
+      maxLength: 240,
     },
     {
       name: 'methodList',

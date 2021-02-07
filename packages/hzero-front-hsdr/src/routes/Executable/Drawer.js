@@ -5,6 +5,7 @@ import { isUndefined } from 'lodash';
 
 import Lov from 'components/Lov';
 import Switch from 'components/Switch';
+import TLEditor from 'components/TLEditor';
 
 import intl from 'utils/intl';
 import { CODE_UPPER } from 'utils/regExp';
@@ -140,6 +141,7 @@ export default class Drawer extends PureComponent {
       strategyParam,
       executorStrategy,
       enabledFlag = 1,
+      _token,
     } = initData;
     return (
       <Modal
@@ -202,7 +204,15 @@ export default class Drawer extends PureComponent {
                     }),
                   },
                 ],
-              })(<Input />)}
+              })(
+                <TLEditor
+                  label={intl
+                    .get('hsdr.executable.model.executable.executableName')
+                    .d('可执行名称')}
+                  field="executableName"
+                  token={_token}
+                />
+              )}
             </FormItem>
             <FormItem
               {...formLayout}

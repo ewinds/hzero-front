@@ -9,7 +9,7 @@
 import qs from 'query-string';
 
 import { HZERO_FILE } from '../config';
-import { filterNullValueObject } from './common';
+import { filterNullValueObject, getRequestId } from './common';
 import { getAccessToken } from './token';
 import { getCurrentOrganizationId, isTenantRoleLevel } from './user';
 
@@ -26,11 +26,13 @@ import { getCurrentOrganizationId, isTenantRoleLevel } from './user';
 // @ts-ignore
 export function getAttachmentUrl(url, bucketName, tenantId, bucketDirectory, storageCode) {
   const accessToken = getAccessToken();
+  const requestId = getRequestId();
   const params = qs.stringify(
     filterNullValueObject({
       bucketName,
       storageCode,
       access_token: accessToken,
+      'H-Request-Id': requestId,
       directory: bucketDirectory,
     })
   );

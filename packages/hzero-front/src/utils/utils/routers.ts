@@ -70,20 +70,20 @@ export function getRoutes(path, routerData = {}) {
       }
     });
 
-    routes = routes.sort((key1, key2) => {
-      const route2 = routerData[key2];
-      const route1 = routerData[key1];
-      if (route2?.index === undefined && route1?.index === undefined) {
-        return 0;
-      }
-      if (route2?.index) {
-        return 1;
-      }
-      if (route1?.index) {
-        return -1;
-      }
-      return 0;
-    });
+    // routes = routes.sort((key1, key2) => {
+    //   const route2 = routerData[key2];
+    //   const route1 = routerData[key1];
+    //   if (route2?.index === undefined && route1?.index === undefined) {
+    //     return 0;
+    //   }
+    //   if (route2?.index) {
+    //     return 1;
+    //   }
+    //   if (route1?.index) {
+    //     return -1;
+    //   }
+    //   return 0;
+    // });
   }
   /* FIXME: END */
   // Replace path to '' eg. path='user' /user/name => name

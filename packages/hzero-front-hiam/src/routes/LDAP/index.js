@@ -442,7 +442,7 @@ export default class LDAP extends Component {
               onClick={this.enableLdap}
               loading={disabledLoading}
             >
-              {intl.get('hiam.ldap.view.option.stop').d('禁用')}
+              {intl.get('hzero.common.button.disable').d('禁用')}
             </ButtonPermission>
           ) : (
             <ButtonPermission
@@ -458,7 +458,7 @@ export default class LDAP extends Component {
               onClick={this.enableLdap}
               loading={enabledLoading}
             >
-              {intl.get('hiam.ldap.view.option.enabled').d('启用')}
+              {intl.get('hzero.common.button.enable').d('启用')}
             </ButtonPermission>
           )}
           <ButtonPermission

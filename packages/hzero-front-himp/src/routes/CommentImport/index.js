@@ -35,6 +35,8 @@ export default class CommonImportRoute extends React.Component {
       tenantId = getCurrentOrganizationId(),
       action,
       key,
+      historyButton = 'true',
+      refreshButton = 'true',
     } = queryString.parse(search);
     this.state = {
       sync, // 是否是同步的接口
@@ -48,6 +50,8 @@ export default class CommonImportRoute extends React.Component {
       code: params.code,
       action,
       key,
+      historyButton,
+      refreshButton,
     };
   }
 
@@ -63,6 +67,8 @@ export default class CommonImportRoute extends React.Component {
       code,
       action,
       key,
+      historyButton,
+      refreshButton,
     } = this.state;
     return (
       <CommonImport
@@ -76,6 +82,8 @@ export default class CommonImportRoute extends React.Component {
         code={code}
         action={action}
         pathKey={key}
+        historyButton={historyButton}
+        refreshButton={refreshButton}
       />
     );
   }

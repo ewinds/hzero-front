@@ -40,9 +40,12 @@ export async function querySubAccountOrgList(params) {
  * @param {!Number} currentOrganizationId 租户id
  */
 export async function subAccountOrgRoleQueryAll(payload) {
-  return request(`${HZERO_IAM}/hzero/v1/roles/self/user-assignable-roles`, {
+  return request(`${HZERO_IAM}/hzero/v2/roles/self/assignable-roles`, {
     method: 'GET',
-    query: payload,
+    query: {
+      ...payload,
+      memberType: 'user',
+    },
   });
 }
 
@@ -81,6 +84,21 @@ export async function subAccountOrgQuery(params = {}) {
   return request(`${HZERO_IAM}/hzero/v1/${currentOrganizationId}/users/${userId}/info`, {
     method: 'GET',
     query: others,
+  });
+}
+
+/**
+ * 通过层级查询label
+ * @async
+ * @function queryLabelList
+ * @param {object} params - 角色ID
+ * @param {!boolean} [status=false] - 启用或停用
+ * @returns {object} fetch Promise
+ */
+export async function queryLabelList(params) {
+  return request(`${HZERO_IAM}/v1/${currentOrganizationId}/labels/by-type`, {
+    query: params,
+    method: 'GET',
   });
 }
 
@@ -153,6 +171,35 @@ export async function subAccountOrgUpdatePassword(id, organizationId, body, quer
     body,
     query,
     method: 'PUT',
+  });
+}
+
+/**
+ * 更新子账户的密码
+ * @param {number} userId 用户id
+ * @param {number} organizationId 用户所属租户id
+ * @param {string} params.password 密码
+ * @return {Promise}
+ */
+export async function resetPassword(id, organizationId, body) {
+  return request(`${HZERO_IAM}/hzero/v1/${organizationId}/users/${id}/admin-password-reset`, {
+    body,
+    method: 'PUT',
+  });
+}
+
+/**
+ * 向对应的手机号发送验证码修改密码
+ * @param {Object} params 验证手机号
+ * @param {String} params.phone 手机号
+ */
+export async function postCaptcha(params) {
+  return request(`${HZERO_IAM}/hzero/v1/users/phone/send-captcha`, {
+    method: 'GET',
+    query: {
+      ...params,
+      businessScope: 'UPDATE_PASSWORD',
+    },
   });
 }
 

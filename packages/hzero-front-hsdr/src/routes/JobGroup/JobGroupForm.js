@@ -5,6 +5,7 @@ import { isUndefined } from 'lodash';
 
 import intl from 'utils/intl';
 import Lov from 'components/Lov';
+import TLEditor from 'components/TLEditor';
 import { CODE_UPPER } from 'utils/regExp';
 
 const FormItem = Form.Item;
@@ -36,6 +37,7 @@ export default class JobGroupForm extends React.PureComponent {
       executorName,
       executorType,
       serverName,
+      _token,
     } = initData;
     return (
       <Modal
@@ -103,7 +105,13 @@ export default class JobGroupForm extends React.PureComponent {
                 }),
               },
             ],
-          })(<Input />)}
+          })(
+            <TLEditor
+              label={intl.get('hsdr.jobGroup.view.message.executorName').d('执行器名称')}
+              field="executorName"
+              token={_token}
+            />
+          )}
         </FormItem>
         <FormItem
           {...formLayout}

@@ -63,9 +63,12 @@ export async function subAccountPasswordUpdateSelf({ userId, userOrganizationId,
  * @return {Promise<void>}
  */
 export async function subAccountUserRolesQuery(params) {
-  return request(`${HZERO_IAM}/hzero/v1/roles/self/user-assignable-roles`, {
+  return request(`${HZERO_IAM}/hzero/v2/roles/self/assignable-roles`, {
     method: 'GET',
-    query: params,
+    query: {
+      ...params,
+      memberType: 'user',
+    },
   });
 }
 
@@ -88,6 +91,21 @@ export async function subAccountQuery(userId, params) {
   return request(`${HZERO_IAM}/hzero/v1/users/${userId}/info`, {
     method: 'GET',
     query: params,
+  });
+}
+
+/**
+ * 通过层级查询label
+ * @async
+ * @function queryLabelList
+ * @param {object} params - 角色ID
+ * @param {!boolean} [status=false] - 启用或停用
+ * @returns {object} fetch Promise
+ */
+export async function queryLabelList(params) {
+  return request(`${HZERO_IAM}/v1/labels/by-type`, {
+    query: params,
+    method: 'GET',
   });
 }
 
@@ -198,5 +216,37 @@ export async function queryEmployee(params) {
   return request(`${HZERO_IAM}/hzero/v1/users/${userId}/user-employee-assigns`, {
     query: res,
     method: 'GET',
+  });
+}
+
+/**
+ * 向对应的手机号发送验证码修改密码
+ * @param {Object} params 验证手机号
+ * @param {String} params.phone 手机号
+ */
+export async function postCaptcha(params) {
+  return request(`${HZERO_IAM}/hzero/v1/users/phone/send-captcha`, {
+    method: 'GET',
+    query: {
+      ...params,
+      businessScope: 'UPDATE_PASSWORD',
+    },
+  });
+}
+
+/**
+ * 更新子账户的密码
+ * @param {number} userId 用户id
+ * @param {number} organizationId 用户所属租户id
+ * @param {string} params.password 密码
+ * @return {Promise}
+ */
+export async function resetPassword({ userId, userOrganizationId, ...params }) {
+  return request(`${HZERO_IAM}/hzero/v1/users/${userId}/admin-password-reset`, {
+    method: 'PUT',
+    body: {
+      ...params,
+      organizationId: userOrganizationId,
+    },
   });
 }

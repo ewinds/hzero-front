@@ -24,6 +24,7 @@ let ENV_SIGN = `${process.env.ENV_SIGN}`;
 let INVALID_TIME = `${process.env.INVALID_TIME}`;
 let CUSTOMIZE_ICON_NAME = `${process.env.CUSTOMIZE_ICON_NAME}`;
 let MULTIPLE_LANGUAGE_ENABLE = `${process.env.MULTIPLE_LANGUAGE_ENABLE}`;
+let BAIDU_MAP_AK = `${process.env.BAIDU_MAP_AK}`;
 let HZERO_PLATFORM = '/hpfm';
 let HZERO_IAM = '/iam';
 let HZERO_DTT = '/hdtt';
@@ -63,6 +64,8 @@ let HZERO_HEBK = '/hebk';
 let HZERO_ALT = '/halt';
 let HZERO_HEVT = '/hevt';
 let HZERO_HDSC = '/hdsc';
+let HZERO_HORC = '/horc';
+let HZERO_HFNT = '/hfnt';
 let AUTH_HOST = changeAUTH_HOST(API_HOST, HZERO_OAUTH);
 let LOGIN_URL = `${
   process.env.LOGIN_URL || `${AUTH_HOST}/oauth/authorize?response_type=token&client_id=${CLIENT_ID}`
@@ -84,6 +87,8 @@ let BKT_HITF = `${process.env.BKT_HITF || 'hitf'}`;
 let BKT_HIMP = `${process.env.BKT_HIMP || 'himp'}`;
 let BKT_HFILE = `${process.env.BKT_HFILE || 'hfle'}`;
 let BKT_HIOT = `${process.env.BKT_HIOT || 'hiot'}`;
+let BKT_HORC = `${process.env.BKT_HORC || 'horc'}`;
+let BKT_HFNT = `${process.env.BKT_HFNT || 'hfnt'}`;
 // #endregion
 
 // #region changeConfig Funcs
@@ -94,7 +99,7 @@ function changeAUTH_HOST(API_HOST, HZERO_OAUTH) {
   return `${API_HOST}${HZERO_OAUTH}`;
 }
 function changeAUTH_SELF_URL(API_HOST, HZERO_IAM) {
-  return `${API_HOST}${HZERO_IAM}/hzero/v1/users/self`;
+  return `${process.env.AUTH_SELF_URL || `${API_HOST}${HZERO_IAM}/hzero/v1/users/self`}`;
 }
 function changeVERSION_IS_OP(PLATFORM_VERSION) {
   return `${PLATFORM_VERSION}` === 'OP'; //  OP版
@@ -140,6 +145,9 @@ window.changeRoute = function changeRoute(key, value) {
         break;
       case 'MULTIPLE_LANGUAGE_ENABLE':
         MULTIPLE_LANGUAGE_ENABLE = value;
+        break;
+      case 'BAIDU_MAP_AK':
+        BAIDU_MAP_AK = value;
         break;
       case 'HZERO_PLATFORM':
         HZERO_PLATFORM = value;
@@ -266,6 +274,13 @@ window.changeRoute = function changeRoute(key, value) {
       case 'HZERO_HDSC':
         HZERO_HDSC = value;
         break;
+      case 'HZERO_HORC':
+        HZERO_HORC = value;
+        break;
+      case 'HZERO_HFNT':
+        HZERO_HFNT = value;
+        break;
+
       case 'AUTH_HOST':
         AUTH_HOST = value;
         break;
@@ -326,6 +341,12 @@ window.changeRoute = function changeRoute(key, value) {
       case 'BKT_HIOT':
         BKT_HIOT = value;
         break;
+      case 'BKT_HORC':
+        BKT_HORC = value;
+        break;
+      case 'BKT_HFNT':
+        BKT_HFNT = value;
+        break;
       default:
         console.error(`${key} is not exists`);
         helpMethod();
@@ -350,6 +371,7 @@ const helpMethodAssist = {
   INVALID_TIME: { changeConfig: ['INVALID_TIME'], depBy: [] },
   CUSTOMIZE_ICON_NAME: { changeConfig: ['CUSTOMIZE_ICON_NAME'], depBy: [] },
   MULTIPLE_LANGUAGE_ENABLE: { changeConfig: ['MULTIPLE_LANGUAGE_ENABLE'], depBy: [] },
+  BAIDU_MAP_AK: { changeConfig: ['BAIDU_MAP_AK'], depBy: [] },
   HZERO_PLATFORM: { changeConfig: ['HZERO_PLATFORM'], depBy: [] },
   HZERO_IAM: { changeConfig: ['HZERO_IAM', 'AUTH_SELF_URL'], depBy: [] },
   HZERO_DTT: { changeConfig: ['HZERO_DTT'], depBy: [] },
@@ -389,6 +411,8 @@ const helpMethodAssist = {
   HZERO_HEBK: { changeConfig: ['HZERO_HEBK'], depBy: [] },
   HZERO_ALT: { changeConfig: ['HZERO_ALT'], depBy: [] },
   HZERO_EVENT: { changeConfig: ['HZERO_EVENT'], depBy: [] },
+  HZERO_HORC: { changeConfig: ['HZERO_HORC'], depBy: [] },
+  HZERO_HFNT: { changeConfig: ['HZERO_HFNT'], depBy: [] },
   AUTH_HOST: { changeConfig: ['AUTH_HOST'], depBy: ['AUTH_HOST', 'AUTH_HOST'] },
   LOGIN_URL: { changeConfig: ['LOGIN_URL'], depBy: [] },
   LOGOUT_URL: { changeConfig: ['LOGOUT_URL'], depBy: [] },
@@ -409,6 +433,8 @@ const helpMethodAssist = {
   BKT_HIMP: { changeConfig: ['BKT_HIMP'], depBy: [] },
   BKT_HFILE: { changeConfig: ['BKT_HFILE'], depBy: [] },
   BKT_HIOT: { changeConfig: ['BKT_HIOT'], depBy: [] },
+  BKT_HORC: { changeConfig: ['BKT_HORC'], depBy: [] },
+  BKT_HFNT: { changeConfig: ['BKT_HFNT'], depBy: [] },
 };
 function helpMethod(key) {
   if (key && helpMethodAssist[key]) {
@@ -442,6 +468,7 @@ export {
   INVALID_TIME,
   CUSTOMIZE_ICON_NAME,
   MULTIPLE_LANGUAGE_ENABLE,
+  BAIDU_MAP_AK,
   HZERO_PLATFORM,
   HZERO_IAM,
   HZERO_DTT,
@@ -481,6 +508,8 @@ export {
   HZERO_ALT,
   HZERO_HEVT,
   HZERO_HDSC,
+  HZERO_HORC,
+  HZERO_HFNT,
   AUTH_HOST,
   LOGIN_URL,
   LOGOUT_URL,
@@ -500,5 +529,7 @@ export {
   BKT_HIMP,
   BKT_HFILE,
   BKT_HIOT,
+  BKT_HORC,
+  BKT_HFNT,
 };
 // #endregion

@@ -44,6 +44,7 @@ const setLayoutButtonStyle = {
   workplace,
   loadAssignableCardsLoading: loading.effects['workplace/fetchCards'],
   activeTabKey: global.activeTabKey,
+  collapsed: global.collapsed,
 }))
 @withRouter
 @formatterCollections({ code: ['hzero.workplace'] })
@@ -119,8 +120,7 @@ export default class Workplace extends React.Component {
 
   // eslint-disable-next-line no-unused-vars
   componentDidUpdate(prevProps, prevState, snapshot) {
-    if (this.needUpdateWidth) {
-      this.needUpdateWidth = false;
+    if (this.props.collapsed !== prevProps.collapsed) {
       this.handleWindowResize();
     }
   }
@@ -148,15 +148,16 @@ export default class Workplace extends React.Component {
       match: { path },
       activeTabKey,
     } = this.props;
-    if (path !== activeTabKey) {
-      // 如果当前 tab 页 不是本页面, 则不更新 width, 但是要设置 标志, 在 DidUpdate 中更新
-      this.needUpdateWidth = true;
-      return;
-    }
-    // eslint-disable-next-line
-    const node = ReactDOM.findDOMNode(this); // Flow casts this to Text | Element
-    if (node instanceof HTMLElement) {
-      this.setState({ width: node.offsetWidth });
+    // 如果当前 tab 页 不是本页面, 则不更新 width, 但是要设置 标志, 在 DidUpdate 中更新
+    if (path === activeTabKey) {
+      setTimeout(() => {
+        const dom = document.querySelectorAll('.page-content')?.[0];
+        // eslint-disable-next-line
+        const node = ReactDOM.findDOMNode(dom); // Flow casts this to Text | Element
+        if (node instanceof HTMLElement) {
+          this.setState({ width: node.offsetWidth });
+        }
+      }, 0.5);
     }
   }
 

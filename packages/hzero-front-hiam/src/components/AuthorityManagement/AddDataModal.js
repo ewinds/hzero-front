@@ -224,6 +224,7 @@ export default class EditForm extends React.Component {
       size: pagination.pageSize || pageSize || 10,
       ...sourceQueryParams,
       ...nowQueryParams,
+      tenantId: getCurrentOrganizationId(),
     };
     const params =
       lovTypeCode !== 'URL'

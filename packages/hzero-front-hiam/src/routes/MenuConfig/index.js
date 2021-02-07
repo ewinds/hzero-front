@@ -105,7 +105,7 @@ export default class MenuConfig extends React.Component {
    * render后请求页面数据
    */
   componentDidMount() {
-    this.fetchList({ level: 'site' });
+    this.fetchList({ level: 'site', enabledFlag: '1' });
     this.fetchAssignLevelCode();
     this.handleQueryLabel();
     this.fetchSearchLabels();
@@ -113,6 +113,7 @@ export default class MenuConfig extends React.Component {
       menuPrefix: 'HIAM.MENU_PREFIX', // 目录编码前缀
       menuType: 'HIAM.MENU_TYPE', // 菜单类型
       controllerType: 'HIAM.CONTROLLER_TYPE', // 权限集控制类型
+      enabledFlag: 'HPFM.ENABLED_FLAG', // 权限集控制类型
     };
     // 初始化 值集
     this.props.dispatch({
@@ -885,6 +886,7 @@ export default class MenuConfig extends React.Component {
       menuPrefixList = [],
       menuTypeList = [],
       controllerType = [],
+      enabledFlag = [],
       customMenu = {},
       siteLabelList = [],
       tenantLabelList = [],
@@ -917,6 +919,7 @@ export default class MenuConfig extends React.Component {
       },
       handleQueryList: this.fetchList.bind(this),
       levelCode: code['HIAM.RESOURCE_LEVEL'],
+      enabledFlag,
       searchLabels,
     };
     const editorProps = {

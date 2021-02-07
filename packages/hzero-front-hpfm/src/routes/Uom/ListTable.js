@@ -179,13 +179,14 @@ export default class ListTable extends PureComponent {
             {
               key: 'clean',
               ele:
+                // eslint-disable-next-line no-nested-ternary
                 record._status === 'create' ? (
                   <a onClick={() => onCleanLine(record)}>
                     {intl.get('hzero.common.button.clean').d('清除')}
                   </a>
                 ) : record._status === 'update' ? (
                   <a onClick={() => onEditLine(record, false)}>
-                    {intl.get('hzero.common.status.cancel').d('取消')}
+                    {intl.get('hzero.common.button.cancel').d('取消')}
                   </a>
                 ) : (
                   <ButtonPermission
@@ -199,16 +200,17 @@ export default class ListTable extends PureComponent {
                     ]}
                     onClick={() => onEditLine(record, true)}
                   >
-                    {intl.get('hzero.common.status.edit').d('编辑')}
+                    {intl.get('hzero.common.button.edit').d('编辑')}
                   </ButtonPermission>
                 ),
               len: 2,
               title:
+                // eslint-disable-next-line no-nested-ternary
                 record._status === 'create'
                   ? intl.get('hzero.common.button.clean').d('清除')
                   : record._status === 'update'
-                  ? intl.get('hzero.common.status.cancel').d('取消')
-                  : intl.get('hzero.common.status.edit').d('编辑'),
+                  ? intl.get('hzero.common.button.cancel').d('取消')
+                  : intl.get('hzero.common.button.edit').d('编辑'),
             },
           ];
           return operatorRender(operators);
@@ -225,7 +227,7 @@ export default class ListTable extends PureComponent {
         columns={columns}
         dataSource={dataSource}
         pagination={pagination}
-        onChange={page => onSearch(page)}
+        onChange={(page) => onSearch(page)}
       />
     );
   }

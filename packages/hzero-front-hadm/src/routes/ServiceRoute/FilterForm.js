@@ -34,7 +34,7 @@ export default class FilterForm extends React.PureComponent {
           <Col {...FORM_COL_4_LAYOUT}>
             <FormItem
               {...SEARCH_FORM_ITEM_LAYOUT}
-              label={intl.get('hadm.serviceRoute.model.serviceRoute.serviceCode').d('服务编码')}
+              label={intl.get('hadm.common.model.common.serviceCode').d('服务编码')}
             >
               {getFieldDecorator('serviceCode')(<Input inputChinese={false} />)}
             </FormItem>
@@ -42,7 +42,7 @@ export default class FilterForm extends React.PureComponent {
           <Col {...FORM_COL_4_LAYOUT}>
             <FormItem
               {...SEARCH_FORM_ITEM_LAYOUT}
-              label={intl.get('hadm.serviceRoute.model.serviceRoute.serviceName').d('服务名称')}
+              label={intl.get('hadm.common.model.common.serviceName').d('服务名称')}
             >
               {getFieldDecorator('serviceName')(<Input />)}
             </FormItem>

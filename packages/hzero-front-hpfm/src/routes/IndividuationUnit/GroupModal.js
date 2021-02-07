@@ -83,7 +83,7 @@ export default class GroupModal extends Component {
         }
         destroyOnClose
       >
-        <Form layout="inline" className={styles['group-model-form']}>
+        <Form className={styles['group-model-form']}>
           <FormItem
             label={intl
               .get('hpfm.individuationUnit.model.individuationUnit.menuName')

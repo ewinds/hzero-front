@@ -57,14 +57,9 @@ export default class Drawer extends PureComponent {
    */
   @Bind()
   changeContentType(value) {
-    const {
-      fileFormatsList = [],
-      form: { setFieldsValue },
-      onChangeFileFormats,
-    } = this.props;
-    const newFileFormat = filter(fileFormatsList, item => value.indexOf(item.parentValue) >= 0);
+    const { fileFormatsList = [], onChangeFileFormats } = this.props;
+    const newFileFormat = filter(fileFormatsList, (item) => value.indexOf(item.parentValue) >= 0);
     onChangeFileFormats(newFileFormat);
-    setFieldsValue({ fileFormat: [] });
   }
 
   render() {
@@ -87,7 +82,7 @@ export default class Drawer extends PureComponent {
     })(
       <Select style={{ width: 65 }}>
         {fileUnitList &&
-          fileUnitList.map(item => (
+          fileUnitList.map((item) => (
             <Option value={item.value} key={item.value}>
               {item.meaning}
             </Option>
@@ -162,7 +157,7 @@ export default class Drawer extends PureComponent {
               })(
                 <Select allowClear onChange={this.changeContentType} mode="multiple">
                   {fileTypeList &&
-                    fileTypeList.map(item => (
+                    fileTypeList.map((item) => (
                       <Option value={item.value} key={item.value}>
                         {item.meaning}
                       </Option>
@@ -190,7 +185,7 @@ export default class Drawer extends PureComponent {
               })(
                 <Select allowClear mode="multiple">
                   {newFileFormat &&
-                    newFileFormat.map(item => (
+                    newFileFormat.map((item) => (
                       <Option value={item.value} key={item.value}>
                         {item.meaning}
                       </Option>

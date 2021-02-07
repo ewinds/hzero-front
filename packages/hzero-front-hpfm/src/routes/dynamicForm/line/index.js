@@ -167,7 +167,7 @@ export default class Line extends PureComponent {
         ...formData,
         ...fieldsValue,
       },
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
         this.handleSearch(pagination);
@@ -246,11 +246,28 @@ export default class Line extends PureComponent {
     dispatch({
       type: 'line/removeLine',
       payload: record,
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
         this.handleSearch();
       }
+    });
+  }
+
+  @Bind()
+  handleBack() {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'line/updateState',
+      payload: {
+        list: [],
+      },
+    });
+    dispatch({
+      type: 'header/updateState',
+      payload: {
+        headerDetail: {},
+      },
     });
   }
 
@@ -287,7 +304,7 @@ export default class Line extends PureComponent {
         width: 150,
         dataIndex: 'itemTypeCode',
         align: 'left',
-        render: value => <Tag color="blue">{getCodeMeaning(value, keyTypeList)}</Tag>,
+        render: (value) => <Tag color="blue">{getCodeMeaning(value, keyTypeList)}</Tag>,
       },
       {
         title: intl.get('hpfm.dynamicForm.line.orderSeq').d('排序号'),
@@ -311,6 +328,11 @@ export default class Line extends PureComponent {
         dataIndex: 'valueConstraint',
       },
       {
+        title: intl.get('hpfm.dynamicForm.line.valueSet').d('值集/视图编码'),
+        align: 'left',
+        dataIndex: 'valueSet',
+      },
+      {
         title: intl.get('hpfm.dynamicForm.line.requiredFlag').d('是否必输'),
         dataIndex: 'requiredFlag',
         render: yesOrNoRender,
@@ -332,7 +354,7 @@ export default class Line extends PureComponent {
         align: 'left',
       },
       {
-        title: intl.get('hpfm.dynamicForm.line.button.action').d('操作'),
+        title: intl.get('hzero.common.button.action').d('操作'),
         align: 'left',
         width: 120,
         dataIndex: 'operator',
@@ -348,7 +370,7 @@ export default class Line extends PureComponent {
       dataSource: list,
       columns,
       pagination,
-      onChange: page => this.handleSearch(page),
+      onChange: (page) => this.handleSearch(page),
       scroll: { x: tableScrollWidth(columns) },
     };
     const drawerProps = {
@@ -368,6 +390,7 @@ export default class Line extends PureComponent {
         <Header
           title={intl.get('hpfm.dynamicForm.line.title').d('表单配置行')}
           backPath="/hpfm/dynamic-form/list"
+          onBack={this.handleBack}
         >
           <ButtonPermission
             icon="plus"
@@ -410,7 +433,7 @@ export default class Line extends PureComponent {
             </Row>
           </Form>
           <Table {...tableProps} />
-          <Drawer {...drawerProps} />
+          {modalVisible && <Drawer {...drawerProps} />}
         </Content>
       </React.Fragment>
     );

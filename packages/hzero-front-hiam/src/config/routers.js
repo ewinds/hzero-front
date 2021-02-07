@@ -343,7 +343,6 @@ module.exports = [
       },
     ],
   },
-
   {
     path: '/hiam/sub-account-org',
     models: [],

@@ -245,23 +245,55 @@
     // modal
   }
 
+  // 覆盖，设置弹窗居中显示
+  //.ant-modal-wrap {
+  //  text-align: center;
+  //
+  //  &::before {
+  //    content: '';
+  //    display: inline-block;
+  //    height: 100%;
+  //    vertical-align: middle;
+  //    width: 0;
+  //  }
+  //
+  //  .ant-modal {
+  //    display: inline-block;
+  //    vertical-align: middle;
+  //    top: 0;
+  //    text-align: left;
+  //  }
+  //}
+
   .ant-notification {
     // notification
     &-notice {
       &.success {
         border-left: 3px solid @hzero-notification-success-color;
+        .ant-notification-notice-message {
+          word-break: break-all;
+        }
       }
 
       &.info {
         border-left: 3px solid @hzero-notification-info-color;
+        .ant-notification-notice-message {
+          word-break: break-all;
+        }
       }
 
       &.warn {
         border-left: 3px solid @hzero-notification-warn-color;
+        .ant-notification-notice-message {
+          word-break: break-all;
+        }
       }
 
       &.error {
         border-left: 3px solid @hzero-notification-error-color;
+        .ant-notification-notice-message {
+          word-break: break-all;
+        }
       }
 
       &.request .ant-notification-notice-with-icon .ant-notification-notice-message {
@@ -347,7 +379,7 @@
   .ant-table-wrapper {
     .ant-table {
       .ant-table-scroll > .ant-table-body {
-        border-width: 0 1px;
+        border-width: 0 0 0 1px;
         border-style: solid;
         border-color: #e8e8e8;
         border-collapse: collapse;
@@ -376,8 +408,8 @@
         .hzero-font-size();
         padding: 0 @hzero-gutter;
         line-height: 25px;
-        min-height: 40px;
-        height: 40px;
+        min-height: 36px;
+        height: 36px;
 
         &.ant-table-column-has-filters {
           position: relative;

@@ -61,7 +61,7 @@ export default class IndividuationUnit extends Component {
   fetchLovData() {
     queryMapIdpValue({
       unitType: 'HPFM.CUST.UNIT_TYPE',
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         this.setState({
           unitTypeOptions: res.unitType || [],
@@ -77,7 +77,7 @@ export default class IndividuationUnit extends Component {
         type: 'individuationUnit/queryList',
         params,
       })
-      .then(res => {
+      .then((res) => {
         if (res) {
           const { dataSource = [], pagination = {} } = res || {};
           this.setState({ dataSource, pagination });
@@ -92,7 +92,7 @@ export default class IndividuationUnit extends Component {
         type: 'individuationUnit/queryGroup',
         params,
       })
-      .then(res => {
+      .then((res) => {
         if (res) {
           const unitGroups = res || [];
           if (unitGroups.length > 0) {
@@ -117,7 +117,7 @@ export default class IndividuationUnit extends Component {
         type: 'individuationUnit/queryGroupUnits',
         params,
       })
-      .then(res => {
+      .then((res) => {
         if (res) {
           this.setState({ dataSource: res.length > 0 ? res : [] });
         }
@@ -155,7 +155,7 @@ export default class IndividuationUnit extends Component {
         ...params,
         unitGroupId: selectedGroupId,
       },
-    }).then(res => {
+    }).then((res) => {
       if (!isUndefined(res)) {
         notification.success();
         this.toggleCopyUnitModal();
@@ -200,7 +200,7 @@ export default class IndividuationUnit extends Component {
           unitGroupId: selectedGroupId,
         },
       })
-      .then(res => {
+      .then((res) => {
         if (!isEmpty(res)) {
           notification.success();
           this.setState({
@@ -224,7 +224,7 @@ export default class IndividuationUnit extends Component {
           menuCode: selectedMenuCode,
         },
       })
-      .then(res => {
+      .then((res) => {
         if (!res.failed) {
           notification.success();
           this.setState({
@@ -301,7 +301,7 @@ export default class IndividuationUnit extends Component {
         type: 'individuationUnit/modifyGroup',
         params,
       })
-      .then(res => {
+      .then((res) => {
         if (res) {
           notification.success();
           const { selectedMenuCode } = this.state;

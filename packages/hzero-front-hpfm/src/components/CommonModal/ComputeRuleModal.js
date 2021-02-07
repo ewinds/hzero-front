@@ -136,7 +136,7 @@ export default class extends React.Component {
           </div>
           <div className="unit-code">{'<%= var test = u1.test; %>'}</div>
         </MenuItem>
-        <MenuItem key={"<% u1.test = '1' ? true : false %>"}>
+        <MenuItem key={"<%= u1.test = '1' ? true : false %>"}>
           <div className="unit-name">
             {intl.get('hpfm.individual.view.message.title.thrExpression').d('三元表达式')}
           </div>

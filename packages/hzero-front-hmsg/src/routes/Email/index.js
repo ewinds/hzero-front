@@ -20,6 +20,7 @@ import {
   isTenantRoleLevel,
   tableScrollWidth,
   encryptPwd,
+  addItemToPagination,
 } from 'utils/utils';
 import { enableRender, operatorRender } from 'utils/renderer';
 import { VERSION_IS_OP } from 'utils/config';
@@ -348,12 +349,13 @@ export default class Email extends PureComponent {
   handleFilterCreate(data) {
     const {
       dispatch,
-      email: { filterList = [] },
+      email: { filterList = [], filterPagination = {} },
     } = this.props;
     dispatch({
       type: 'email/updateState',
       payload: {
-        filterList: [...filterList, data],
+        filterList: [data, ...filterList],
+        filterPagination: addItemToPagination(filterList.length, filterPagination),
       },
     });
   }
@@ -582,7 +584,7 @@ export default class Email extends PureComponent {
             type="primary"
             onClick={this.showModal}
           >
-            {intl.get('hzero.common.status.create').d('新建')}
+            {intl.get('hzero.common.button.create').d('新建')}
           </ButtonPermission>
         </Header>
         <Content>

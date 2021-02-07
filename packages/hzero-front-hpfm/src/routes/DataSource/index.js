@@ -20,22 +20,15 @@ import { filterNullValueObject, getCurrentOrganizationId } from 'utils/utils';
 
 import TableList from './TableList';
 import FilterForm from './FilterForm';
-import ServiceDrawer from './ServiceDrawer';
 
 @connect(({ dataSource, loading }) => ({
   dataSource,
   fetchListLoading: loading.effects['dataSource/fetchDataSourceList'],
-  fetchTenantLoading: loading.effects['dataSource/fetchServiceList'],
-  deleteServiceLoading: loading.effects['dataSource/deleteService'],
   tenantId: getCurrentOrganizationId(),
 }))
 @formatterCollections({ code: ['hpfm.dataSource', 'entity.tenant'] })
 export default class DataSource extends PureComponent {
   form;
-
-  state = {
-    serviceModalVisible: false, // 添加服务模态框控制
-  };
 
   /**
    * render()调用后获取数据
@@ -117,67 +110,6 @@ export default class DataSource extends PureComponent {
   }
 
   /**
-   * 显示添加服务模态框
-   */
-  @Bind()
-  handleCreateService(record) {
-    const { dispatch } = this.props;
-    const { datasourceId } = record;
-    this.setState({ serviceModalVisible: true });
-    // 保存行datasourceId
-    dispatch({
-      type: 'dataSource/updateState',
-      payload: {
-        datasourceId: record.datasourceId,
-        tenantData: {},
-      },
-    });
-    this.fetchServiceList({ datasourceId });
-  }
-
-  @Bind()
-  handleCancelService() {
-    this.setState({ serviceModalVisible: false });
-  }
-
-  /**
-   * 查询服务
-   *
-   * @param {object} fields - 查询参数
-   */
-  @Bind()
-  fetchServiceList(fields = {}) {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'dataSource/fetchServiceList',
-      payload: { ...fields },
-    });
-  }
-
-  /**
-   * 添加服务
-   * @param {*} value
-   * @memberof dataSource
-   */
-  @Bind()
-  handleAddService(value) {
-    const {
-      dispatch,
-      dataSource: { datasourceId },
-    } = this.props;
-    const { serviceCode } = value;
-    dispatch({
-      type: 'dataSource/addService',
-      payload: { datasourceId, serviceName: serviceCode },
-    }).then((res) => {
-      if (res) {
-        notification.success();
-        this.fetchServiceList({ datasourceId });
-      }
-    });
-  }
-
-  /**
    * 删除服务
    *
    * @param {*} record
@@ -211,13 +143,10 @@ export default class DataSource extends PureComponent {
 
   render() {
     const {
-      deleteServiceLoading = false,
       fetchListLoading = false,
-      fetchTenantLoading = false,
       match,
       dataSource: {
         dataSourceData = {},
-        tenantData = {},
         pagination = {},
         dataSourceClassList = [],
         dataSourceTypeList = [],
@@ -225,7 +154,6 @@ export default class DataSource extends PureComponent {
       },
       tenantId,
     } = this.props;
-    const { serviceModalVisible } = this.state;
     const filterProps = {
       onSearch: this.handleSearch,
       onRef: this.handleBindRef,
@@ -243,16 +171,6 @@ export default class DataSource extends PureComponent {
       onChange: this.handleSearch,
       onEdit: this.handleEditDataSource,
       onView: this.handleViewDataSource,
-      onAddService: this.handleCreateService,
-    };
-    const serviceProps = {
-      tenantData,
-      match,
-      onCancel: this.handleCancelService,
-      onSelectService: this.handleAddService,
-      onDeleteService: this.handleDeleteTenant,
-      modalVisible: serviceModalVisible,
-      initLoading: fetchTenantLoading || deleteServiceLoading,
     };
     return (
       <React.Fragment>
@@ -278,7 +196,6 @@ export default class DataSource extends PureComponent {
           </div>
           <TableList {...listProps} />
         </Content>
-        <ServiceDrawer {...serviceProps} />
       </React.Fragment>
     );
   }

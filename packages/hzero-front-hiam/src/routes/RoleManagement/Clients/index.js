@@ -1,14 +1,17 @@
 import React, { PureComponent } from 'react';
-import { Form, Modal, Popconfirm, Spin } from 'hzero-ui';
+import { Form, Modal, Popconfirm, Spin, DatePicker } from 'hzero-ui';
+import moment from 'moment';
 import EditTable from 'components/EditTable';
 import { Button as ButtonPermission } from 'components/Permission';
 import { Bind } from 'lodash-decorators';
-import { getEditTableData, tableScrollWidth } from 'utils/utils';
-import Lov from 'components/Lov';
+import { getEditTableData, tableScrollWidth, getDateFormat } from 'utils/utils';
+import { DEFAULT_DATE_FORMAT } from 'utils/constants';
+// import Lov from 'components/Lov';
 import intl from 'utils/intl';
 import QueryForm from './QueryForm';
+import ClientModal from './ClientModal';
 
-const FormItem = Form.Item;
+// const FormItem = Form.Item;
 
 function getRefFieldsValue(ref) {
   if (ref.current) {
@@ -24,6 +27,7 @@ export default class Clients extends PureComponent {
     this.state = {
       selectedRows: [],
       // okDisabled: false,
+      clientModalVisible: false,
     };
   }
 
@@ -124,6 +128,18 @@ export default class Clients extends PureComponent {
     onAddClient();
   }
 
+  @Bind()
+  handleModalClient() {
+    const { clearClientModalList } = this.props;
+    const { clientModalVisible } = this.state;
+    if (clientModalVisible) {
+      clearClientModalList();
+    }
+    this.setState({
+      clientModalVisible: !clientModalVisible,
+    });
+  }
+
   /**
    * 保存客户端
    */
@@ -162,6 +178,13 @@ export default class Clients extends PureComponent {
     onClientPageChange(pagination, fieldsValue);
   }
 
+  @Bind()
+  handleModalSave(data) {
+    const { onModalSave } = this.props;
+    onModalSave(data);
+    this.handleModalClient();
+  }
+
   render() {
     const {
       clientList = [],
@@ -173,73 +196,155 @@ export default class Clients extends PureComponent {
       deleteLoading,
       queryLoading,
       clientPagination,
+      clientModalList,
+      clientModalPagination,
+      onModalSearch,
     } = this.props;
     const roleId = roleDatasource.id;
-    const { selectedRows } = this.state;
+    const { selectedRows, clientModalVisible } = this.state;
     // const params = getEditTableData(clientList, ['id', '_status']);
     const rowSelection = {
       selectedRowKeys: selectedRows.map((n) => n.id),
       onChange: this.handleSelectRows,
     };
 
+    const clientModalProps = {
+      visible: clientModalVisible,
+      dataSource: clientModalList,
+      pagination: clientModalPagination,
+      fetchClient: onModalSearch,
+      onSave: this.handleModalSave,
+      onCancel: this.handleModalClient,
+      roleId,
+    };
+
+    const dateFormat = getDateFormat();
     const columns = [
       {
         title: intl.get('hiam.roleManagement.model.roleManagement.clientName').d('客户端名称'),
         width: 300,
         dataIndex: 'name',
-        render: (id, record) => {
-          if (record._status === 'create') {
-            const { getFieldDecorator, setFieldsValue } = record.$form;
-            const onClientChange = function onClientChange(_, client) {
-              setFieldsValue({
-                id: client.id,
-                tenantName: client.tenantName,
-              });
-            };
-            return (
-              <FormItem>
-                {getFieldDecorator('id', {
-                  initialValue: record.name,
-                  rules: [
-                    {
-                      required: true,
-                      message: intl.get('hzero.common.validation.notNull', {
-                        name: intl
-                          .get('hiam.roleManagement.model.roleManagement.clientName')
-                          .d('客户端名称'),
-                      }),
-                    },
-                  ],
-                })(
-                  <Lov
-                    queryParams={{ roleId }}
-                    code="HIAM.CLIENT"
-                    onChange={onClientChange}
-                    textValue={id}
-                  />
-                )}
-              </FormItem>
-            );
-          } else {
-            return id;
-          }
-        },
+        // render: (id, record) => {
+        //   if (record._status === 'create') {
+        //     const { getFieldDecorator, setFieldsValue } = record.$form;
+        //     const onClientChange = function onClientChange(_, client) {
+        //       setFieldsValue({
+        //         id: client.id,
+        //         tenantName: client.tenantName,
+        //       });
+        //     };
+        //     return (
+        //       <FormItem>
+        //         {getFieldDecorator('id', {
+        //           initialValue: record.name,
+        //           rules: [
+        //             {
+        //               required: true,
+        //               message: intl.get('hzero.common.validation.notNull', {
+        //                 name: intl
+        //                   .get('hiam.roleManagement.model.roleManagement.clientName')
+        //                   .d('客户端名称'),
+        //               }),
+        //             },
+        //           ],
+        //         })(
+        //           <Lov
+        //             queryParams={{ roleId }}
+        //             code="HIAM.CLIENT"
+        //             onChange={onClientChange}
+        //             textValue={id}
+        //           />
+        //         )}
+        //       </FormItem>
+        //     );
+        //   } else {
+        //     return id;
+        //   }
+        // },
       },
       {
         title: intl.get(`hiam.roleManagement.model.roleManagement.tenant`).d('所属租户'),
         dataIndex: 'tenantName',
         width: 200,
-        render: (tenantName, record) => {
-          if (record._status === 'create') {
-            const { getFieldValue, getFieldDecorator } = record.$form;
+        // render: (tenantName, record) => {
+        //   if (record._status === 'create') {
+        //     const { getFieldValue, getFieldDecorator } = record.$form;
+        //     return (
+        //       <>
+        //         {getFieldValue('tenantName')}
+        //         {getFieldDecorator('tenantName')(<div />)}
+        //       </>
+        //     );
+        //   } else {
+        //     return tenantName;
+        //   }
+        // },
+      },
+      {
+        title: intl.get('hiam.subAccount.model.role.startDateActive').d('起始时间'),
+        key: 'startDateActive',
+        width: 140,
+        render: (_, record) => {
+          const { _status } = record;
+          if (_status === 'create' || _status === 'update') {
+            const { $form: form } = record;
             return (
-              <>
-                {getFieldValue('tenantName')}
-                {getFieldDecorator('tenantName')(<div />)}
-              </>
+              <Form.Item>
+                {form.getFieldDecorator('startDateActive', {
+                  initialValue: record.startDateActive
+                    ? moment(record.startDateActive, DEFAULT_DATE_FORMAT)
+                    : undefined,
+                })(
+                  <DatePicker
+                    format={dateFormat}
+                    style={{ width: '100%' }}
+                    disabled={record.manageableFlag === 0}
+                    placeholder={null}
+                    disabledDate={(currentDate) => {
+                      return (
+                        form.getFieldValue('endDateActive') &&
+                        moment(form.getFieldValue('endDateActive')).isBefore(currentDate, 'day')
+                      );
+                    }}
+                  />
+                )}
+              </Form.Item>
             );
           } else {
-            return tenantName;
+            return _;
+          }
+        },
+      },
+      {
+        title: intl.get('hiam.subAccount.model.role.endDateActive').d('失效时间'),
+        key: 'endDateActive',
+        width: 140,
+        render: (_, record) => {
+          const { _status } = record;
+          if (_status === 'create' || _status === 'update') {
+            const { $form: form } = record;
+            return (
+              <Form.Item>
+                {form.getFieldDecorator('endDateActive', {
+                  initialValue: record.endDateActive
+                    ? moment(record.endDateActive, DEFAULT_DATE_FORMAT)
+                    : undefined,
+                })(
+                  <DatePicker
+                    format={dateFormat}
+                    style={{ width: '100%' }}
+                    disabled={record.manageableFlag === 0}
+                    placeholder={null}
+                    disabledDate={(currentDate) =>
+                      form.getFieldValue('startDateActive') &&
+                      moment(form.getFieldValue('startDateActive')).isAfter(currentDate, 'day')
+                    }
+                  />
+                )}
+              </Form.Item>
+            );
+          } else {
+            return _;
           }
         },
       },
@@ -292,7 +397,7 @@ export default class Clients extends PureComponent {
               },
             ]}
             type="primary"
-            onClick={this.handleAddClient}
+            onClick={this.handleModalClient}
           >
             {intl.get(`hzero.common.button.create`).d('新建')}
           </ButtonPermission>
@@ -312,6 +417,7 @@ export default class Clients extends PureComponent {
             pagination={clientPagination}
           />
         </Spin>
+        {clientModalVisible && <ClientModal {...clientModalProps} />}
       </Modal>
     );
   }

@@ -97,7 +97,7 @@ export default class LineData extends React.Component {
             enabledFlag: 1,
           },
         ],
-      }).then(res => {
+      }).then((res) => {
         if (res) {
           this.setState({
             isCreate: true,
@@ -112,7 +112,7 @@ export default class LineData extends React.Component {
       saveEditData({
         tenantId: organizationId,
         values,
-      }).then(res => {
+      }).then((res) => {
         if (res) {
           this.setState({
             isCreate: true,
@@ -218,11 +218,11 @@ export default class LineData extends React.Component {
                     ]}
                     onClick={() => this.handleDisabledRecord(record)}
                   >
-                    {intl.get('hzero.common.status.disable').d('禁用')}
+                    {intl.get('hzero.common.button.disable').d('禁用')}
                   </ButtonPermission>
                 ),
                 len: 2,
-                title: intl.get('hzero.common.status.disable').d('禁用'),
+                title: intl.get('hzero.common.button.disable').d('禁用'),
               });
               operators.push({
                 key: 'assign-grade',
@@ -345,7 +345,7 @@ export default class LineData extends React.Component {
       unitId: record.unitId,
       objectVersionNumber: record.objectVersionNumber,
       _token: record._token,
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
         this.reload();
@@ -365,7 +365,7 @@ export default class LineData extends React.Component {
       unitId: record.unitId,
       objectVersionNumber: record.objectVersionNumber,
       _token: record._token,
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
         this.reload();

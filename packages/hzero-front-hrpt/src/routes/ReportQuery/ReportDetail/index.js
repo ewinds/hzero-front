@@ -26,10 +26,11 @@ import {
   getCurrentOrganizationId,
   getDateFormat,
   getDateTimeFormat,
-  getAccessToken,
   isTenantRoleLevel,
+  getRequestId,
+  getAccessToken,
 } from 'utils/utils';
-import { HZERO_RPT, API_HOST } from 'utils/config';
+import { API_HOST, HZERO_RPT } from 'utils/config';
 // import request from 'utils/request';
 import notification from 'utils/notification';
 import { DEFAULT_DATETIME_FORMAT } from 'utils/constants';
@@ -79,6 +80,7 @@ export default class Detail extends Component {
     chartType: 'bar', // 图表类型
     uuidKey: '',
     chartParams: {},
+    loading: {},
   };
 
   /**
@@ -145,7 +147,9 @@ export default class Detail extends Component {
 
         form.validateFields((err, values) => {
           const { fCodeTenant, ...othersData } = values;
-          const valueData = { ...othersData, 'f-templateCode': fCodeTenant };
+          const valueData = !isUndefined(fCodeTenant)
+            ? { ...othersData, 'f-templateCode': fCodeTenant }
+            : othersData;
           const newValues = filter(valueData, (item) => !isUndefined(item));
           let strParam = '';
           map(fieldValues, (value, key) => {
@@ -236,7 +240,9 @@ export default class Detail extends Component {
 
         form.validateFields((err, values) => {
           const { fCodeTenant, ...othersData } = values;
-          const valueData = { ...othersData, 'f-templateCode': fCodeTenant };
+          const valueData = !isUndefined(fCodeTenant)
+            ? { ...othersData, 'f-templateCode': fCodeTenant }
+            : othersData;
           const newValues = filter(valueData, (item) => !isUndefined(item));
           let strParam;
           map(fieldValues, (value, key) => {
@@ -300,39 +306,6 @@ export default class Detail extends Component {
     this.setState({ drawerVisible: false });
   }
 
-  @Bind()
-  handleScrollDom() {
-    const [tableHeader, tableBody] = document.getElementsByClassName('hreport');
-    const tableDom = document.getElementsByClassName('hreport-table-body')[0];
-    const tableHeaderDom = document.getElementsByClassName('hreport-table-head')[0];
-    if (tableDom && tableHeaderDom) {
-      if (tableDom.scrollHeight > (tableDom.offsetHeight || tableDom.clientHeight)) {
-        tableHeaderDom.setAttribute('style', 'width:calc(100% - 15px)');
-      }
-    }
-    if (tableDom && tableHeader && tableBody) {
-      tableDom.addEventListener('scroll', () => {
-        const { scrollLeft } = tableDom;
-        const obj = {};
-        const str = tableHeader.getAttribute('style');
-
-        str.split(';').forEach((item) => {
-          if (item) {
-            const arr = item.split(': ') || [];
-            const [name, value] = arr;
-            obj[name] = value;
-          }
-        });
-        obj['margin-left'] = `-${scrollLeft}px`;
-        let styleStr = '';
-        forIn(obj, (value, key) => {
-          styleStr = `${styleStr}${key}: ${value};`;
-        });
-        tableHeader.setAttribute('style', styleStr);
-      });
-    }
-  }
-
   // 导出成excel
   @Bind()
   handleExport(outputType) {
@@ -390,18 +363,23 @@ export default class Detail extends Component {
 
         form.validateFields((err, values) => {
           const { fCodeTenant, ...othersData } = values;
-          const valueData = { ...othersData, 'f-templateCode': fCodeTenant };
+          const valueData = !isUndefined(fCodeTenant)
+            ? { ...othersData, 'f-templateCode': fCodeTenant }
+            : othersData;
           const baseParams = map(valueData, (value, key) => ({ key, value }));
           forEach(baseParams, (item) => {
             params.push({ name: item.key, value: item.value });
           });
           const newValues = filter(params, (item) => !isUndefined(item.value));
           if (!err) {
-            // GET方法导出
             if (outputType !== 'PRINT') {
+              this.setState({ loading: { [outputType]: true } });
+              // GET方法导出
               downloadFile({
                 requestUrl,
                 queryParams: newValues,
+              }).then(() => {
+                this.setState({ loading: { [outputType]: false } });
               });
             } else {
               this.handlePrint(requestUrl, newValues);
@@ -416,7 +394,7 @@ export default class Detail extends Component {
   @Bind()
   handlePrint(url, values) {
     let paramsStr = '';
-    let requestUrl = `${API_HOST}${url}?access_token=${getAccessToken()}`;
+    let requestUrl = `${API_HOST}${url}?access_token=${getAccessToken()}&H-Request-Id=${getRequestId()}`;
     values.forEach((item) => {
       paramsStr = `${paramsStr}&${item.name}=${item.value}`;
     });
@@ -437,10 +415,54 @@ export default class Detail extends Component {
 
   @Bind()
   onShowSizeChange(current, pageSize) {
-    this.buildReport({ 'f-page': current - 1, 'f-size': pageSize });
+    const { reportDataId } = this.state;
+    const {
+      reportQuery: { detail = {} },
+    } = this.props;
+    const { paramsData = {} } = detail[reportDataId] || {};
+    const { reportTypeCode } = paramsData;
+    const data = {
+      'f-page': current - 1,
+    };
+    if (reportTypeCode !== 'U') {
+      data['f-size'] = pageSize;
+    }
+    this.buildReport(data);
     this.setState({
       currentPage: current,
     });
+  }
+
+  @Bind()
+  handleScrollDom() {
+    const [tableHeader, tableBody] = document.getElementsByClassName('hreport');
+    const tableDom = document.getElementsByClassName('hreport-table-body')[0];
+    const tableHeaderDom = document.getElementsByClassName('hreport-table-head')[0];
+    if (tableDom && tableHeaderDom) {
+      if (tableDom.scrollHeight > (tableDom.offsetHeight || tableDom.clientHeight)) {
+        tableHeaderDom.setAttribute('style', 'width:calc(100% - 15px)');
+      }
+    }
+    if (tableDom && tableHeader && tableBody) {
+      tableDom.addEventListener('scroll', () => {
+        const { scrollLeft } = tableDom;
+        const obj = {};
+        const str = tableHeader.getAttribute('style');
+        str.split(';').forEach((item) => {
+          if (item) {
+            const arr = item.split(': ') || [];
+            const [name, value] = arr;
+            obj[name] = value;
+          }
+        });
+        obj['margin-left'] = `-${scrollLeft}px`;
+        let styleStr = '';
+        forIn(obj, (value, key) => {
+          styleStr = `${styleStr}${key}: ${value};`;
+        });
+        tableHeader.setAttribute('style', styleStr);
+      });
+    }
   }
 
   /**
@@ -462,12 +484,13 @@ export default class Detail extends Component {
     const {
       // exportLoading,
       reportDataId,
-      reportData: { htmlTable = '', metaDataPageSize = 10, metaDataRowTotal = 0 },
+      reportData: { htmlTable = '', metaDataPageSize = 10, metaDataRowTotal = 0, totalPage = 0 },
       currentPage,
       drawerVisible,
       EChartsVisible,
       chartType,
       uuidKey,
+      loading,
       chartParams,
     } = this.state;
     const {
@@ -488,6 +511,7 @@ export default class Detail extends Component {
       reportUuid,
       limitRows,
       pageFlag,
+      exportTypeList = [],
     } = paramsData;
 
     const paramsProps = {
@@ -564,7 +588,7 @@ export default class Detail extends Component {
               </Select>
             </div>
           )}
-          {['html', 'rtf', 'doc'].includes(templateTypeCode) && (
+          {exportTypeList.includes('PRINT') && (
             <Tooltip title={intl.get('hrpt.reportQuery.option.print').d('打印')}>
               <Icons
                 type="dayin"
@@ -576,45 +600,82 @@ export default class Detail extends Component {
               />
             </Tooltip>
           )}
-          {reportTypeCode !== 'C' && (
-            <Tooltip
-              className={styles['icon-excel']}
-              title={intl.get('hrpt.reportQuery.option.exportExcel').d('导出Excel')}
+          {exportTypeList.includes('XLS') && (
+            <Spin
+              spinning={!!loading.XLS}
+              wrapperClassName={styles.spin}
+              style={{ fontSize: '13px' }}
             >
-              {['T', 'ST'].includes(reportTypeCode) ||
-              ['html', 'xls'].includes(templateTypeCode) ? (
+              <Tooltip
+                className={styles['icon-excel']}
+                title={intl.get('hrpt.reportQuery.option.exportExcel.xls').d('导出Excel(*.xls)')}
+              >
                 <Icon onClick={() => this.handleExport('XLS')} />
-              ) : (
-                <Icon onClick={() => this.handleExport('XLSX')} />
-              )}
-            </Tooltip>
+              </Tooltip>
+            </Spin>
           )}
-
-          {(templateTypeCode === 'rtf' || templateTypeCode === 'doc') && ( // 只有rtf和doc类型模板报表能导出PPT和Word
-            <>
+          {exportTypeList.includes('XLSX') && (
+            <Spin
+              spinning={!!loading.XLSX}
+              wrapperClassName={styles.spin}
+              style={{ fontSize: '13px' }}
+            >
+              <Tooltip
+                className={styles['icon-excel-xlsx']}
+                title={intl.get('hrpt.reportQuery.option.exportExcel.xlsx').d('导出Excel(*.xlsx)')}
+              >
+                <Icon onClick={() => this.handleExport('XLSX')} />
+              </Tooltip>
+            </Spin>
+          )}
+          {exportTypeList.includes('PPTX') && (
+            <Spin
+              spinning={!!loading.PPTX}
+              style={{ fontSize: '13px' }}
+              wrapperClassName={styles.spin}
+            >
               <Tooltip
                 className={styles['icon-ppt']}
                 title={intl.get('hrpt.reportQuery.option.exportPPT').d('导出PPT')}
               >
                 <Icon onClick={() => this.handleExport('PPTX')} />
               </Tooltip>
+            </Spin>
+          )}
+          {exportTypeList.includes('DOCX') && (
+            <Spin
+              spinning={!!loading.DOCX}
+              style={{ fontSize: '13px' }}
+              wrapperClassName={styles.spin}
+            >
               <Tooltip
                 className={styles['icon-word']}
                 title={intl.get('hrpt.reportQuery.option.exportWord').d('导出Word')}
               >
                 <Icon onClick={() => this.handleExport('DOCX')} />
               </Tooltip>
-            </>
+            </Spin>
           )}
-
-          {['html', 'rtf', 'doc'].includes(templateTypeCode) && ( // 只有pdf类型模板报表不能导出Excel
-            <>
+          {exportTypeList.includes('PDF') && (
+            <Spin
+              spinning={!!loading.PDF}
+              style={{ fontSize: '13px' }}
+              wrapperClassName={styles.spin}
+            >
               <Tooltip
                 className={styles['icon-pdf']}
                 title={intl.get('hrpt.reportQuery.option.exportPdf').d('导出Pdf')}
               >
                 <Icon onClick={() => this.handleExport('PDF')} />
               </Tooltip>
+            </Spin>
+          )}
+          {exportTypeList.includes('HTML') && (
+            <Spin
+              spinning={!!loading.HTML}
+              style={{ fontSize: '13px' }}
+              wrapperClassName={styles.spin}
+            >
               <Tooltip
                 key="notTable"
                 className={styles['icon-html']}
@@ -622,32 +683,26 @@ export default class Detail extends Component {
               >
                 <Icon onClick={() => this.handleExport('HTML')} />
               </Tooltip>
-            </>
+            </Spin>
           )}
-          {(reportTypeCode === 'T' || reportTypeCode === 'ST') && ( // 表格报表可导出HTML
-            <Tooltip
-              key="isTable"
-              className={styles['icon-html']}
-              title={intl.get('hrpt.reportQuery.option.exportHTML').d('导出HTML')}
+          {exportTypeList.includes('CSV') && (
+            <Spin
+              spinning={!!loading.CSV}
+              style={{ fontSize: '13px' }}
+              wrapperClassName={styles.spin}
             >
-              <Icon onClick={() => this.handleExport('HTML')} />
-            </Tooltip>
-          )}
-          {reportTypeCode === 'ST' && (
-            <Tooltip
-              className={styles['icon-csv']}
-              title={intl.get('hrpt.reportQuery.option.exportCSV').d('导出csv')}
-            >
-              <div style={{ marginTop: 6 }}>
+              <Tooltip
+                className={styles['icon-csv']}
+                title={intl.get('hrpt.reportQuery.option.exportCSV').d('导出csv')}
+              >
                 <Icons
                   type="csv"
                   size="34"
                   color="purple"
-                  style={{ marginRight: 4, marginTop: 2 }}
                   onClick={() => this.handleExport('CSV')}
                 />
-              </div>
-            </Tooltip>
+              </Tooltip>
+            </Spin>
           )}
         </Header>
         <div className={styles['content-sty']}>
@@ -698,6 +753,7 @@ export default class Detail extends Component {
             </Form>
             <ParamsForm {...paramsProps} />
           </div>
+
           {htmlTable && (
             <div className={styles['model-title']}>
               {intl.get('hrpt.reportQuery.view.message.buildResult').d('生成结果')}
@@ -723,6 +779,18 @@ export default class Detail extends Component {
             </div>
           </div>
           <div className={styles['report-content-pagination']}>
+            {reportTypeCode === 'U' && htmlTable && totalPage !== 0 && (
+              <div style={{ float: 'left', marginBottom: 30 }}>
+                <Pagination
+                  onShowSizeChange={this.onShowSizeChange}
+                  defaultPageSize={limitRows}
+                  current={currentPage}
+                  pageSize={10} // UReport类型不返回pageSize,写固定值为正常显示分页按钮
+                  total={totalPage * 10}
+                  onChange={this.onShowSizeChange}
+                />
+              </div>
+            )}
             {(reportTypeCode === 'T' || reportTypeCode === 'ST') &&
               pageFlag === 1 &&
               metaDataRowTotal !== 0 && (

@@ -626,11 +626,11 @@ export default class Notice extends React.PureComponent {
                   ]}
                   onClick={() => this.handleRevokeNotice(record)}
                 >
-                  {intl.get('hmsg.notice.button.revoke').d('撤销')}
+                  {intl.get('hzero.common.status.revoke').d('撤销')}
                 </ButtonPermission>
               ),
               len: 2,
-              title: intl.get('hmsg.notice.button.revoke').d('撤销'),
+              title: intl.get('hzero.common.status.revoke').d('撤销'),
             });
           } else if (publicLoading && record.noticeId === actionNoticeId) {
             operators.push({

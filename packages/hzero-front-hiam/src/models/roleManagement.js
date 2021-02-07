@@ -86,6 +86,11 @@ import {
   shieldSecGrpPermission,
   cancelShieldSecGrpPermission,
   querySearchLabels, // 查询搜索字段标签数据
+  fetchPasswordPolicyList,
+  fetchUserList, // 查询用户信息
+  fetchClientList, // 查询客户端信息
+  // 修改角色管理树形页面接口 Modify by Nemo @2020119
+  fetchTreeRole,
 } from '../services/roleManagementService';
 
 /**
@@ -99,6 +104,20 @@ const tableState = {
     current: 1,
   },
 };
+
+function dealDataState(data) {
+  // 处理行 处理字段为update
+  let config = [];
+  if (Array.isArray(data) && data.length > 0) {
+    config = data.map((item) => {
+      return {
+        ...item,
+        _status: 'update',
+      };
+    });
+  }
+  return config;
+}
 
 // /**
 //  * 对象property属性定义方法
@@ -169,8 +188,27 @@ export default {
       pagination: {}, // 树形结构列表分页
       defaultTreeExpandedRowKeys: [], // 默认展开的节点
     },
+    passwordPolicyList: {},
+    // 分配用户选择用户弹窗
+    memberModalList: [],
+    memberModalPagination: {},
+    // 分配客户端选择客户端弹窗
+    clientModalList: [],
+    clientModalPagination: {},
   },
   effects: {
+    // 获取密码策略数据
+    *fetchPasswordPolicyList({ payload }, { call, put }) {
+      const list = yield call(fetchPasswordPolicyList, payload);
+      const res = getResponse(list);
+      if (res) {
+        yield put({
+          type: 'updateState',
+          payload: { passwordPolicyList: res },
+        });
+      }
+    },
+
     // 查询角色列表数据
     *queryList({ params }, { put, call }) {
       const res = yield call(queryCreatedSubroles, params);
@@ -230,6 +268,7 @@ export default {
             levelPath: item.id,
             // TODO: 由于 levelPath 挪作他用, 所以这里使用 _levelPath 存储原来的 levelPath 值
             _levelPath: item.levelPath,
+            rootElement: 1,
           }));
         }
         yield put({
@@ -247,6 +286,7 @@ export default {
     // 查询树形子节点
     *queryRoleChildren({ payload }, { call, put, select }) {
       const treeData = yield select((state) => state.roleManagement.treeList.list);
+      const pagination = yield select((state) => state.roleManagement.treeList.pagination);
       let result = yield call(queryRoleTree, payload);
       result = getResponse(result);
 
@@ -287,6 +327,7 @@ export default {
             payload: {
               treeList: {
                 list: nextTreeList,
+                pagination,
               },
             },
           });
@@ -312,7 +353,7 @@ export default {
         }
       }
       if (result) {
-        result.forEach((item) => traverseTree(item));
+        result.map((item) => ({ ...item, rootElement: 1 })).forEach((item) => traverseTree(item));
         yield put({
           type: 'updateState',
           payload: {
@@ -328,8 +369,9 @@ export default {
 
     // 获取授权类型信息
     *init(_, { call, put }) {
-      const { levelList } = yield call(queryMapIdpValue, {
+      const { levelList, flagList } = yield call(queryMapIdpValue, {
         levelList: 'HIAM.RESOURCE_LEVEL',
+        flagList: 'HPFM.ENABLED_FLAG',
       });
       yield put({
         type: 'updateState',
@@ -341,6 +383,7 @@ export default {
         type: 'setCodeReducer',
         payload: {
           'HIAM.RESOURCE_LEVEL': levelList,
+          'HPFM.ENABLED_FLAG': flagList,
         },
       });
     },
@@ -563,7 +606,7 @@ export default {
         yield put({
           type: 'updateState',
           payload: {
-            clientList: list.content,
+            clientList: dealDataState(list.content),
             clientPagination: createPagination(list),
           },
         });
@@ -1005,6 +1048,115 @@ export default {
       const { permissionId, record } = payload;
       const res = yield call(apiFieldFieldPermissionRemove, permissionId, record);
       return getResponse(res);
+    },
+
+    *fetchUserList({ payload }, { call, put }) {
+      const res = getResponse(yield call(fetchUserList, payload));
+      if (res) {
+        yield put({
+          type: 'updateState',
+          payload: {
+            memberModalList: res.content,
+            memberModalPagination: createPagination(res),
+          },
+        });
+      }
+    },
+    *fetchClientList({ payload }, { call, put }) {
+      const res = getResponse(yield call(fetchClientList, payload));
+      if (res) {
+        yield put({
+          type: 'updateState',
+          payload: {
+            clientModalList: res.content,
+            clientModalPagination: createPagination(res),
+          },
+        });
+      }
+    },
+
+    // 修改角色管理树形页面接口 Modify by Nemo @2020119
+    *fetchTreeRoleRoot({ payload }, { call, put }) {
+      const result = getResponse(yield call(fetchTreeRole, payload));
+      if (result) {
+        let nextContent = [];
+        if (result.content.length) {
+          nextContent = result.content.map((item) => ({
+            ...item,
+            levelPath: item.id,
+            // TODO: 由于 levelPath 挪作他用, 所以这里使用 _levelPath 存储原来的 levelPath 值
+            _levelPath: item.levelPath,
+            children: item.childrenNum > 0 ? item.children : undefined,
+            rootElement: 1,
+          }));
+        }
+        yield put({
+          type: 'updateState',
+          payload: {
+            treeList: {
+              list: nextContent,
+              pagination: createPagination(result),
+            },
+          },
+        });
+      }
+    },
+
+    *fetchTreeRoleChildren({ payload }, { call, put, select }) {
+      const treeData = yield select((state) => state.roleManagement.treeList.list);
+      const pagination = yield select((state) => state.roleManagement.treeList.pagination);
+      const result = getResponse(yield call(fetchTreeRole, payload));
+
+      function findParentNode(pathArr, nextContent) {
+        const nextTreeList = [...treeData];
+        let target = nextTreeList.find((item) => String(item.id) === pathArr[0]);
+        const newNextContent = nextContent.map((item) => ({
+          ...item,
+          // 前端新增的数据，为第一级角色的数据
+          rootParentInfo: target,
+        }));
+        if (pathArr.length > 2) {
+          pathArr.shift();
+          target = findMoreLevelTarget(target, pathArr);
+        }
+        target.children = target.children.concat(newNextContent);
+        target.childrenTotalElements = result.totalElements;
+        return treeData;
+      }
+
+      function findMoreLevelTarget(target, pathArr) {
+        const targetParent = target.children.find((item) => String(item.id) === pathArr[0]);
+        if (pathArr.length === 2) {
+          return targetParent;
+        } else {
+          pathArr.shift();
+          return findMoreLevelTarget(targetParent, pathArr);
+        }
+      }
+
+      if (result) {
+        let nextContent = [];
+        if (payload.parentRoleId && result.content.length) {
+          nextContent = result.content.map((item) => ({
+            ...item,
+            levelPath: `${payload.levelPath}@${item.id}`,
+            // TODO: 由于 levelPath 挪作他用, 所以这里使用 _levelPath 存储原来的 levelPath 值
+            _levelPath: item.levelPath,
+            children: item.childrenNum > 0 ? item.children : undefined,
+          }));
+          const pathArr = nextContent[0]?.levelPath.split('@'); // 将由id组成的path分割
+          const nextTreeList = findParentNode(pathArr, nextContent);
+          yield put({
+            type: 'updateState',
+            payload: {
+              treeList: {
+                list: nextTreeList,
+                pagination,
+              },
+            },
+          });
+        }
+      }
     },
   },
   reducers: {

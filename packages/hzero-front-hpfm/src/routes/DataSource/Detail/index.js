@@ -8,6 +8,7 @@ import uuid from 'uuid/v4';
 import { Header, Content } from 'components/Page';
 import Switch from 'components/Switch';
 import Lov from 'components/Lov';
+import TLEditor from 'components/TLEditor';
 import { Button as ButtonPermission } from 'components/Permission';
 import EditTable from 'components/EditTable';
 import { operatorRender } from 'utils/renderer';
@@ -30,6 +31,7 @@ import {
   EDIT_FORM_ROW_LAYOUT,
   FORM_COL_3_LAYOUT,
 } from 'utils/constants';
+import DynamicFormRender from '@/components/DynamicFormRender';
 
 @Form.create({ fieldNameProp: null })
 @connect(({ dataSource, loading }) => ({
@@ -254,7 +256,8 @@ export default class Detail extends React.Component {
         paramsConfig.forEach((item) => {
           newExtConfig[item.name] = item.value;
         });
-        const newValues = { ...values };
+        const list = values.dsPurposeCode || [];
+        const newValues = { ...values, dsPurposeCode: list.join(',') };
         if (values.passwordEncrypted) {
           newValues.passwordEncrypted = encryptPwd(values.passwordEncrypted, publicKey);
         }
@@ -307,14 +310,16 @@ export default class Detail extends React.Component {
         extConfigs.forEach((item) => {
           newExtConfig[item.itemCode] = values[item.itemCode];
         });
-        let temp = { ...values };
+        const list = values.dsPurposeCode || [];
+        let temp = { ...values, dsPurposeCode: list.join(',') };
         if (values.password === dataSourceDetail.password) {
           const { password, ...other } = values;
-          temp = { ...other };
+          temp = { ...other, dsPurposeCode: list.join(',') };
         }
         if (values.passwordEncrypted) {
           temp.passwordEncrypted = encryptPwd(values.passwordEncrypted, publicKey);
         }
+
         dispatch({
           type: 'dataSource/testConnection',
           payload: { ...params, ...filterNullValueObject(temp) },
@@ -499,6 +504,25 @@ export default class Detail extends React.Component {
     );
   }
 
+  @Bind()
+  renderFormParams(item, newExtConfig, pageDisabled, createFlag) {
+    const disabled = (item.updatableFlag === 0 && createFlag !== 'create') || pageDisabled;
+    const renderProps = {
+      disabled,
+      required: item.requiredFlag,
+    };
+    return <DynamicFormRender data={item} config={newExtConfig} {...renderProps} />;
+  }
+
+  @Bind()
+  getExtConfigRows(extConfigs) {
+    const arr = [];
+    for (let i = 0; i < extConfigs.length; i += 3) {
+      arr.push(extConfigs.slice(i, i + 3));
+    }
+    return arr;
+  }
+
   render() {
     const { driverIdRequired, dataSource } = this.state;
     const {
@@ -544,6 +568,7 @@ export default class Detail extends React.Component {
       datasourceUrl,
       enabledFlag = 1,
       extConfig = '{}',
+      _token,
     } = dataSourceDetail;
     // 获取连接池参数
     const newDbPoolParams = map(dbPoolParams, (value, key) => ({ key, value }));
@@ -551,6 +576,7 @@ export default class Detail extends React.Component {
     const pageDisabled =
       datasourceId === undefined ? false : !isSiteFlag && currentTenantId !== tenantId;
     const columns = this.getColumns(pageDisabled);
+    const extConfigRows = this.getExtConfigRows(extConfigs);
     return (
       <>
         <Header
@@ -699,7 +725,16 @@ export default class Detail extends React.Component {
                           },
                         ],
                         initialValue: description,
-                      })(<Input disabled={pageDisabled} />)}
+                      })(
+                        <TLEditor
+                          label={intl
+                            .get('hpfm.ruleEngine.model.ruleEngine.description')
+                            .d('数据源名称')}
+                          field="description"
+                          token={_token}
+                          disabled={pageDisabled}
+                        />
+                      )}
                     </Form.Item>
                   </Col>
                   <Col {...FORM_COL_3_LAYOUT}>
@@ -720,9 +755,10 @@ export default class Detail extends React.Component {
                             }),
                           },
                         ],
-                        initialValue: dsPurposeCode,
+                        initialValue: dsPurposeCode ? dsPurposeCode.split(',') : [],
                       })(
                         <Select
+                          mode="multiple"
                           allowClear={false}
                           disabled={datasourceId !== undefined || pageDisabled}
                         >
@@ -1031,43 +1067,79 @@ export default class Detail extends React.Component {
                 }
               >
                 <Row {...EDIT_FORM_ROW_LAYOUT}>
-                  {extConfigs.map((item) => {
-                    const rules = [
-                      {
-                        required: item.requiredFlag === 1,
-                        message: intl.get('hzero.common.validation.notNull', {
-                          name: item.itemName,
-                        }),
-                      },
-                    ];
-                    if (item.valueConstraint) {
-                      rules.push({
-                        pattern: item.valueConstraint,
-                        message: intl.get('hzero.common.validation.format').d('数据格式校验不通过'),
-                      });
-                    }
+                  {extConfigRows.map((temp) => {
                     return (
-                      <Col {...FORM_COL_3_LAYOUT}>
-                        <Form.Item
-                          label={`${item.itemName}(${item.itemCode})`}
-                          {...EDIT_FORM_ITEM_LAYOUT}
-                          key={`${item.formLineId}`}
-                          required={item.requiredFlag === 1}
-                        >
-                          {getFieldDecorator(`${item.itemCode}`, {
-                            initialValue: newExtConfig[item.itemCode] || item.defaultValue,
-                            rules,
-                          })(
-                            <Input
-                              type={item.itemTypeCode.toLowerCase()}
-                              disabled={
-                                (item.updatableFlag === 0 && createFlag !== 'create') ||
-                                pageDisabled
-                              }
-                            />
-                          )}
-                        </Form.Item>
-                      </Col>
+                      <Row {...EDIT_FORM_ROW_LAYOUT}>
+                        {temp.map((item) => {
+                          const rules = [
+                            {
+                              required: item.requiredFlag === 1,
+                              message: intl.get('hzero.common.validation.notNull', {
+                                name: item.itemName,
+                              }),
+                            },
+                          ];
+                          if (item.valueConstraint) {
+                            const { length } = item.valueConstraint;
+                            rules.push({
+                              pattern: new RegExp(
+                                item.valueConstraint.slice(
+                                  1,
+                                  item.valueConstraint[length] !== '/' ? length - 2 : length - 1
+                                ),
+                                item.valueConstraint[length] !== '/'
+                                  ? item.valueConstraint[length]
+                                  : undefined
+                              ),
+                              message: intl
+                                .get('hzero.common.validation.format')
+                                .d('数据格式校验不通过'),
+                            });
+                          }
+                          let initValue;
+                          let textValue;
+                          if (
+                            newExtConfig[item.itemCode] &&
+                            (item.itemTypeCode.toLowerCase() === 'lov' ||
+                              item.itemTypeCode.toLowerCase() === 'lov_view') &&
+                            JSON.parse(newExtConfig[item.itemCode])
+                          ) {
+                            textValue = JSON.parse(newExtConfig[item.itemCode]);
+                          }
+                          switch (item.itemTypeCode.toLowerCase()) {
+                            case 'lov':
+                              initValue = textValue?.value;
+                              break;
+                            case 'lov_view':
+                              initValue = textValue?.value;
+                              break;
+                            default:
+                              initValue = newExtConfig[item.itemCode];
+                              break;
+                          }
+                          return (
+                            <Col {...FORM_COL_3_LAYOUT}>
+                              <Form.Item
+                                label={`${item.itemName}(${item.itemCode})`}
+                                {...EDIT_FORM_ITEM_LAYOUT}
+                                key={`${item.formLineId}`}
+                              >
+                                {getFieldDecorator(`${item.itemCode}`, {
+                                  initialValue: initValue || item.defaultValue,
+                                  rules,
+                                })(
+                                  this.renderFormParams(
+                                    item,
+                                    newExtConfig,
+                                    pageDisabled,
+                                    createFlag
+                                  )
+                                )}
+                              </Form.Item>
+                            </Col>
+                          );
+                        })}
+                      </Row>
                     );
                   })}
                 </Row>

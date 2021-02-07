@@ -14,6 +14,7 @@ import queryString from 'query-string';
 
 import Lov from 'components/Lov';
 import Switch from 'components/Switch';
+import TLEditor from 'components/TLEditor';
 import { Content, Header } from 'components/Page';
 import { Button as ButtonPermission } from 'components/Permission';
 
@@ -61,7 +62,7 @@ const { Option } = Select;
  * @reactProps {Object} tenantId - 租户编号
  * @return React.element
  */
-const EditModal = Form.create({ fieldNameProp: null })(props => {
+const EditModal = Form.create({ fieldNameProp: null })((props) => {
   const {
     editModalVisible,
     codes,
@@ -129,14 +130,14 @@ const EditModal = Form.create({ fieldNameProp: null })(props => {
                 ],
               })(
                 <Select
-                  onChange={value => {
+                  onChange={(value) => {
                     form.resetFields(['levelValue']);
                     onShowCompany(value);
                   }}
                   disabled={!!levelCode}
                 >
                   {UNITTYPE.map(
-                    c =>
+                    (c) =>
                       c.value !== 'GLOBAL' && (
                         <Option key={c.value} value={c.value}>
                           {c.meaning}
@@ -414,7 +415,7 @@ export default class CodeRuleDist extends React.Component {
         ...keyValue,
         organizationId,
       },
-    }).then(response => {
+    }).then((response) => {
       if (response) {
         notification.success();
         this.handleEditModal(false);
@@ -442,7 +443,7 @@ export default class CodeRuleDist extends React.Component {
           selectedRows,
           organizationId,
         },
-      }).then(response => {
+      }).then((response) => {
         if (response) {
           notification.success();
           this.refreshLine();
@@ -589,7 +590,7 @@ export default class CodeRuleDist extends React.Component {
             ...fieldsValue,
             organizationId,
           },
-        }).then(response => {
+        }).then((response) => {
           if (response) {
             this.refreshLine();
             notification.success();
@@ -647,15 +648,23 @@ export default class CodeRuleDist extends React.Component {
       path,
     } = match;
     const { getFieldDecorator } = this.props.form;
-    const { ruleCode, ruleName, tenantName, description, /* meaning, */ level, tenantId } = head;
+    const {
+      ruleCode,
+      ruleName,
+      _token,
+      tenantName,
+      description,
+      /* meaning, */ level,
+      tenantId,
+    } = head;
     const basePath = match.path.substring(0, match.path.indexOf('/dist'));
     const dataSource = line.list;
     const columns = this.handlecolumns();
     const { access_token: accessToken } = queryString.parse(search.substring(1));
     const rowSelection = {
-      selectedRowKeys: selectedRows.map(n => n.ruleDistId),
+      selectedRowKeys: selectedRows.map((n) => n.ruleDistId),
       onChange: this.onSelectChange,
-      getCheckboxProps: record => ({
+      getCheckboxProps: (record) => ({
         disabled: record.levelValue === 'GLOBAL' || record.enabledFlag === 1,
       }),
     };
@@ -720,7 +729,13 @@ export default class CodeRuleDist extends React.Component {
                   >
                     {getFieldDecorator('ruleName', {
                       initialValue: ruleName,
-                    })(<Input />)}
+                    })(
+                      <TLEditor
+                        label={intl.get('hpfm.codeRule.model.codeRule.ruleName').d('规则名称')}
+                        field="ruleName"
+                        token={_token}
+                      />
+                    )}
                   </FormItem>
                 </Col>
               </Row>

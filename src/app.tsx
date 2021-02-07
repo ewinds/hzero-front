@@ -8,6 +8,8 @@ const configureParams = () => ({
   modalMovable: true,
   // hzero-ui 弹窗居中全局配置数据
   modalAutoCenter: true,
+  // notification 关闭延时时间
+  // notificationDuration: 6,
 });
 
 export { configureParams };

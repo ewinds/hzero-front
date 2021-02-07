@@ -48,8 +48,8 @@ export default class Drawer extends PureComponent {
     anchor: 'right',
     title: '',
     visible: false,
-    onOk: e => e,
-    onCancel: e => e,
+    onOk: (e) => e,
+    onCancel: (e) => e,
   };
 
   /**
@@ -106,7 +106,7 @@ export default class Drawer extends PureComponent {
         destroyOnClose
         title={title}
         confirmLoading={addLoading}
-        okText={intl.get('hzero.common.button.sure').d('确定')}
+        okText={intl.get('hzero.common.button.ok').d('确定')}
         cancelText={intl.get('hzero.common.button.cancel').d('取消')}
         wrapClassName={`ant-modal-sidebar-${anchor}`}
         transitionName={`move-${anchor}`}
@@ -152,7 +152,7 @@ export default class Drawer extends PureComponent {
               ],
             })(
               <Select style={{ width: '100%' }} allowClear>
-                {map(confTypeCodeList, e => (
+                {map(confTypeCodeList, (e) => (
                   <Option value={e.value} key={e.value}>
                     {e.meaning}
                   </Option>
@@ -202,7 +202,7 @@ export default class Drawer extends PureComponent {
           </Form.Item>
           <Form.Item
             {...MODAL_FORM_ITEM_LAYOUT}
-            label={intl.get(`hadm.hystrix.model.hystrix.enableFlag`).d('启用')}
+            label={intl.get('hzero.common.status.enable').d('启用')}
           >
             {form.getFieldDecorator('enabledFlag', {
               initialValue: enabledFlag === false ? 0 : 1,
@@ -210,7 +210,7 @@ export default class Drawer extends PureComponent {
           </Form.Item>
           <Form.Item
             {...MODAL_FORM_ITEM_LAYOUT}
-            label={intl.get(`hadm.hystrix.model.hystrix.remark`).d('描述')}
+            label={intl.get(`hzero.common.view.description`).d('描述')}
           >
             {form.getFieldDecorator('remark')(<TextArea style={{ height: 150 }} />)}
           </Form.Item>

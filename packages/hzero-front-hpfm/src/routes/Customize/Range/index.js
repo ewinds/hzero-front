@@ -35,7 +35,7 @@ function Range(props) {
     },
   } = props;
 
-  const fetchRangeList = params => {
+  const fetchRangeList = (params) => {
     const filterForm = handleBindRef(filterFormRef);
     const filterValue = filterForm.getFieldsValue();
     dispatch({
@@ -54,22 +54,22 @@ function Range(props) {
     fetchRangeList({ page: {} });
   };
 
-  const handleBindRef = ref => {
+  const handleBindRef = (ref) => {
     if (ref.current) {
       return ref.current;
     }
     return {};
   };
 
-  const handlePagination = page => {
+  const handlePagination = (page) => {
     fetchRangeList({ page });
   };
 
-  const deleteRange = record => {
+  const deleteRange = (record) => {
     dispatch({
       type: 'customize/deleteRange',
       payload: record,
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         fetchRangeList();
         notification.success();
@@ -77,11 +77,11 @@ function Range(props) {
     });
   };
 
-  const applyRules = record => {
+  const applyRules = (record) => {
     dispatch({
       type: 'customize/applyRules',
       payload: record,
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
       }
@@ -93,7 +93,7 @@ function Range(props) {
       dispatch({
         type: 'customize/fetchRangeDetail',
         payload: { rangeId },
-      }).then(res => {
+      }).then((res) => {
         if (res) {
           // 得到详情数据后获取对应的切入点、规则数据
           dispatch({
@@ -118,16 +118,16 @@ function Range(props) {
     });
   };
 
-  const handleOk = data => {
+  const handleOk = (data) => {
     const pointList = pointToRangeList
-      .filter(item => item.isCreate)
-      .map(item => {
+      .filter((item) => item.isCreate)
+      .map((item) => {
         const { rangePointId, ...others } = item;
         return others;
       });
     const ruleList = ruleToRangeList
-      .filter(item => item.isCreate)
-      .map(item => {
+      .filter((item) => item.isCreate)
+      .map((item) => {
         const { rangeRuleId, ...others } = item;
         return others;
       });
@@ -139,7 +139,7 @@ function Range(props) {
         rangePoints: pointList,
         rangeRules: ruleList,
       },
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         hideEditor();
         fetchRangeList();
@@ -155,7 +155,7 @@ function Range(props) {
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
       },
-      onClick: e => {
+      onClick: (e) => {
         const { target } = e;
         if (target.style.whiteSpace === 'normal') {
           target.style.whiteSpace = 'nowrap';
@@ -178,7 +178,7 @@ function Range(props) {
       onCell,
     },
     {
-      title: intl.get('hpfm.customize.model.customize.range.enableFlag').d('启用'),
+      title: intl.get('hzero.common.status.enable').d('启用'),
       dataIndex: 'enabledFlag',
       width: 100,
       render: enableRender,

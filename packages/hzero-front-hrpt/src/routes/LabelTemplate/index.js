@@ -28,6 +28,7 @@ const printModalKey = Modal.key();
 const LabelTemplate = ({ history, match }) => {
   const isTenant = isTenantRoleLevel();
   const organizationId = getCurrentOrganizationId();
+  let copy = false;
   const { path } = match;
   // dataset
   const ds = React.useMemo(() => {
@@ -128,12 +129,26 @@ const LabelTemplate = ({ history, match }) => {
   const handleCreate = React.useCallback(() => {
     ds.create();
   }, [ds]);
+  const handleCopy = React.useCallback(
+    (record) => {
+      ds.create(record.data);
+      copy = true;
+    },
+    [ds]
+  );
   const handleSave = React.useCallback(async () => {
     debugger;
     const valid = await ds.validate();
+    if (copy) {
+      ds.setQueryParameter('copy', true);
+    }
     if (valid) {
       await ds.submit();
-      await ds.query(ds.currentPage);
+      await ds.query(ds.currentPage).then((res) => {
+        if (res) {
+          copy = false;
+        }
+      });
     }
   }, [ds]);
   const handleDelete = React.useCallback(
@@ -161,7 +176,7 @@ const LabelTemplate = ({ history, match }) => {
       { editor, width: 100, name: 'enabledFlag' },
       {
         name: 'operator',
-        width: 200,
+        width: 220,
         lock: 'right',
         align: 'left',
         header: intl.get('hzero.common.button.action').d('操作'),
@@ -182,7 +197,7 @@ const LabelTemplate = ({ history, match }) => {
                       meaning: '标签汇总查询-清除',
                     },
                   ]}
-                  style={{ cursor: 'point' }}
+                  style={{ cursor: 'pointer' }}
                   onClick={() => {
                     handleClear(record);
                   }}
@@ -207,12 +222,36 @@ const LabelTemplate = ({ history, match }) => {
                       meaning: '标签打印-编辑',
                     },
                   ]}
-                  style={{ cursor: 'point' }}
+                  style={{ cursor: 'pointer' }}
                   onClick={() => {
                     handleGoToDetail(record);
                   }}
                 >
                   {editTitle}
+                </ButtonPermission>
+              ),
+              len: 2,
+            });
+            const copyTitle = intl.get('hzero.common.button.copy').d('复制');
+            actions.push({
+              key: 'copy',
+              title: copyTitle,
+              ele: (
+                <ButtonPermission
+                  type="text"
+                  permissionList={[
+                    {
+                      code: `${path}/copy`,
+                      type: 'button',
+                      meaning: '标签打印-复制',
+                    },
+                  ]}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => {
+                    handleCopy(record);
+                  }}
+                >
+                  {copyTitle}
                 </ButtonPermission>
               ),
               len: 2,
@@ -231,7 +270,7 @@ const LabelTemplate = ({ history, match }) => {
                       meaning: '标签打印-删除',
                     },
                   ]}
-                  style={{ cursor: 'point' }}
+                  style={{ cursor: 'pointer' }}
                   onClick={() => {
                     handleDelete(record);
                   }}
@@ -257,7 +296,7 @@ const LabelTemplate = ({ history, match }) => {
                       meaning: '标签打印-分配权限',
                     },
                   ]}
-                  style={{ cursor: 'point' }}
+                  style={{ cursor: 'pointer' }}
                   onClick={() => {
                     handleAssignPermission(record);
                   }}
@@ -283,7 +322,7 @@ const LabelTemplate = ({ history, match }) => {
                       meaning: '标签打印-打印配置',
                     },
                   ]}
-                  style={{ cursor: 'point' }}
+                  style={{ cursor: 'pointer' }}
                   onClick={() => {
                     handlePrintSetting(record);
                   }}
@@ -307,7 +346,7 @@ const LabelTemplate = ({ history, match }) => {
                       meaning: '标签打印-标签预览',
                     },
                   ]}
-                  style={{ cursor: 'point' }}
+                  style={{ cursor: 'pointer' }}
                   onClick={() => {
                     handlePreview(record);
                   }}
@@ -331,7 +370,7 @@ const LabelTemplate = ({ history, match }) => {
                       meaning: '标签打印-标签打印',
                     },
                   ]}
-                  style={{ cursor: 'point' }}
+                  style={{ cursor: 'pointer' }}
                   onClick={() => {
                     handlePrint(record);
                   }}
@@ -343,7 +382,7 @@ const LabelTemplate = ({ history, match }) => {
               len: 2,
             });
           }
-          return operatorRender(actions);
+          return operatorRender(actions, record, { limit: 4 });
         },
       },
     ].filter(Boolean);
@@ -368,8 +407,9 @@ const LabelTemplate = ({ history, match }) => {
             },
           ]}
           icon="add"
-          className="ant-btn-primary"
+          // className="ant-btn-primary"
           // style={{ color: '#fff' }}
+          color="primary"
           onClick={handleCreate}
           disabled={ds.created.length !== 0}
         >

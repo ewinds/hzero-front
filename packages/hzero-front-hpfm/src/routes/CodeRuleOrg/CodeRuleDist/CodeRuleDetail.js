@@ -51,7 +51,7 @@ const otherProps = {
  * @reactProps {Function} changeVisible - 修改段值输入框是否可见方法
  * @return React.element
  */
-const AddForm = Form.create({ fieldNameProp: null })(props => {
+const AddForm = Form.create({ fieldNameProp: null })((props) => {
   const {
     form,
     formVisible,
@@ -83,7 +83,7 @@ const AddForm = Form.create({ fieldNameProp: null })(props => {
   const okHandle = () => {
     form.validateFields((err, fieldsValue) => {
       if (err) return;
-      const arrDatas = detailDatas.filter(arrData => arrData.orderSeq === fieldsValue.orderSeq);
+      const arrDatas = detailDatas.filter((arrData) => arrData.orderSeq === fieldsValue.orderSeq);
       if (arrDatas.length > 0 && !editDetailData.orderSeq) {
         notification.error({
           message: intl.get('hpfm.codeRule.view.message.error').d('序号不能重复'),
@@ -97,7 +97,7 @@ const AddForm = Form.create({ fieldNameProp: null })(props => {
     form.resetFields();
     showModal(false);
   };
-  const changeFiledType = value => {
+  const changeFiledType = (value) => {
     changeVisible(value);
   };
 
@@ -152,12 +152,12 @@ const AddForm = Form.create({ fieldNameProp: null })(props => {
           })(
             <Select
               style={{ width: '300px' }}
-              onChange={value => {
+              onChange={(value) => {
                 changeFiledType(value);
               }}
               disabled={!!fieldType}
             >
-              {FieldType.map(code => {
+              {FieldType.map((code) => {
                 return (
                   <Option key={code.value} value={code.value}>
                     {code.meaning}
@@ -193,7 +193,7 @@ const AddForm = Form.create({ fieldNameProp: null })(props => {
                 <Input style={{ width: '300px' }} />
               ) : (
                 <Select style={{ width: '300px' }}>
-                  {Variable.map(code => {
+                  {Variable.map((code) => {
                     return (
                       <Option key={code.value} value={code.value}>
                         {code.meaning}
@@ -222,7 +222,7 @@ const AddForm = Form.create({ fieldNameProp: null })(props => {
               ],
             })(
               <Select style={{ width: '300px' }}>
-                {DateMask.map(code => {
+                {DateMask.map((code) => {
                   return (
                     <Option key={code.value} value={code.value}>
                       {code.meaning}
@@ -252,7 +252,7 @@ const AddForm = Form.create({ fieldNameProp: null })(props => {
               ],
             })(
               <Select style={{ width: '300px' }}>
-                {ResetFrequency.map(code => {
+                {ResetFrequency.map((code) => {
                   return (
                     <Option key={code.value} value={code.value}>
                       {code.meaning}
@@ -277,11 +277,17 @@ const AddForm = Form.create({ fieldNameProp: null })(props => {
                     name: intl.get('hpfm.codeRule.model.codeRule.seqLength').d('位数'),
                   }),
                 },
+                {
+                  max: 20,
+                  message: intl.get('hzero.common.validation.max', {
+                    max: 20,
+                  }),
+                },
               ],
             })(
               form.getFieldValue('fieldType') === 'UUID' ? (
                 <Select style={{ width: '300px' }} allowClear>
-                  {uuidDigit.map(item => {
+                  {uuidDigit.map((item) => {
                     return (
                       <Option key={item.value} value={item.value}>
                         {item.meaning}
@@ -374,7 +380,7 @@ export default class CodeRuleDetail extends PureComponent {
       payload: {
         lovCodes,
       },
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         this.setState({ fieldTypeList: res.FieldType });
       }
@@ -538,7 +544,7 @@ export default class CodeRuleDetail extends PureComponent {
           selectedRows,
           organizationId,
         },
-      }).then(response => {
+      }).then((response) => {
         if (response) {
           this.refreshLine();
           notification.success();
@@ -687,7 +693,7 @@ export default class CodeRuleDetail extends PureComponent {
         ruleDetailId: this.state.editDetailData.ruleDetailId,
         organizationId,
       },
-    }).then(response => {
+    }).then((response) => {
       if (response) {
         notification.success();
         this.showModal(false);
@@ -715,7 +721,7 @@ export default class CodeRuleDetail extends PureComponent {
       dispatch,
     } = this.props;
     const { fieldTypeList } = this.state;
-    const sequence = content.filter(con => con.fieldType === 'SEQUENCE');
+    const sequence = content.filter((con) => con.fieldType === 'SEQUENCE');
     if (sequence.length > 0) {
       dispatch({
         type: 'codeRuleOrg/changeFileType',
@@ -811,7 +817,7 @@ export default class CodeRuleDetail extends PureComponent {
     const { selectedRows, formVisible, handleVisible, editDetailData, showCompany } = this.state;
     const columns = this.handlecolumns();
     const rowSelection = {
-      selectedRowKeys: selectedRows.map(n => n.ruleDetailId),
+      selectedRowKeys: selectedRows.map((n) => n.ruleDetailId),
       onChange: this.onSelectChange,
     };
     const detailDatas = detail.data.content;
@@ -867,7 +873,7 @@ export default class CodeRuleDetail extends PureComponent {
                       initialValue: levelCode,
                     })(
                       <Select onChange={this.showCompany} disabled>
-                        {UNITTYPE.map(c => {
+                        {UNITTYPE.map((c) => {
                           return (
                             c.value !== 'GLOBAL' && (
                               <Option key={c.value} value={c.value}>

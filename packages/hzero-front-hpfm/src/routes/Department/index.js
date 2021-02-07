@@ -97,14 +97,14 @@ export default class Department extends Component {
   findAndSetNodeProps(collections, cursorList = [], data) {
     let newCursorList = cursorList;
     const cursor = newCursorList[0];
-    return collections.map(n => {
+    return collections.map((n) => {
       const m = n;
       if (m.unitId === cursor) {
         if (newCursorList[1]) {
           if (!m.children) {
             m.children = [];
           }
-          newCursorList = newCursorList.filter(o => newCursorList.indexOf(o) !== 0);
+          newCursorList = newCursorList.filter((o) => newCursorList.indexOf(o) !== 0);
           m.children = this.findAndSetNodeProps(m.children, newCursorList, data);
         } else {
           m.children = [...data];
@@ -214,11 +214,11 @@ export default class Department extends Component {
         type: 'department/saveAddData',
         payload: {
           tenantId,
-          data: params.map(item => {
+          data: params.map((item) => {
             return { ...item, enableBudgetFlag: item.enableBudgetFlag || 0 };
           }),
         },
-      }).then(res => {
+      }).then((res) => {
         if (res) {
           notification.success();
           this.handleSearch({ expandedRowKeys, addData: {}, expandFlag: true });
@@ -240,7 +240,7 @@ export default class Department extends Component {
     dispatch({
       type: 'department/updateState',
       payload: {
-        expandedRowKeys: Object.keys(pathMap).map(item => +item),
+        expandedRowKeys: Object.keys(pathMap).map((item) => item),
       },
     });
   }
@@ -312,14 +312,14 @@ export default class Department extends Component {
     if (record.parentUnitId && record.parentUnitId !== match.params.companyId) {
       // 找到父节点的children, 更新children数组
       const parent = this.findNode(renderTree, pathMap[record.parentUnitId], 'unitId');
-      const newChildren = parent.children.filter(item => item.unitId !== record.unitId);
+      const newChildren = parent.children.filter((item) => item.unitId !== record.unitId);
       newRenderTree = this.findAndSetNodeProps(
         renderTree,
         pathMap[record.parentUnitId],
         newChildren
       );
     } else {
-      newRenderTree = renderTree.filter(item => item.unitId !== record.unitId);
+      newRenderTree = renderTree.filter((item) => item.unitId !== record.unitId);
     }
     dispatch({
       type: 'department/updateState',
@@ -351,7 +351,7 @@ export default class Department extends Component {
         objectVersionNumber: record.objectVersionNumber,
         _token: record._token,
       },
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
         this.handleSearch({ expandedRowKeys, expandFlag: true });
@@ -378,7 +378,7 @@ export default class Department extends Component {
         objectVersionNumber: record.objectVersionNumber,
         _token: record._token,
       },
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
         this.handleSearch({ expandedRowKeys, expandFlag: true });
@@ -399,7 +399,7 @@ export default class Department extends Component {
     } = this.props;
     const rowKeys = isExpand
       ? [...expandedRowKeys, record.unitId]
-      : expandedRowKeys.filter(item => item !== record.unitId);
+      : expandedRowKeys.filter((item) => item !== record.unitId);
     dispatch({
       type: 'department/updateState',
       payload: {
@@ -437,7 +437,7 @@ export default class Department extends Component {
     dispatch({
       type: 'department/saveEditData',
       payload: { values, tenantId },
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         this.setState({ activeDepData: {}, drawerVisible: false });
         notification.success();

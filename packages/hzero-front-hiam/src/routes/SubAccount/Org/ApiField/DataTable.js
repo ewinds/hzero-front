@@ -39,6 +39,14 @@ export default class DataTable extends Component {
         width: 160,
       },
       {
+        title: intl.get('hiam.subAccount.model.api.allocatedCount').d('已配置'),
+        dataIndex: 'allocatedCount',
+        width: 80,
+        render: (value) => {
+          return value || 0;
+        },
+      },
+      {
         title: intl.get('hiam.subAccount.model.api.path').d('请求路径'),
         width: 400,
         dataIndex: 'path',

@@ -1,7 +1,7 @@
 import React from 'react';
 import { withRouter } from 'react-router';
 import { Bind } from 'lodash-decorators';
-import { Form, TextField, Switch, Select, Lov, Password, Spin } from 'choerodon-ui/pro';
+import { Form, TextField, Switch, Select, Lov, Password, Spin, IntlField } from 'choerodon-ui/pro';
 
 import intl from 'utils/intl';
 import { isTenantRoleLevel } from 'utils/utils';
@@ -59,7 +59,7 @@ export default class Drawer extends React.PureComponent {
           <Form dataSet={modalDS} labelWidth={110}>
             {!isTenantRoleLevel() && <Lov name="tenantIdLov" disabled={isEdit} />}
             <TextField name="serverCode" disabled={isEdit} />
-            <TextField name="serverName" />
+            <IntlField name="serverName" />
             <Select name="authType" />
             <TextField name="appid" />
             <Password

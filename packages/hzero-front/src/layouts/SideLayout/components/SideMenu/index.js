@@ -29,13 +29,14 @@ const SideMenu = ({
   menus,
   menuLoad,
   activeTabKey,
+  menuQuickIndex,
   components = {},
   menuItemWidth = defaultMenuItemWith,
   collapsedMenuItemWidth = defaultCollapsedMenuItemWith,
   imperativeRef,
 }) => {
   const { Mask = SideMask, CascaderMenu = SideCascaderMenu } = components;
-  const [sideMenus, currentMenu] = useSideMenu([menus, activeTabKey]) || [];
+  const [sideMenus, currentMenu] = useSideMenu([menus, activeTabKey, menuQuickIndex]) || [];
   // const [activeMenu, setActiveMenu] = useDebounceState();
   // const [maskHeight, setMaskHeight] = useDebounceState(36);
   const [activeMenu, setActiveMenu] = React.useState();
@@ -106,5 +107,6 @@ const SideMenu = ({
 export default connect(({ global = {} }) => ({
   menus: global.menu,
   menuLoad: global.menuLoad,
+  menuQuickIndex: global.menuQuickIndex,
   activeTabKey: global.activeTabKey,
 }))(SideMenu);

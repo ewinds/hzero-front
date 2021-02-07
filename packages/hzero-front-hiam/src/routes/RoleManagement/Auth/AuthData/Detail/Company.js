@@ -9,12 +9,12 @@ import React, { PureComponent } from 'react';
 import { connect } from 'dva';
 import lodash from 'lodash';
 import { Bind } from 'lodash-decorators';
-import { Button, Form, Input, Table, Row, Col } from 'hzero-ui';
+import { Button, Form, Input, Row, Col } from 'hzero-ui';
 
 import { Button as ButtonPermission } from 'components/Permission';
+import Table from 'components/VirtualTable';
 
 import notification from 'utils/notification';
-import { tableScrollWidth } from 'utils/utils';
 import intl from 'utils/intl';
 import { SEARCH_FORM_ITEM_LAYOUT } from 'utils/constants';
 
@@ -34,6 +34,7 @@ export default class Company extends PureComponent {
     this.state = {
       expanded: true,
       queryParams: {},
+      checkListState: [],
     };
   }
 
@@ -54,6 +55,13 @@ export default class Company extends PureComponent {
         roleId,
         ...queryParams,
       },
+    }).then(() => {
+      const {
+        authorityCompany: { checkList = [] },
+      } = this.props;
+      this.setState({
+        checkListState: checkList,
+      });
     });
   }
 
@@ -61,19 +69,37 @@ export default class Company extends PureComponent {
    *保存
    */
   @Bind()
-  campanySave() {
+  companySave() {
     const {
       dispatch,
       authorityCompany: { checkList = [] },
       roleId,
     } = this.props;
+    const { checkListState } = this.state;
+    const newCheckList = lodash.xorWith(
+      checkList,
+      checkListState,
+      lodash.isEqualWith((cl, cls) => cl.id === cls.id)
+    );
+    const newList = newCheckList.map((e) => {
+      if (checkList.find((v) => v.id === e.id)) {
+        return {
+          ...e,
+          checkedFlag: 1,
+        };
+      }
+      return {
+        ...e,
+        checkedFlag: 0,
+      };
+    });
     dispatch({
       type: 'roleDataAuthorityCompany/updateAuthorityCompany',
       payload: {
-        checkList,
+        checkList: newList,
         roleId,
       },
-    }).then(response => {
+    }).then((response) => {
       if (response) {
         this.refreshValue();
         notification.success();
@@ -102,6 +128,13 @@ export default class Company extends PureComponent {
             ...fieldsValue,
             roleId,
           },
+        }).then(() => {
+          const {
+            authorityCompany: { checkList = [] },
+          } = this.props;
+          this.setState({
+            checkListState: checkList,
+          });
         });
       }
     });
@@ -148,7 +181,7 @@ export default class Company extends PureComponent {
       type: 'roleDataAuthorityCompany/updateExpanded',
       payload: expanded
         ? expandedRowKeys.concat(record.id)
-        : expandedRowKeys.filter(o => o !== record.id),
+        : expandedRowKeys.filter((o) => o !== record.id),
     });
   }
 
@@ -164,7 +197,7 @@ export default class Company extends PureComponent {
     const { expanded } = this.state;
     dispatch({
       type: 'roleDataAuthorityCompany/updateExpanded',
-      payload: expanded ? originList.map(list => list.id) : [],
+      payload: expanded ? originList.map((list) => list.id) : [],
     });
     this.setState({
       expanded: !expanded,
@@ -183,7 +216,7 @@ export default class Company extends PureComponent {
     if (parentType === 'COMPANY') {
       childType = 'OU';
     } else if (parentType === 'OU') {
-      childType = 'INVORG';
+      childType = 'INV_ORGANIZATION';
     } else {
       childType = null;
     }
@@ -205,22 +238,30 @@ export default class Company extends PureComponent {
     const childType = this.findChildType(record.typeCode);
     let grandsonList = [];
     const childLists = originList.filter(
-      list => list.parentId === record.dataId && list.typeCode && list.typeCode === childType
+      (list) => list.parentId === record.dataId && list.typeCode && list.typeCode === childType
     );
-    childLists.map(childList => {
+    childLists.map((childList) => {
       const grandsonType = this.findChildType(childList.typeCode);
       grandsonList = lodash.unionWith(
         grandsonList,
         originList.filter(
-          list =>
+          (list) =>
             list.parentId === childList.dataId && list.typeCode && list.typeCode === grandsonType
         )
       );
       return grandsonList;
     });
+    const parentList = this.getParentList(
+      record.parentId,
+      this.findParentType(record.typeCode),
+      originList
+    );
     if (selected) {
       this.setSelectRows(
-        lodash.unionWith(lodash.unionWith(selectedRows, childLists), grandsonList)
+        lodash.unionWith(
+          parentList,
+          lodash.unionWith(lodash.unionWith(selectedRows, childLists), grandsonList)
+        )
       );
     } else {
       this.setSelectRows(
@@ -231,6 +272,42 @@ export default class Company extends PureComponent {
         )
       );
     }
+  }
+
+  @Bind()
+  getParentList(parentId, parentTypeCode, originList, oldList = []) {
+    if (lodash.isNil(parentId)) {
+      return oldList;
+    }
+    const obj = originList.find(
+      (list) => parentId === list.dataId && list.typeCode && list.typeCode === parentTypeCode
+    );
+    let resArr = oldList;
+    if (obj) {
+      resArr = resArr.concat([lodash.omit(obj, 'children')]);
+      const parentCode = this.findParentType(obj.typeCode);
+      return this.getParentList(obj.parentId, parentCode, originList, resArr);
+    }
+    return oldList;
+  }
+
+  /**
+   * 获取父节点类型
+   *
+   * @param {*Object} childType 子级类型
+   * @returns
+   */
+  // eslint-disable-next-line class-methods-use-this
+  findParentType(childType) {
+    let parentType = null;
+    if (childType === 'OU') {
+      parentType = 'COMPANY';
+    } else if (childType === 'INV_ORGANIZATION') {
+      parentType = 'OU';
+    } else {
+      parentType = null;
+    }
+    return parentType;
   }
 
   /**
@@ -290,7 +367,7 @@ export default class Company extends PureComponent {
                 ]}
                 type="primary"
                 loading={updateLoading}
-                onClick={this.campanySave}
+                onClick={this.companySave}
               >
                 {intl.get('hzero.common.button.save').d('保存')}
               </ButtonPermission>
@@ -313,15 +390,16 @@ export default class Company extends PureComponent {
           .get('hiam.authority.model.authorityCompany.dataName')
           .d('公司/业务单元/库存组织'),
         dataIndex: 'dataName',
+        width: 400,
       },
       {
         title: intl.get('hiam.authority.model.authorityCompany.dataCode').d('代码'),
         dataIndex: 'dataCode',
-        width: 400,
+        width: 517,
       },
     ];
     const rowSelection = {
-      selectedRowKeys: checkList.map(n => n.id),
+      selectedRowKeys: checkList.map((n) => n.id),
       onChange: this.handleSelectRows,
       onSelect: this.selectChilds,
     };
@@ -329,19 +407,23 @@ export default class Company extends PureComponent {
       <div>
         <div className="table-list-search">{this.renderForm()}</div>
         <Table
+          isTree
+          virtualized
           bordered
           rowKey="id"
           pagination={false}
           loading={fetchLoading || refreshLoading}
-          dataSource={data}
-          rowSelection={rowSelection}
+          data={data}
           expandedRowKeys={expandedRowKeys}
           columns={columns}
-          scroll={{ x: tableScrollWidth(columns) }}
-          rowClassName={record =>
-            checkList.find(list => list.id === record.id) ? 'row-active' : 'row-noactive'
-          }
-          onExpand={this.onExpand}
+          // width={977}
+          height={600}
+          rowSelection={rowSelection}
+          // scroll={{ x: tableScrollWidth(columns) }}
+          // rowClassName={(record) =>
+          //   { return checkList.find(list => list.id === record.id) ? 'row-active' : 'row-noactive'}
+          // }
+          onExpandChange={this.onExpand}
         />
       </div>
     );

@@ -160,7 +160,7 @@ class NormalTenantSelect extends Component {
       },
       {
         title: intl.get('entity.tenant.code').d('租户编码'),
-        width: 100,
+        width: 180,
         dataIndex: 'tenantNum',
       },
       {

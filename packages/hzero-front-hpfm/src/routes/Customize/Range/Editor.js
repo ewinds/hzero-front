@@ -328,7 +328,7 @@ function Editor(props) {
             <Col span={12}>
               <Form.Item
                 {...MODAL_FORM_ITEM_LAYOUT}
-                label={intl.get('hpfm.customize.model.customize.rule.enableFlag').d('启用')}
+                label={intl.get('hzero.common.status.enable').d('启用')}
               >
                 {getFieldDecorator('enabledFlag', {
                   initialValue: enabledFlag,

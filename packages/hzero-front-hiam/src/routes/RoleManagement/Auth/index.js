@@ -735,29 +735,31 @@ export default class AuthDrawer extends React.Component {
           return (
             // <CheckboxGroup value={record.authScopeCode} onChange={this.scopeOnChangeLater}>
             <>
-              {roleAuthScopeCode.map((item) => (
-                <Checkbox
-                  // value={item.value}
-                  // key={item.value}
-                  checked={
-                    // eslint-disable-next-line no-nested-ternary
-                    record.authControlType === 'ONLY_CONFIG'
-                      ? 1
-                      : null || (this.isChanged && scopeChangeList.length > 0)
-                      ? this.enabledFlag
-                      : record.docEnabledFlag
-                  }
-                  disabled={record.authControlType === 'ONLY_CONFIG'}
-                  style={{
-                    marginRight: 0,
-                    padding: '0 10px',
-                    display: item.meaning === record.authScopeMeaning ? '' : 'none',
-                  }}
-                  onChange={this.scopeOnChangeLater}
-                >
-                  {item.meaning}
-                </Checkbox>
-              ))}
+              {roleAuthScopeCode
+                .filter((item) => item.meaning === record.authScopeMeaning)
+                .map((item) => (
+                  <Checkbox
+                    // value={item.value}
+                    // key={item.value}
+                    checked={
+                      // eslint-disable-next-line no-nested-ternary
+                      record.authControlType === 'ONLY_CONFIG'
+                        ? 1
+                        : null || (this.isChanged && scopeChangeList.length > 0)
+                        ? this.enabledFlag
+                        : record.docEnabledFlag
+                    }
+                    disabled={record.authControlType === 'ONLY_CONFIG'}
+                    style={{
+                      marginRight: 0,
+                      padding: '0 10px',
+                      // display: item.meaning === record.authScopeMeaning ? '' : 'none',
+                    }}
+                    onChange={this.scopeOnChangeLater}
+                  >
+                    {item.meaning}
+                  </Checkbox>
+                ))}
             </>
             // </CheckboxGroup>
           );

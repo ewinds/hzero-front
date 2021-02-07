@@ -23,11 +23,13 @@ import {
   getCurrentOrganizationId,
   isTenantRoleLevel,
   encryptPwd,
+  addItemToPagination,
 } from 'utils/utils';
 
 import QueryForm from './QueryForm';
 import ListTable from './ListTable';
 import DetailModal from './DetailModal';
+import Filter from './Filter';
 
 /**
  * 短信账户数据展示
@@ -44,6 +46,7 @@ import DetailModal from './DetailModal';
   tenantRoleLevel: isTenantRoleLevel(),
   querySMSListLoading: loading.effects['smsConfig/fetchSMSList'],
   saving: loading.effects['smsConfig/createSMS'] || loading.effects['smsConfig/editSMS'],
+  deleteFilterLoading: loading.effects['smsConfig/deleteFilter'],
 }))
 @withRouter
 @formatterCollections({ code: ['hmsg.smsConfig', 'hmsg.common'] })
@@ -55,12 +58,24 @@ export default class SMSConfig extends PureComponent {
     isCreate: true,
     tableRecord: {},
     isCopy: false,
+    currentFilter: {},
+    filterVisible: false,
   };
 
   componentDidMount() {
+    this.fetchEnums();
     this.fetchTableList();
     this.fetchServerTypeCode();
     this.fetchPublicKey();
+  }
+
+  // 获取值集
+  @Bind()
+  fetchEnums() {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'smsConfig/fetchEnums',
+    });
   }
 
   // 获取短信列表信息
@@ -219,6 +234,104 @@ export default class SMSConfig extends PureComponent {
     });
   }
 
+  @Bind()
+  handleFilterSearch(params = {}) {
+    const {
+      dispatch,
+      smsConfig: { filterPagination = {} },
+    } = this.props;
+    const { currentFilter: { serverId } = {} } = this.state;
+    dispatch({
+      type: 'smsConfig/fetchFilterList',
+      payload: { page: filterPagination, serverId, ...params },
+    });
+  }
+
+  @Bind()
+  handleShowFilter(record) {
+    this.setState({ filterVisible: true, currentFilter: record });
+    this.handleFilterSearch({
+      serverId: record.serverId,
+    });
+  }
+
+  @Bind()
+  handleFilterOk(data) {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'smsConfig/updateFilter',
+      payload: data,
+    }).then((res) => {
+      if (res) {
+        notification.success();
+        // this.handleFilterCancel(false);
+        this.handleFilterSearch();
+      }
+    });
+  }
+
+  @Bind()
+  handleFilterCancel() {
+    this.setState({ filterVisible: false });
+  }
+
+  @Bind()
+  handleFilterDelete(data = [], keys = []) {
+    const { dispatch, smsConfig: { filterList = [] } = {} } = this.props;
+    const filterData = data.filter((item) => item._status !== 'create');
+    // 删除未保存的数据
+    const createList = data.filter((item) => item._status === 'create');
+    if (createList.length > 0) {
+      const deleteList = filterList.filter((item) => !keys.includes(item.smsFilterId));
+      dispatch({
+        type: 'smsConfig/updateState',
+        payload: { filterList: deleteList },
+      });
+      notification.success();
+    }
+    if (filterData.length > 0) {
+      dispatch({
+        type: 'smsConfig/deleteFilter',
+        payload: filterData,
+      }).then((res) => {
+        if (res) {
+          notification.success();
+          this.handleFilterSearch();
+        }
+      });
+    }
+  }
+
+  @Bind()
+  handleFilterCreate(data) {
+    const {
+      dispatch,
+      smsConfig: { filterList = [], filterPagination = {} },
+    } = this.props;
+    dispatch({
+      type: 'smsConfig/updateState',
+      payload: {
+        filterList: [data, ...filterList],
+        filterPagination: addItemToPagination(filterList.length, filterPagination),
+      },
+    });
+  }
+
+  @Bind()
+  handleFilterEdit(record, flag) {
+    const { dispatch, smsConfig: { filterList = [] } = {} } = this.props;
+    const newList = filterList.map((item) => {
+      if (record.smsFilterId === item.smsFilterId) {
+        return { ...item, _status: flag ? 'update' : '' };
+      }
+      return item;
+    });
+    dispatch({
+      type: 'smsConfig/updateState',
+      payload: { filterList: newList },
+    });
+  }
+
   /**
    * 设置Form
    * @param {object} ref - FilterForm组件引用
@@ -230,14 +343,31 @@ export default class SMSConfig extends PureComponent {
 
   render() {
     const {
-      smsConfig: { smsData = {}, serverTypeList = [], pagination = {} },
+      smsConfig: {
+        smsData = {},
+        serverTypeList = [],
+        pagination = {},
+        filterList = [],
+        enums: { iddList = [], filterStrategyList = [] },
+        filterPagination = {},
+      },
       querySMSListLoading,
       saving,
       tenantId,
       tenantRoleLevel,
       match: { path },
+      fetchFilterLoading = false,
+      deleteFilterLoading = false,
+      filterLoading = false,
     } = this.props;
-    const { modalVisible, tableRecord = {}, isCreate, isCopy } = this.state;
+    const {
+      filterVisible,
+      modalVisible,
+      tableRecord = {},
+      isCreate,
+      currentFilter,
+      isCopy,
+    } = this.state;
     const formProps = {
       serverTypeList,
       tenantRoleLevel,
@@ -255,6 +385,7 @@ export default class SMSConfig extends PureComponent {
       onCopy: this.handleCopy,
       onChange: this.fetchTableList,
       onDelete: this.handleDelete,
+      handleShowFilter: this.handleShowFilter,
     };
     const detailProps = {
       isCopy,
@@ -267,10 +398,29 @@ export default class SMSConfig extends PureComponent {
       isCreate,
       saving,
       tenantRoleLevel,
+      filterStrategyList, // 安全策略组值集
       onCancel: this.handleCancel,
       anchor: 'right',
       onAdd: this.handleAdd,
       onEdit: this.handleEdit,
+    };
+
+    const filterProps = {
+      currentFilter,
+      fetchLoading: fetchFilterLoading,
+      deleteLoading: deleteFilterLoading,
+      loading: filterLoading,
+      dataSource: filterList,
+      visible: filterVisible,
+      pagination: filterPagination,
+      onOk: this.handleFilterOk,
+      onCancel: this.handleFilterCancel,
+      onDelete: this.handleFilterDelete,
+      onCreate: this.handleFilterCreate,
+      onSearch: this.handleFilterSearch,
+      onEdit: this.handleFilterEdit,
+      path,
+      iddList,
     };
     return (
       <>
@@ -297,6 +447,7 @@ export default class SMSConfig extends PureComponent {
           <ListTable {...tableProps} />
         </Content>
         <DetailModal {...detailProps} />
+        {filterVisible && <Filter {...filterProps} />}
       </>
     );
   }

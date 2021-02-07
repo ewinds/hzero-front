@@ -34,7 +34,7 @@ export default class FilterForm extends PureComponent {
   handleSearch() {
     const { onSearch, form } = this.props;
     if (onSearch) {
-      form.validateFields(err => {
+      form.validateFields((err) => {
         if (!err) {
           onSearch();
         }
@@ -85,7 +85,7 @@ export default class FilterForm extends PureComponent {
             >
               {getFieldDecorator('formGroupCode')(
                 <Select>
-                  {configGroupList.map(config => (
+                  {configGroupList.map((config) => (
                     <Option key={config.value} value={config.value}>
                       {config.meaning}
                     </Option>

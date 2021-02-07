@@ -26,6 +26,7 @@ import {
   updatePermission,
   deletePermission,
   copyReportDefinition,
+  fetchExportType,
 } from '../services/reportDefinitionService';
 
 export default {
@@ -45,7 +46,7 @@ export default {
   },
   effects: {
     // 获取报表定义列表
-    * fetchReportDefList({ payload }, { call, put }) {
+    *fetchReportDefList({ payload }, { call, put }) {
       let result = yield call(fetchReportDefList, payload);
       result = getResponse(result);
       if (result) {
@@ -59,7 +60,7 @@ export default {
       }
     },
     // 获取报表类型
-    * fetchReportTypeCode(_, { call, put }) {
+    *fetchReportTypeCode(_, { call, put }) {
       const reportTypeCode = getResponse(yield call(queryIdpValue, 'HRPT.REPORT_TYPE'));
       yield put({
         type: 'updateState',
@@ -69,7 +70,7 @@ export default {
       });
     },
     // 统一获取值级的数据
-    * batchCode({ payload }, { put, call }) {
+    *batchCode({ payload }, { put, call }) {
       const { lovCodes } = payload;
       const code = getResponse(yield call(queryMapIdpValue, lovCodes));
       if (!isEmpty(code)) {
@@ -82,7 +83,7 @@ export default {
       }
     },
     // 初始化列信息
-    * getMetaMetaColumns({ payload }, { call, put }) {
+    *getMetaMetaColumns({ payload }, { call, put }) {
       const { header, tenantId, reportTypeCode, ...otherValues } = payload;
       let result = yield call(getMetaMetaColumns, otherValues);
       result = getResponse(result);
@@ -97,12 +98,12 @@ export default {
       return result;
     },
     // 新建列信息，初始化数据
-    * getInitMetaColumn(_, { call }) {
+    *getInitMetaColumn(_, { call }) {
       const result = yield call(getInitMetaColumn);
       return getResponse(result);
     },
     // 获取报表定义明细
-    * fetchReportDefinitionDetail({ payload }, { call, put }) {
+    *fetchReportDefinitionDetail({ payload }, { call, put }) {
       let result = yield call(fetchReportDefinitionDetail, { ...payload });
       result = getResponse(result);
       if (result) {
@@ -121,7 +122,7 @@ export default {
       return result;
     },
     // 获取模板信息
-    * fetchInitTemplate({ payload }, { call, put }) {
+    *fetchInitTemplate({ payload }, { call, put }) {
       let result = yield call(fetchInitTemplate, payload);
       result = getResponse(result);
       if (result) {
@@ -135,7 +136,7 @@ export default {
       }
     },
     // 获取模板明细
-    * fetchTemplateDetail({ payload }, { call, put }) {
+    *fetchTemplateDetail({ payload }, { call, put }) {
       let result = yield call(fetchTemplateDetail, { ...payload });
       result = getResponse(result);
       if (result) {
@@ -150,44 +151,48 @@ export default {
       return result;
     },
     // 新增报表定义
-    * createReportDefinition({ payload }, { call }) {
+    *createReportDefinition({ payload }, { call }) {
       const result = yield call(createReportDefinition, { ...payload });
       return getResponse(result);
     },
-
+    // 获取报表类型
+    *fetchExportType(_, { call }) {
+      const result = yield call(fetchExportType);
+      return getResponse(result);
+    },
     // 复制报表定义
-    * copyReportDefinition({ payload }, { call }) {
+    *copyReportDefinition({ payload }, { call }) {
       const result = yield call(copyReportDefinition, payload);
       return getResponse(result);
     },
 
     // 更新报表定义
-    * updateReportDefinition({ payload }, { call }) {
+    *updateReportDefinition({ payload }, { call }) {
       const result = yield call(updateReportDefinition, { ...payload });
       return getResponse(result);
     },
     // 删除报表定义
-    * deleteReportDefinition({ payload }, { call }) {
+    *deleteReportDefinition({ payload }, { call }) {
       const result = getResponse(yield call(deleteReportDefinition, { ...payload }));
       return result;
     },
     // 模板新增
-    * createTemplate({ payload }, { call }) {
+    *createTemplate({ payload }, { call }) {
       const result = yield call(createTemplate, { ...payload });
       return getResponse(result);
     },
     // 模板删除
-    * deleteTemplate({ payload }, { call }) {
+    *deleteTemplate({ payload }, { call }) {
       const result = yield call(deleteTemplate, { ...payload });
       return getResponse(result);
     },
     // 改变默认模板
-    * changeDefaultTemplate({ payload }, { call }) {
+    *changeDefaultTemplate({ payload }, { call }) {
       const result = yield call(changeDefaultTemplate, { ...payload });
       return getResponse(result);
     },
     // 获取已分配的权限
-    * fetchAssignedPermission({ payload }, { call, put }) {
+    *fetchAssignedPermission({ payload }, { call, put }) {
       let result = yield call(fetchAssignedPermission, payload);
       result = getResponse(result);
       if (result) {
@@ -202,12 +207,12 @@ export default {
       return result;
     },
     // 创建权限
-    * createPermission({ payload }, { call }) {
+    *createPermission({ payload }, { call }) {
       const res = yield call(createPermission, payload);
       return getResponse(res);
     },
     // 查询报表权限详情
-    * fetchPermissionDetail({ payload }, { call, put }) {
+    *fetchPermissionDetail({ payload }, { call, put }) {
       const res = yield call(fetchPermissionDetail, payload);
       const result = getResponse(res);
       if (result) {
@@ -221,12 +226,12 @@ export default {
       return result;
     },
     // 更新权限
-    * updatePermission({ payload }, { call }) {
+    *updatePermission({ payload }, { call }) {
       const res = yield call(updatePermission, payload);
       return getResponse(res);
     },
     // 删除权限
-    * deletePermission({ payload }, { call }) {
+    *deletePermission({ payload }, { call }) {
       const result = yield call(deletePermission, payload);
       return getResponse(result);
     },

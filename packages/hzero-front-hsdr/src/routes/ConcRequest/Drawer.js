@@ -65,7 +65,12 @@ export default class Drawer extends React.PureComponent {
           <ValueList mode="multiple" style={{ width: '100%' }} lovCode={item.businessModel} />
         );
         break;
-      case 'DATAPICKER': // 日期选择框
+      case 'DATEPICKER': // 日期选择框
+        component = (
+          <DatePicker style={{ width: '100%' }} placeholder="" format={`${dateFormat}`} />
+        );
+        break;
+      case 'DATETIMEPICKER': // 日期时间选择框
         component = (
           <DatePicker style={{ width: '100%' }} placeholder="" format={`${dateFormat} HH:mm:ss`} />
         );
@@ -93,7 +98,7 @@ export default class Drawer extends React.PureComponent {
     this.requestParamNameMap = new Map();
     return (
       paramList &&
-      paramList.map(item => {
+      paramList.map((item) => {
         const itemStyle = {};
         this.requestParamNameMap.set(item.paramCode, true);
         if (item.showFlag === 0) {
@@ -250,9 +255,10 @@ export default class Drawer extends React.PureComponent {
                     showTime
                     placeholder=""
                     format={`${dateFormat} HH:mm:ss`}
-                    disabledDate={currentDate =>
+                    disabledDate={(currentDate) =>
                       getFieldValue('endDate') &&
-                      moment(getFieldValue('endDate')).isBefore(currentDate, 'day')}
+                      moment(getFieldValue('endDate')).isBefore(currentDate, 'day')
+                    }
                   />
                 )}
               </Form.Item>
@@ -274,7 +280,7 @@ export default class Drawer extends React.PureComponent {
                   ],
                 })(
                   <Select style={{ width: '100%' }}>
-                    {intervalTypeList.map(item => (
+                    {intervalTypeList.map((item) => (
                       <Option key={item.value} value={item.value}>
                         {item.meaning}
                       </Option>
@@ -356,9 +362,10 @@ export default class Drawer extends React.PureComponent {
                     showTime
                     placeholder=""
                     format={`${dateFormat} HH:mm:ss`}
-                    disabledDate={currentDate =>
+                    disabledDate={(currentDate) =>
                       getFieldValue('startDate') &&
-                      moment(getFieldValue('startDate')).isAfter(currentDate, 'day')}
+                      moment(getFieldValue('startDate')).isAfter(currentDate, 'day')
+                    }
                   />
                 )}
               </Form.Item>

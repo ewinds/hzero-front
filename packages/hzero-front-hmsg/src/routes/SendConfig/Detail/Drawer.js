@@ -201,7 +201,7 @@ export default class Drawer extends PureComponent {
         transitionName={`move-${anchor}`}
         visible={visible}
         onOk={this.saveBtn}
-        okText={intl.get('hzero.common.button.sure').d('确定')}
+        okText={intl.get('hzero.common.button.ok').d('确定')}
         onCancel={onCancel}
         cancelText={intl.get('hzero.common.button.cancel').d('取消')}
         zIndex={999}
@@ -226,7 +226,7 @@ export default class Drawer extends PureComponent {
               <Lov
                 code="HMSG.TEMP_SERVER.MESSAGE_TEMP"
                 textValue={itemData.templateCode}
-                disabled={!isNumber(tenantId)}
+                disabled={tenantId === undefined}
                 queryParams={{
                   tenantId,
                 }}
@@ -283,7 +283,7 @@ export default class Drawer extends PureComponent {
                     textValue={itemData.serverCode}
                     disabled={
                       !getFieldValue('typeCode') ||
-                      !isNumber(tenantId) ||
+                      tenantId === undefined ||
                       getFieldValue('typeCode') === 'WEB' ||
                       getFieldValue('typeCode') === 'WEB_HOOK'
                     }

@@ -135,7 +135,7 @@ const detailDs = () => ({
     },
     {
       name: 'serverName',
-      type: 'string',
+      type: 'intl',
       label: intl.get('hmsg.callServer.model.callServer.serverName').d('服务名称'),
       required: true,
       maxLength: 60,

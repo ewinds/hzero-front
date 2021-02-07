@@ -22,7 +22,7 @@ export default class AppSourceForm extends React.PureComponent {
 
   @Bind()
   handleOk() {
-    const { onOk = e => e, dataSource } = this.props;
+    const { onOk = (e) => e, dataSource } = this.props;
     const params = getEditTableData(dataSource, ['emailFilterId']);
     if (Array.isArray(params) && params.length > 0) {
       onOk(params);
@@ -39,14 +39,14 @@ export default class AppSourceForm extends React.PureComponent {
 
   @Bind()
   handleDelete() {
-    const { onDelete = e => e } = this.props;
+    const { onDelete = (e) => e } = this.props;
     const { selectedRows, selectedRowKeys } = this.state;
     onDelete(selectedRows, selectedRowKeys);
   }
 
   @Bind()
   handleCreate() {
-    const { onCreate = e => e, currentFilter } = this.props;
+    const { onCreate = (e) => e, currentFilter } = this.props;
     onCreate({
       _status: 'create',
       emailFilterId: uuid(),
@@ -57,7 +57,7 @@ export default class AppSourceForm extends React.PureComponent {
 
   @Bind()
   handlePagination(pagination) {
-    const { onSearch = e => e } = this.props;
+    const { onSearch = (e) => e } = this.props;
     onSearch({
       page: pagination,
     });
@@ -69,8 +69,8 @@ export default class AppSourceForm extends React.PureComponent {
       loading = false,
       deleteLoading = false,
       fetchLoading = false,
-      onCancel = e => e,
-      onEdit = e => e,
+      onCancel = (e) => e,
+      onEdit = (e) => e,
       dataSource = [],
       pagination = {},
       path,
@@ -98,6 +98,14 @@ export default class AppSourceForm extends React.PureComponent {
               <Form.Item>
                 {getFieldDecorator('address', {
                   initialValue: val,
+                  rules: [
+                    {
+                      required: true,
+                      message: intl.get('hzero.common.validation.notNull', {
+                        name: intl.get('hmsg.email.model.email.name').d('邮箱'),
+                      }),
+                    },
+                  ],
                 })(<Input trim />)}
               </Form.Item>
             );
@@ -187,7 +195,7 @@ export default class AppSourceForm extends React.PureComponent {
             ]}
             onClick={this.handleCreate}
           >
-            {intl.get('hzero.common.status.create').d('新建')}
+            {intl.get('hzero.common.button.create').d('新建')}
           </ButtonPermission>
           <ButtonPermission
             permissionList={[
@@ -201,7 +209,7 @@ export default class AppSourceForm extends React.PureComponent {
             disabled={selectedRows.length === 0}
             loading={deleteLoading}
           >
-            {intl.get('hzero.common.status.delete').d('删除')}
+            {intl.get('hzero.common.button.delete').d('删除')}
           </ButtonPermission>
         </div>
         <EditTable

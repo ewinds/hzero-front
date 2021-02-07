@@ -4,6 +4,7 @@ import { isEmpty, isFunction } from 'lodash';
 import { Bind } from 'lodash-decorators';
 
 import Upload from 'components/Upload/UploadButton';
+import TLEditor from 'components/TLEditor';
 
 import intl from 'utils/intl';
 import { FORM_COL_2_LAYOUT, MODAL_FORM_ITEM_LAYOUT } from 'utils/constants';
@@ -66,6 +67,7 @@ export default class AppDrawer extends React.PureComponent {
       channel,
       subAppId,
       scope,
+      _token,
     } = openAppDetail;
     const { getFieldDecorator } = form;
     return (
@@ -106,7 +108,7 @@ export default class AppDrawer extends React.PureComponent {
                     ],
                   })(
                     <Select disabled={!!openAppId} allowClear>
-                      {codeList.map(item => (
+                      {codeList.map((item) => (
                         <Select.Option value={item.value} key={item.value}>
                           {item.meaning}
                         </Select.Option>
@@ -144,7 +146,13 @@ export default class AppDrawer extends React.PureComponent {
                         }),
                       },
                     ],
-                  })(<Input />)}
+                  })(
+                    <TLEditor
+                      label={intl.get('hiam.openApp.model.openApp.appName').d('应用名称')}
+                      field="appName"
+                      token={_token}
+                    />
+                  )}
                 </FormItem>
 
                 <FormItem
@@ -218,7 +226,7 @@ export default class AppDrawer extends React.PureComponent {
                     ],
                   })(
                     <Select disabled={!!openAppId} allowClear>
-                      {channelTypes.map(item => (
+                      {channelTypes.map((item) => (
                         <Select.Option value={item.value} key={item.value}>
                           {item.meaning}
                         </Select.Option>

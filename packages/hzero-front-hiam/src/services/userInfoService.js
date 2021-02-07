@@ -82,12 +82,23 @@ export async function userInfoUpdateDefaultCompany(organizationId, companyId) {
  * @param {String} params.password 新密码
  * @param {String} params.originalPassword 旧密码
  */
-export async function userInfoUpdatePassword({ password, originalPassword }) {
+export async function userInfoUpdatePassword({
+  password,
+  originalPassword,
+  phone,
+  captcha,
+  captchaKey,
+  businessScope,
+}) {
   return request(`${HZERO_IAM}/hzero/v1/users/password`, {
     method: 'PUT',
     body: {
       originalPassword,
       password,
+      phone,
+      captcha,
+      captchaKey,
+      businessScope,
     },
   });
 }
@@ -101,7 +112,10 @@ export async function userInfoUpdatePassword({ password, originalPassword }) {
 export async function userInfoValidatePre(params) {
   return request(`${HZERO_IAM}/hzero/v1/users/captcha/pre-validate`, {
     method: 'GET',
-    query: params,
+    query: {
+      ...params,
+      businessScope: 'self',
+    },
   });
 }
 
@@ -113,7 +127,25 @@ export async function userInfoValidatePre(params) {
 export async function userInfoPostOldPhoneCaptcha(params) {
   return request(`${HZERO_IAM}/hzero/v1/users/phone/send-captcha`, {
     method: 'GET',
-    query: params,
+    query: {
+      ...params,
+      businessScope: 'self',
+    },
+  });
+}
+
+/**
+ * 向对应的手机号发送验证码修改密码
+ * @param {Object} params 验证手机号
+ * @param {String} params.phone 手机号
+ */
+export async function userInfoVerifyPhoneCaptcha(params) {
+  return request(`${HZERO_IAM}/hzero/v1/users/phone/send-captcha`, {
+    method: 'GET',
+    query: {
+      ...params,
+      businessScope: 'UPDATE_PASSWORD',
+    },
   });
 }
 
@@ -133,7 +165,10 @@ export async function userInfoValidateUnCheckedPhone(params) {
 export async function userInfoPostOldEmailCaptcha(params) {
   return request(`${HZERO_IAM}/hzero/v1/users/email/send-captcha`, {
     method: 'GET',
-    query: params,
+    query: {
+      ...params,
+      businessScope: 'self',
+    },
   });
 }
 
@@ -145,7 +180,10 @@ export async function userInfoPostOldEmailCaptcha(params) {
 export async function userInfoPostNewEmailCaptcha(params) {
   return request(`${HZERO_IAM}/hzero/v1/users/email-new/send-captcha`, {
     method: 'GET',
-    query: params,
+    query: {
+      ...params,
+      businessScope: 'self',
+    },
   });
 }
 
@@ -170,7 +208,10 @@ export async function userInfoValidateUnCheckedEmail(params) {
 export async function userInfoValidateNewEmail(params) {
   return request(`${HZERO_IAM}/hzero/v1/users/email-new/validate-captcha`, {
     method: 'GET',
-    query: params,
+    query: {
+      ...params,
+      businessScope: 'self',
+    },
   });
 }
 
@@ -194,7 +235,10 @@ export async function userInfoValidatePrePassword(params) {
 export async function userInfoPostNewPhoneCaptcha(params) {
   return request(`${HZERO_IAM}/hzero/v1/users/phone-new/send-captcha`, {
     method: 'GET',
-    query: params,
+    query: {
+      ...params,
+      businessScope: 'self',
+    },
   });
 }
 

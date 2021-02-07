@@ -2,7 +2,6 @@ import React from 'react';
 
 import { Layout } from 'hzero-ui';
 import { map } from 'lodash';
-import { memoize } from 'lodash-decorators';
 import DocumentTitle from 'react-document-title';
 import { connect } from 'dva';
 import { Redirect, Route, Switch } from 'dva/router';
@@ -110,18 +109,12 @@ class PrivateLayout extends React.Component {
     return redirect;
   };
 
-  @memoize
-  getRedirectData(menu) {
-    const redirectData = this.props.redirectData || [{ from: '/', to: '/workplace' }];
+  render() {
+    const { routerData, menu = [], activeTabKey, tabs } = this.props;
+    const redirectData = [{ from: '/', to: '/workplace' }]; // 根目录需要跳转到工作台
     menu.forEach((item) => {
       getRedirect(item, redirectData);
     });
-    return redirectData;
-  }
-
-  render() {
-    const { routerData, menu = [], activeTabKey, tabs } = this.props;
-    const redirectData = this.getRedirectData(menu);
     const bashRedirect = this.getBashRedirect();
 
     const layout = (

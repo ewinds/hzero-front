@@ -32,7 +32,7 @@ export default class GroupUsers extends Component {
     getCurrentGroupUsers({
       userGroupId,
       query: pagination,
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         this.setState({
           selectedRowKeys: [],
@@ -53,7 +53,7 @@ export default class GroupUsers extends Component {
     delCurrentGroupUsers({
       userGroupId,
       users: selectedRows,
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
         const { cachePagination } = this.state;
@@ -83,7 +83,7 @@ export default class GroupUsers extends Component {
       userGroupId,
       tenantId,
       users,
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
         const { cachePagination } = this.state;
@@ -115,7 +115,7 @@ export default class GroupUsers extends Component {
   handleRowSelectionChange(_, selectedRows) {
     this.setState({
       selectedRows,
-      selectedRowKeys: selectedRows.map(r => r.assignId),
+      selectedRowKeys: selectedRows.map((r) => r.assignId),
     });
   }
 
@@ -207,6 +207,7 @@ export default class GroupUsers extends Component {
           columns={columns}
           scroll={{ x: tableScrollWidth(columns) }}
           onChange={this.handleTableChange}
+          loading={getCurrentGroupUsersLoading}
         />
         {visible && (
           <GroupUsersUserModal

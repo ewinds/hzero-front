@@ -4,7 +4,10 @@ import { LocaleProvider as C7NLocaleProvider } from 'choerodon-ui';
 import { localeContext } from 'choerodon-ui/pro';
 import { connect } from 'dva';
 
-import { resolveRequire } from '../utils';
+import { getEnvConfig } from 'utils/iocUtils';
+import { resolveRequire } from 'utils/utils';
+
+const { configureParams } = getEnvConfig();
 
 @connect(({ global = {} }) => ({
   language: global.language,
@@ -33,12 +36,11 @@ export default class LocalProviderAsync extends Component {
   }
 
   render() {
-    const { hzeroUILocale, c7nLocale, modalMovable = true, modalAutoCenter = true } = this.props;
+    const { hzeroUILocale, c7nLocale } = this.props;
     const config = {
-      modalMovable,
-      modalAutoCenter,
+      modalMovable: configureParams?.modalMovable,
+      modalAutoCenter: configureParams?.modalAutoCenter,
     };
-    console.log(config);
     return (
       <C7NLocaleProvider locale={resolveRequire(c7nLocale)}>
         <ConfigProvider {...config} {...this.props} locale={resolveRequire(hzeroUILocale)} />

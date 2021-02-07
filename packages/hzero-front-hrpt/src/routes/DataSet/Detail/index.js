@@ -224,8 +224,8 @@ export default class Detail extends Component {
           payload: { ...values, datasetId: id, header },
         }).then((res) => {
           if (res) {
-            this.setState({ enableChangeDataSource: false });
             this.handleSave();
+            this.setState({ enableChangeDataSource: false });
           }
         });
       }

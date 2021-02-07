@@ -40,12 +40,17 @@ const tableDS = () => {
       {
         name: 'description',
         type: 'string',
-        label: intl.get('hadm.maintain.model.maintain.description').d('描述'),
+        label: intl.get('hzero.common.view.description').d('描述'),
       },
       {
         name: 'stateMeaning',
         type: 'string',
         label: intl.get('hadm.maintain.model.maintain.state').d('运维状态'),
+      },
+      {
+        name: 'creationDate',
+        type: 'dateTime',
+        label: intl.get('hadm.maintain.model.maintain.creationDate').d('创建时间'),
       },
     ],
     transport: {
@@ -83,7 +88,7 @@ const detailDS = () => {
       {
         name: 'description',
         type: 'string',
-        label: intl.get('hadm.maintain.model.maintain.description').d('描述'),
+        label: intl.get('hzero.common.view.description').d('描述'),
       },
       {
         name: 'state',

@@ -12,10 +12,11 @@ import {
   DatePicker,
   Tooltip,
   Tabs,
+  Popconfirm,
 } from 'hzero-ui';
 import { Bind } from 'lodash-decorators';
 import moment from 'moment';
-import { forEach, isEmpty, isNumber, isObject, isString, isUndefined, find } from 'lodash';
+import { forEach, isEmpty, isObject, isString, isUndefined, find, isNil } from 'lodash';
 
 import { Button as ButtonPermission } from 'components/Permission';
 import Lov from 'components/Lov';
@@ -56,6 +57,7 @@ export default class Drawer extends PureComponent {
     currentClientId: '',
     roleType: 'permission',
     selectedVisitRowKeys: [],
+    visible: 0,
   };
 
   componentDidMount() {
@@ -349,6 +351,7 @@ export default class Drawer extends PureComponent {
         title: intl.get('hiam.client.model.client.roleName').d('角色名称'),
         dataIndex: 'name',
         width: 100,
+        render: (v, record) => <Tooltip title={record.tipMessage}>{v}</Tooltip>,
       },
       {
         title: intl.get('entity.tenant.name').d('租户名称'),
@@ -584,7 +587,7 @@ export default class Drawer extends PureComponent {
         delete newRecord.memberType;
       }
       // newRecord.assignLevelValue = record.assignLevelValue || tenantId;
-      if (!isEmpty(newRecord.assignLevel) && isNumber(newRecord.assignLevelValue)) {
+      if (!isEmpty(newRecord.assignLevel) && !isNil(newRecord.assignLevelValue)) {
         memberRoleList.push(newRecord);
       }
     });
@@ -675,13 +678,14 @@ export default class Drawer extends PureComponent {
       fetchLoading = false,
       isTenantRoleLevel,
     } = this.props;
-    const { getFieldDecorator } = form;
+    const { getFieldDecorator, getFieldValue, setFieldsValue } = form;
     const {
       selectedRowKeys,
       visibleRole,
       roleModalProps = {},
       roleType,
       selectedVisitRowKeys,
+      visible: confirmVisible,
     } = this.state;
     const updateFlag = detailStatus === 'update';
     const formLayout = {
@@ -823,6 +827,17 @@ export default class Drawer extends PureComponent {
                       : initData.accessTokenValidity
                       ? parseInt(initData.accessTokenValidity, 10)
                       : undefined,
+                    rules: [
+                      {
+                        validator: (rule, value, callback) => {
+                          if (value < 60) {
+                            callback(intl.get('hiam.client.view.validate.min').d(`最小不能小于60`));
+                            return;
+                          }
+                          callback();
+                        },
+                      },
+                    ],
                   })(<InputNumber style={{ width: '100%' }} min={60} />)}
                 </FormItem>
               </Col>
@@ -840,6 +855,17 @@ export default class Drawer extends PureComponent {
                       : initData.refreshTokenValidity
                       ? parseInt(initData.refreshTokenValidity, 10)
                       : undefined,
+                    rules: [
+                      {
+                        validator: (rule, value, callback) => {
+                          if (value < 60) {
+                            callback(intl.get('hiam.client.view.validate.min').d(`最小不能小于60`));
+                            return;
+                          }
+                          callback();
+                        },
+                      },
+                    ],
                   })(<InputNumber style={{ width: '100%' }} min={60} />)}
                 </FormItem>
               </Col>
@@ -948,13 +974,6 @@ export default class Drawer extends PureComponent {
                 </FormItem>
               </Col>
               <Col span={12}>
-                <FormItem {...formLayout} label={intl.get('hzero.common.button.enable').d('启用')}>
-                  {getFieldDecorator('enabledFlag', {
-                    initialValue: updateFlag ? initData.enabledFlag : 1,
-                  })(<Switch />)}
-                </FormItem>
-              </Col>
-              <Col span={12}>
                 <FormItem
                   {...formLayout}
                   label={intl.get('hiam.client.model.client.pwdReplayFlag').d('密码防重放')}
@@ -971,6 +990,46 @@ export default class Drawer extends PureComponent {
                 >
                   {getFieldDecorator('apiEncryptFlag', {
                     initialValue: updateFlag ? initData.apiEncryptFlag : 1,
+                  })(<Switch />)}
+                </FormItem>
+              </Col>
+              <Col span={12}>
+                <FormItem
+                  {...formLayout}
+                  label={intl.get('hiam.client.model.client.apiReplayFlag').d('API防重放')}
+                >
+                  <Popconfirm
+                    title={intl
+                      .get('hiam.client.view.confirm.apiReplayFlag')
+                      .d('是否确认开启API防重放')}
+                    visible={
+                      confirmVisible && getFieldValue('apiReplayFlag') && updateFlag
+                        ? !initData.apiReplayFlag
+                        : 0
+                    }
+                    onCancel={() => {
+                      setFieldsValue({ apiReplayFlag: 0 });
+                    }}
+                    onConfirm={() => {
+                      this.setState({ visible: 0 });
+                    }}
+                  >
+                    {getFieldDecorator('apiReplayFlag', {
+                      initialValue: updateFlag ? initData.apiReplayFlag : 1,
+                    })(
+                      <Switch
+                        onChange={() => {
+                          this.setState({ visible });
+                        }}
+                      />
+                    )}
+                  </Popconfirm>
+                </FormItem>
+              </Col>
+              <Col span={12}>
+                <FormItem {...formLayout} label={intl.get('hzero.common.button.enable').d('启用')}>
+                  {getFieldDecorator('enabledFlag', {
+                    initialValue: updateFlag ? initData.enabledFlag : 1,
                   })(<Switch />)}
                 </FormItem>
               </Col>
@@ -1143,6 +1202,7 @@ export default class Drawer extends PureComponent {
               onSave={this.handleRoleAddSaveBtnClick}
               onCancel={this.handleRoleAddCancelBtnClick}
               roleType={roleType}
+              id={initData.id}
             />
           )}
         </Spin>

@@ -121,9 +121,12 @@ export default class RoleAssignCardsEditModal extends React.Component {
 
   @Bind()
   handleOneSearchFormSearch() {
-    const { onFormSearch } = this.props;
+    const {
+      onFormSearch,
+      role: { id },
+    } = this.props;
     const fieldsValue = getRefFieldsValue(this.oneSearchFormRef);
-    onFormSearch(fieldsValue);
+    onFormSearch({ ...fieldsValue, roleId: id });
   }
 
   render() {

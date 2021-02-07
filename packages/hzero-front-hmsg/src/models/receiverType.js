@@ -27,9 +27,12 @@ export default {
     pagination: {}, // 分页器
     typeModes: [], // 接收组模式 值集
     newTypeModes: [], // 接收组模式 值集
+    extTypeList: [],
+    assignDataSource: [],
+    assignPagination: {},
   },
   effects: {
-    * init(_, { call, put }) {
+    *init(_, { call, put }) {
       const enumTypeMode = yield call(queryUnifyIdpValue, 'HMSG.RECEIVER.TYPE_MODE');
       const relEnumTypeMode = getResponse(enumTypeMode);
       if (relEnumTypeMode) {
@@ -37,14 +40,26 @@ export default {
           type: 'updateState',
           payload: {
             typeModes: relEnumTypeMode,
-            newTypeModes: relEnumTypeMode.filter(t => t.tag === 'ORG'),
+            newTypeModes: relEnumTypeMode.filter((t) => t.tag === 'ORG'),
+          },
+        });
+      }
+    },
+    *initExtType(_, { call, put }) {
+      const ext = yield call(queryUnifyIdpValue, 'HMSG.RECEIVER.ACCOUNT_TYPE');
+      const extTypeList = getResponse(ext);
+      if (extTypeList) {
+        yield put({
+          type: 'updateState',
+          payload: {
+            extTypeList,
           },
         });
       }
     },
     /**
      * 获取接收者类型数据
-     */ * fetchReceiverType({ payload }, { call, put }) {
+     */ *fetchReceiverType({ payload }, { call, put }) {
       const result = getResponse(yield call(fetchReceiverType, payload));
       if (result) {
         yield put({
@@ -58,38 +73,38 @@ export default {
     },
     /**
      * 更新接收者类型信息
-     */ * updateType({ payload }, { call }) {
+     */ *updateType({ payload }, { call }) {
       const result = yield call(updateReceiverType, payload);
       return getResponse(result);
     },
     /**
      * 添加接收者类型信息
-     */ * addType({ payload }, { call }) {
+     */ *addType({ payload }, { call }) {
       const result = yield call(addReceiverType, payload);
       return getResponse(result);
     },
     // 接收者 模块配置
-    * queryAssignedList({ payload }, { call }) {
+    *queryAssignedList({ payload }, { call }) {
       const { id, query } = payload;
       const result = yield call(queryAssignedList, id, query);
       return getResponse(result);
     },
-    * assignListToReceiverType({ payload }, { call }) {
+    *assignListToReceiverType({ payload }, { call }) {
       const { id, records } = payload;
       const result = yield call(assignListToReceiverType, id, records);
       return getResponse(result);
     },
-    * removeReceiverTypeList({ payload }, { call }) {
+    *removeReceiverTypeList({ payload }, { call }) {
       const { id, records } = payload;
       const result = yield call(removeReceiverTypeList, id, records);
       return getResponse(result);
     },
-    * queryNoAssignUnitList({ payload }, { call }) {
+    *queryNoAssignUnitList({ payload }, { call }) {
       const { id, query } = payload;
       const result = yield call(queryNoAssignUnitList, id, query);
       return getResponse(result);
     },
-    * queryNoAssignUserGroupList({ payload }, { call }) {
+    *queryNoAssignUserGroupList({ payload }, { call }) {
       const { id, query } = payload;
       const result = yield call(queryNoAssignUserGroupList, id, query);
       return getResponse(result);

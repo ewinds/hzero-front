@@ -113,7 +113,7 @@ export default class Tenants extends PureComponent {
       payload: {
         ...tenantSrouce,
       },
-    }).then(res => {
+    }).then((res) => {
       this.setState({ tenantSrouce: res }, () => {
         this.handleModalVisible(true);
       });
@@ -167,7 +167,7 @@ export default class Tenants extends PureComponent {
     } = this.props;
     const { tenantSrouce = {} } = this.state;
     const { _token } = tenantSrouce;
-    if (tenantSrouce.tenantId || tenantSrouce.tenantId === 0) {
+    if (tenantSrouce.tenantId || String(tenantSrouce.tenantId) === '0') {
       dispatch({
         type: 'tenants/updateTenant',
         payload: {
@@ -176,7 +176,7 @@ export default class Tenants extends PureComponent {
           objectVersionNumber: tenantSrouce.objectVersionNumber,
           ...fieldsValue,
         },
-      }).then(res => {
+      }).then((res) => {
         if (res) {
           this.hideModal();
           this.handleSearchTenant(pagination);
@@ -189,7 +189,7 @@ export default class Tenants extends PureComponent {
         payload: {
           ...fieldsValue,
         },
-      }).then(res => {
+      }).then((res) => {
         if (res) {
           this.hideModal();
           this.handleSearchTenant(pagination);
@@ -307,7 +307,7 @@ export default class Tenants extends PureComponent {
               ? intl.get('entity.tenant.edit').d('租户编辑')
               : intl.get('entity.tenant.create').d('租户新建')
           }
-          onRef={ref => {
+          onRef={(ref) => {
             this.tenantForm = ref;
           }}
           data={tenantSrouce}

@@ -36,6 +36,7 @@ export default {
       removeAllCookie();
       cleanMenuTabs(); // warn 在退出登录后需要清空 menuTabs 信息
       sessionStorage.clear();
+      localStorage.setItem('themeConfigCurrent', '');
       const { LOGOUT_URL } = getEnvConfig();
       if (LOGOUT_URL.includes('?')) {
         window.location = `${LOGOUT_URL}&${ACCESS_TOKEN}=${accessToken}`;

@@ -107,11 +107,13 @@ export default function getSideExpandLayoutCss(props) {
               align-items: center;
               justify-content: center;
               .hzero-common-layout-header-logo-title {
-                flex: 0 0 auto;
                 font-size: ${headerTitleFontSize}px;
                 color: ${headerTitleColor};
                 font-weight: bold;
                 margin-left: 12px;
+                flex: 0 0 calc(100% - 52px);
+                overflow: hidden;
+                text-overflow: ellipsis;
               }
             }
           }

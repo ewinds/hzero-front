@@ -231,11 +231,11 @@ export default class DataTable extends PureComponent {
                     ]}
                     onClick={() => onForbidLine(record)}
                   >
-                    {intl.get('hzero.common.status.disable').d('禁用')}
+                    {intl.get('hzero.common.button.disable').d('禁用')}
                   </ButtonPermission>
                 ),
                 len: 2,
-                title: intl.get('hzero.common.status.disable').d('禁用'),
+                title: intl.get('hzero.common.button.disable').d('禁用'),
               },
               {
                 key: 'assign',
@@ -284,11 +284,11 @@ export default class DataTable extends PureComponent {
                 key: 'disable',
                 ele: (
                   <a style={{ color: '#F04134' }}>
-                    {intl.get('hzero.common.status.disable').d('禁用')}
+                    {intl.get('hzero.common.button.disable').d('禁用')}
                   </a>
                 ),
                 len: 2,
-                title: intl.get('hzero.common.status.disable').d('禁用'),
+                title: intl.get('hzero.common.button.disable').d('禁用'),
               },
               {
                 key: 'enable',

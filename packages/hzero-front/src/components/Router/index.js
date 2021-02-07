@@ -16,7 +16,7 @@ export default function getTabRoutes({
     <Route key={item.key} path={item.path} exact={item.exact} component={item.component} />
   ));
   if (menu.length !== 0 && !routerData[pathname]) {
-    matchRoutes.push(<Route render={NotFound} />);
+    matchRoutes.push(<Route key="empty-router" render={NotFound} />);
   }
   return (
     <Switch tabKey={tabKey} activeTabKey={activeTabKey} tabPathname={tabPath} key={tabKey}>

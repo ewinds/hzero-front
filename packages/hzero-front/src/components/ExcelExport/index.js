@@ -8,7 +8,12 @@ import { Button } from 'components/Permission';
 import intl from 'utils/intl';
 import { getResponse, listenDownloadError } from 'utils/utils';
 
-import { downloadFile, initiateAsyncExport, queryColumn, queryIdpValue } from '../../services/api';
+import {
+  downloadFileByAxios,
+  initiateAsyncExport,
+  queryColumn,
+  queryIdpValue,
+} from '../../services/api';
 import ExportPage from './ExportPage';
 import HistoryData from './HistoryData';
 
@@ -83,6 +88,8 @@ export default class ExcelExport extends React.PureComponent {
       exportTypeList: [], // 导出类型值集
       // 异步数据
       historyModalVisible: false, // 异步数据模态框显示
+      showAsync: true,
+      defaultRequestMode: null,
     };
   }
 
@@ -132,6 +139,8 @@ export default class ExcelExport extends React.PureComponent {
           nextState.checkedKeys = defaultList;
         }
         nextState.enableAsync = !!response.enableAsync; // 不为真 就为假
+        nextState.showAsync = isEmpty(response.defaultRequestMode); // 不为真 就为假
+        nextState.defaultRequestMode = response.defaultRequestMode; // 不为真 就为假
         this.setState(nextState);
         if (!nextState.enableAsync) {
           if (form.getFieldValue('async') === 'true') {
@@ -210,13 +219,29 @@ export default class ExcelExport extends React.PureComponent {
   @Bind()
   @Debounce(500)
   handleExport(config = {}) {
-    const { requestUrl = '', queryParams = {}, form, method = 'GET' } = this.props;
-    const { checkedKeys } = this.state;
+    const { requestUrl = '', queryParams = {}, form, method = 'GET', fileName = '' } = this.props;
+    const { checkedKeys, showAsync, defaultRequestMode } = this.state;
     let queryData = queryParams;
     if (isFunction(queryParams)) {
       queryData = queryParams();
     }
-    const newQueryParams = { ...queryData, ...form.getFieldsValue(), ...config };
+    let newQueryParams = {};
+    if (method !== 'GET' && method !== 'get') {
+      newQueryParams = {
+        ...form.getFieldsValue(),
+        ...config,
+      };
+    } else {
+      newQueryParams = {
+        ...queryData,
+        ...form.getFieldsValue(),
+        ...config,
+      };
+    }
+
+    if (!showAsync) {
+      newQueryParams.async = defaultRequestMode === 'ASYNC';
+    }
     if (!checkedKeys || (Array.isArray(checkedKeys) && checkedKeys.length === 0)) {
       Modal.warning({
         title: intl.get('hzero.common.message.validation.atLeast').d('请至少选择一条数据'),
@@ -233,7 +258,7 @@ export default class ExcelExport extends React.PureComponent {
       // 添加导出Excel参数
       params.push({ name: 'exportType', value: 'DATA' });
       if (newQueryParams.async === 'true') {
-        initiateAsyncExport({ requestUrl, queryParams: params }).then((res) => {
+        initiateAsyncExport({ requestUrl, queryParams: params, method, queryData }).then((res) => {
           if (res) {
             notification.success({
               message: intl
@@ -244,14 +269,26 @@ export default class ExcelExport extends React.PureComponent {
           this.setState({ exportPending: false });
         });
       } else {
-        downloadFile({ requestUrl, queryParams: params, method }).then((res) => {
-          if (res) {
-            if (!isEmpty(config)) {
-              this.setState({ checkedKeys: [] });
+        downloadFileByAxios({ requestUrl, queryParams: params, method, queryData }, fileName)
+          .catch((err) => {
+            if (err && getResponse(err) && err.uuid) {
+              notification.success({
+                message: intl
+                  .get('hzero.common.notification.export.asyncWithUid', { uuid: err.uuid })
+                  .d(`异步导出任务已提交${err.uuid}`),
+              });
             }
-          }
-          this.setState({ exportPending: false });
-        });
+          })
+          .then((res) => {
+            if (res) {
+              if (!isEmpty(config)) {
+                this.setState({ checkedKeys: [] });
+              }
+            }
+          })
+          .finally(() => {
+            this.setState({ exportPending: false });
+          });
       }
     }
   }
@@ -349,11 +386,14 @@ export default class ExcelExport extends React.PureComponent {
       modalVisible,
       historyModalVisible,
       queryHistoryLoading,
+      showAsync,
+      defaultRequestMode,
     } = this.state;
     const modalProps = {
       title,
       destroyOnClose: true,
       bodyStyle: { height: '460px', overflowY: 'scroll' },
+      width: '600px',
       visible: modalVisible,
       onCancel: this.showModal.bind(this, false),
       onOk: () => {
@@ -429,6 +469,8 @@ export default class ExcelExport extends React.PureComponent {
             onSelect={this.handleSelect}
             enableAsync={enableAsync}
             exportAsync={exportAsync}
+            showAsync={showAsync}
+            defaultRequestMode={defaultRequestMode}
           />
         </Modal>
         <Modal {...historyModalProps}>

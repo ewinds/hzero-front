@@ -336,7 +336,7 @@ export default class MessageQuery extends PureComponent {
             disabled={selectedRows.length === 0}
             loading={deleteLoading}
           >
-            {intl.get('hzero.common.status.delete').d('删除')}
+            {intl.get('hzero.common.button.delete').d('删除')}
           </ButtonPermission>
         </Header>
         <Content>

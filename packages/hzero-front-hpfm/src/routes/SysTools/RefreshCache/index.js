@@ -263,16 +263,16 @@ const RefreshCache = ({ match }) => {
               title={intl
                 .get('hpfm.sysTools.view.message.refreshCache', {
                   action: intl
-                    .get('hpfm.sysTools.view.button.refreshCache.hpfm.database')
-                    .d('刷新数据库应用'),
+                    .get('hpfm.sysTools.view.button.refreshCache.hpfm.entityTable')
+                    .d('刷新实体信息'),
                 })
                 .d(
                   `是否${intl
-                    .get('hpfm.sysTools.view.button.refreshCache.hpfm.database')
-                    .d('刷新数据库应用')}缓存`
+                    .get('hpfm.sysTools.view.button.refreshCache.hpfm.entityTable')
+                    .d('刷新实体信息')}缓存`
                 )}
               onConfirm={() => {
-                refreshCacheProxyCall('hpfm', 'database');
+                refreshCacheProxyCall('hpfm', 'entity-table');
               }}
             >
               <ButtonPermission
@@ -280,16 +280,16 @@ const RefreshCache = ({ match }) => {
                 icon="sync"
                 permissionList={[
                   {
-                    code: `${match.path}.button.refreshCache.hpfm.database`,
+                    code: `${match.path}.button.refreshCache.hpfm.entityTable`,
                     type: 'button',
-                    meaning: '系统工具-刷新缓存-数据库应用',
+                    meaning: '系统工具-刷新缓存-刷新实体信息',
                   },
                 ]}
-                loading={loading[buildRefreshCacheLoadingName('hpfm', 'database')]}
+                loading={loading[buildRefreshCacheLoadingName('hpfm', 'entity-table')]}
               >
                 {intl
-                  .get('hpfm.sysTools.view.button.refreshCache.hpfm.database')
-                  .d('刷新数据库应用')}
+                  .get('hpfm.sysTools.view.button.refreshCache.hpfm.entityTable')
+                  .d('刷新实体信息')}
               </ButtonPermission>
             </Popconfirm>
           </Col>

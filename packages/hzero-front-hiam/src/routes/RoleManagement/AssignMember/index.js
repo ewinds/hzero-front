@@ -10,8 +10,6 @@ import { Modal } from 'hzero-ui';
 import { isNil } from 'lodash';
 import { Bind } from 'lodash-decorators';
 
-import intl from 'utils/intl';
-
 import notification from 'utils/notification';
 import {
   parseParameters,
@@ -37,6 +35,7 @@ export default class AssignMember extends React.Component {
   state = {
     dataSource: [],
     pagination: {},
+    cachePagination: {},
   };
 
   componentDidMount() {
@@ -89,6 +88,7 @@ export default class AssignMember extends React.Component {
         dataSource: res.dataSource.map((item) => ({
           ...item,
           roleId: roleDatasource.id,
+          _status: 'update',
           [rowKey]: uuid(),
         })),
       });
@@ -141,10 +141,13 @@ export default class AssignMember extends React.Component {
   @Bind()
   async handleTableDelete(deleteRows) {
     const backDeleteRows = [];
+    const stateDeleteRows = [];
     deleteRows.forEach((record) => {
       if (!record.isCreate) {
         const { _status: _, ...deleteRecord } = record;
         backDeleteRows.push(deleteRecord);
+      } else {
+        stateDeleteRows.push(record);
       }
     });
     if (backDeleteRows.length !== 0) {
@@ -164,41 +167,53 @@ export default class AssignMember extends React.Component {
         return;
       }
     }
-    const { dataSource = [] } = this.state;
-    const noDeleteEditData = dataSource.filter(
-      (item) => item._status && !deleteRows.some((record) => record[rowKey] === item[rowKey])
-    );
-    if (noDeleteEditData.length !== 0) {
-      Modal.confirm({
-        title: intl
-          .get('hiam.roleManagement.view,message.title.isRefresh')
-          .d('有未保存的数据, 是否刷新'),
-        onOk: () => {
-          this.reload();
-        },
-        onCancel: () => {
-          const { pagination } = this.props;
-          this.setState({
-            dataSource: dataSource.filter(
-              (item) => !deleteRows.some((record) => record[rowKey] === item[rowKey])
-            ),
-            pagination: delItemsToPagination(deleteRows.length, dataSource.length, pagination),
-          });
-        },
-      });
-    } else {
+    if (stateDeleteRows.length === 0) {
       this.reload();
+    } else {
+      const { dataSource = [], pagination = {} } = this.state;
+      this.setState({
+        dataSource: dataSource.filter(
+          (item) => !deleteRows.some((record) => record[rowKey] === item[rowKey])
+        ),
+        pagination: delItemsToPagination(deleteRows.length, dataSource.length, pagination),
+      });
     }
+    // const noDeleteEditData = dataSource.filter(
+    //   (item) => item._status && !deleteRows.some((record) => record[rowKey] === item[rowKey])
+    // );
+    // if (noDeleteEditData.length !== 0) {
+    //   Modal.confirm({
+    //     title: intl
+    //       .get('hiam.roleManagement.view,message.title.isRefresh')
+    //       .d('有未保存的数据, 是否刷新'),
+    //     onOk: () => {
+    //       this.reload();
+    //     },
+    //     onCancel: () => {
+    //       const { pagination } = this.props;
+    //       this.setState({
+    //         dataSource: dataSource.filter(
+    //           (item) => !deleteRows.some((record) => record[rowKey] === item[rowKey])
+    //         ),
+    //         pagination: delItemsToPagination(deleteRows.length, dataSource.length, pagination),
+    //       });
+    //     },
+    //   });
+    // } else {
+    //   this.reload();
+    // }
   }
 
   // Modal
   @Bind()
   handleOk() {
     const { dataSource } = this.state;
-    const editDataSource = dataSource.filter((item) => item._status);
+    const editDataSource = dataSource
+      .filter((item) => item._status)
+      .filter((v) => v.removableFlag !== 0);
     const validateDataSource = getEditTableData(editDataSource);
-    // 由于控制了 确认按钮, 所以 editDataSource 一定优质
-    if (validateDataSource.length === editDataSource.length) {
+    // 由于控制了 确认按钮, 所以 editDataSource 一定有值
+    if (validateDataSource.length > 0 && validateDataSource.length === editDataSource.length) {
       // 数据校验成功
       const { handleSave } = this.props;
       handleSave(
@@ -214,6 +229,8 @@ export default class AssignMember extends React.Component {
           this.handleClose();
         }
       );
+    } else {
+      this.handleClose();
     }
   }
 
@@ -224,6 +241,39 @@ export default class AssignMember extends React.Component {
     close();
   }
 
+  @Bind()
+  userSave(data = []) {
+    const { roleDatasource } = this.props;
+    const { dataSource, pagination } = this.state;
+    // handleSave(
+    //   data.map((item) => {
+    //     const { id, ...newItem } = item;
+    //     newItem.memberId = id;
+    //     newItem.roleId = roleDatasource.id;
+    //     return newItem;
+    //   }),
+    //   false,
+    //   () => {
+    //     notification.success();
+    //     this.handleSearch();
+    //     // 成功后关闭 模态框
+    //     this.editDataTable.handleUserModal();
+    //   }
+    // );
+    const newData = data.map((i) => ({
+      ...i,
+      roleId: roleDatasource.id,
+      _status: 'create',
+      [rowKey]: uuid(),
+      isCreate: true,
+    }));
+    this.setState({
+      dataSource: [...newData, ...dataSource],
+      pagination: addItemsToPagination(newData.length, dataSource.length, pagination),
+    });
+    this.editDataTable.handleUserModal();
+  }
+
   render() {
     const {
       visible = false,
@@ -232,15 +282,20 @@ export default class AssignMember extends React.Component {
       roleDatasource = {},
       tenantRoleLevel,
       path,
+      fetchUserList,
+      memberModalList,
+      memberModalPagination,
+      clearMemberList,
     } = this.props;
     const { dataSource = [], pagination } = this.state;
     return (
       <Modal
-        width={700}
+        width={900}
         wrapClassName="ant-modal-sidebar-right"
         transitionName="move-right"
         visible={visible}
         title={title}
+        closable={false}
         onCancel={this.handleClose}
         onOk={this.handleOk}
         confirmLoading={processing.save}
@@ -251,6 +306,11 @@ export default class AssignMember extends React.Component {
             processing.delete ||
             processing.query,
         }}
+        // footer={
+        //   <Button type="primary" onClick={this.handleClose}>
+        //     {intl.get('hzero.common.button.ok').d('确定')}
+        //   </Button>
+        // }
       >
         <SearchForm
           wrappedComponentRef={this.searchFormRef}
@@ -268,6 +328,15 @@ export default class AssignMember extends React.Component {
           deleteLoading={processing.delete}
           queryLoading={processing.query}
           saveLoading={processing.save}
+          roleId={roleDatasource.id}
+          fetchUserList={fetchUserList}
+          memberModalList={memberModalList}
+          memberModalPagination={memberModalPagination}
+          handleSave={this.userSave}
+          onRef={(ref) => {
+            this.editDataTable = ref;
+          }}
+          clearMemberList={clearMemberList}
         />
       </Modal>
     );

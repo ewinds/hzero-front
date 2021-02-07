@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /**
  * FIXME: 国际化
  * Detail - 熔断设置详情页
@@ -83,7 +84,7 @@ export default class Detail extends Component {
       type: 'hadmHystrix/fetchHeaderInformation',
       payload: { confId },
     })
-      .then(res => {
+      .then((res) => {
         if (res) {
           const {
             hadmHystrix: { headerInformation },
@@ -101,7 +102,7 @@ export default class Detail extends Component {
           });
         }
       })
-      .then(res => {
+      .then((res) => {
         if (res) {
           dispatch({
             type: 'hadmHystrix/fetchConfTypeCodeList',
@@ -138,7 +139,7 @@ export default class Detail extends Component {
         dispatch({
           type: 'hadmHystrix/deleteDetails',
           payload: selectedRows,
-        }).then(res => {
+        }).then((res) => {
           if (res) {
             notification.success();
             this.handleSearch({ confId });
@@ -173,7 +174,7 @@ export default class Detail extends Component {
     dispatch({
       type: 'hadmHystrix/add',
       payload: { ...headerInformation, hystrixConfLines: [item] },
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         this.hideModal();
         notification.success();
@@ -191,7 +192,7 @@ export default class Detail extends Component {
     const {
       hadmHystrix: { propertyNameList },
     } = this.props;
-    const property = propertyNameList.find(e => e.value === record.propertyName);
+    const property = propertyNameList.find((e) => e.value === record.propertyName);
     const propertyRemark = property.meaning;
     this.setState({ conf: { ...record, propertyRemark }, modalVisible: true });
   }
@@ -238,7 +239,7 @@ export default class Detail extends Component {
           dispatch({
             type: 'hadmHystrix/add',
             payload: newHeaderInformation,
-          }).then(res => {
+          }).then((res) => {
             if (res && !res.failed) {
               notification.success();
               this.handleSearch();
@@ -286,7 +287,7 @@ export default class Detail extends Component {
     dispatch({
       type: 'hadmHystrix/refresh',
       payload: [{ confId }],
-    }).then(res => {
+    }).then((res) => {
       if (res) {
         notification.success();
         this.getHeaderInformation();
@@ -382,7 +383,7 @@ export default class Detail extends Component {
     const { access_token: accessToken } = queryString.parse(search.substring(1));
     const basePath = '/hadm/hystrix';
     const { serviceName, conf, selectedRows, modalVisible } = this.state;
-    const nowConf = confTypeCodeList.find(e => e.value === headerInformation.confKey);
+    const nowConf = confTypeCodeList.find((e) => e.value === headerInformation.confKey);
     const columns = [
       {
         title: intl.get(`hadm.hystrix.model.hystrix.propertyName`).d('参数代码'),
@@ -393,7 +394,7 @@ export default class Detail extends Component {
         title: intl.get(`hadm.hystrix.model.hystrix.propertyRemark`).d('参数描述'),
         dataIndex: 'propertyRemark',
         render: (val, record) => {
-          const data = propertyNameList.find(e => e.value === record.propertyName);
+          const data = propertyNameList.find((e) => e.value === record.propertyName);
           if (data) {
             return data.meaning;
           }
@@ -405,7 +406,7 @@ export default class Detail extends Component {
         dataIndex: 'propertyValue',
       },
       {
-        title: intl.get(`hadm.hystrix.model.hystrix.remark`).d('描述'),
+        title: intl.get(`hzero.common.view.description`).d('描述'),
         dataIndex: 'remark',
       },
       {
@@ -430,7 +431,7 @@ export default class Detail extends Component {
       },
     ];
     const rowSelection = {
-      selectedRowKeys: selectedRows.map(n => n.confLineId),
+      selectedRowKeys: selectedRows.map((n) => n.confLineId),
       onChange: this.handleRowSelectedChange,
     };
     const detailFilterProps = {
@@ -486,7 +487,9 @@ export default class Detail extends Component {
               key="event-rule"
               bordered={false}
               className={DETAIL_CARD_TABLE_CLASSNAME}
-              title={<h3>{intl.get(`hadm.hystrix.view.title.hystrix`).d('熔断规则定义')}</h3>}
+              title={
+                <h3>{intl.get(`hadm.hystrix.view.title.hystrix.detail`).d('熔断规则定义')}</h3>
+              }
             >
               <Form>
                 <Row {...SEARCH_FORM_ROW_LAYOUT}>
@@ -541,7 +544,7 @@ export default class Detail extends Component {
                   <Col {...FORM_COL_3_LAYOUT}>
                     <Form.Item
                       {...EDIT_FORM_ITEM_LAYOUT}
-                      label={intl.get(`hadm.hystrix.model.hystrix.remark`).d('描述')}
+                      label={intl.get(`hzero.common.view.description`).d('描述')}
                     >
                       {getFieldDecorator('remark', {
                         initialValue: headerInformation.remark,

@@ -1,13 +1,18 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { isEmpty, isFunction, isUndefined } from 'lodash';
-import { Button, Form, Input, Modal, notification, Table } from 'hzero-ui';
+import { Button, Form, Input, Modal, notification, Table, Row, Col, Select } from 'hzero-ui';
 import { Bind } from 'lodash-decorators';
 
 import Lov from 'components/Lov';
 
 import intl from 'utils/intl';
 import { createPagination, tableScrollWidth } from 'utils/utils';
+import {
+  FORM_COL_3_LAYOUT,
+  SEARCH_FORM_ROW_LAYOUT,
+  SEARCH_FORM_ITEM_LAYOUT,
+} from 'utils/constants';
 
 const FormItem = Form.Item;
 
@@ -40,7 +45,6 @@ export default class RoleModal extends React.PureComponent {
     onSave: PropTypes.func.isRequired,
     fetchRoles: PropTypes.func.isRequired,
     excludeRoleIds: PropTypes.array.isRequired,
-    excludeUserIds: PropTypes.array.isRequired,
   };
 
   componentDidMount() {
@@ -58,26 +62,33 @@ export default class RoleModal extends React.PureComponent {
       fetchRoles,
       form,
       excludeRoleIds = [], // 新分配的角色
-      excludeUserIds = [], // 当前编辑账号的账号id( 需要排除的账号对应的角色 )
+      id,
     } = this.props;
     const queryParams = {
       ...pagination,
       excludeRoleIds,
-      excludeUserIds,
+      memberType: 'user',
     };
     const name = form.getFieldValue('name');
     const tenantId = form.getFieldValue('tenantId');
+    const labels = form.getFieldValue('labels');
     if (!isUndefined(name)) {
       queryParams.name = name;
     }
     if (!isUndefined(tenantId)) {
       queryParams.tenantId = tenantId;
     }
+    if (!isUndefined(labels)) {
+      queryParams.labels = labels;
+    }
+    if (!isUndefined(id)) {
+      queryParams.memberId = id;
+    }
     this.setState({
       fetchRolesLoading: true,
     });
     fetchRoles(queryParams)
-      .then(res => {
+      .then((res) => {
         if (res) {
           this.setState({
             dataSource: res.content,
@@ -102,11 +113,11 @@ export default class RoleModal extends React.PureComponent {
   @Bind()
   handleRowClick(record) {
     const { selectedRowKeys = [], selectedRows = [] } = this.state;
-    if (selectedRowKeys.some(id => id === record.id)) {
+    if (selectedRowKeys.some((id) => id === record.id)) {
       // 已经选中 需要移除
       this.setState({
-        selectedRowKeys: selectedRowKeys.filter(id => id !== record.id),
-        selectedRows: selectedRows.filter(item => item !== record),
+        selectedRowKeys: selectedRowKeys.filter((id) => id !== record.id),
+        selectedRows: selectedRows.filter((item) => item !== record),
       });
     } else {
       // 没有选中 需要新增
@@ -120,7 +131,7 @@ export default class RoleModal extends React.PureComponent {
   @Bind()
   handleRowSelectionChange(_, selectedRows) {
     this.setState({
-      selectedRowKeys: selectedRows.map(r => r.id),
+      selectedRowKeys: selectedRows.map((r) => r.id),
       selectedRows,
     });
   }
@@ -188,6 +199,7 @@ export default class RoleModal extends React.PureComponent {
     const {
       visible,
       form: { getFieldDecorator },
+      labelList,
     } = this.props;
     const { selectedRowKeys, dataSource = [], pagination = false, fetchRolesLoading } = this.state;
     const columns = [
@@ -210,21 +222,53 @@ export default class RoleModal extends React.PureComponent {
         width={720}
         title={intl.get('hiam.subAccount.view.message.title.roleModal').d('选择角色')}
       >
-        <Form layout="inline">
-          <FormItem label={intl.get('hiam.subAccount.model.role.name').d('角色名称')}>
-            {getFieldDecorator('name')(<Input />)}
-          </FormItem>
-          <FormItem label={intl.get('hiam.subAccount.model.user.tenant').d('所属租户')}>
-            {getFieldDecorator('tenantId')(<Lov code="HPFM.TENANT" textField="tenantName" />)}
-          </FormItem>
-          <FormItem>
-            <Button style={{ marginRight: 8 }} onClick={this.handleResetBtnClick}>
-              {intl.get('hzero.common.button.reset').d('重置')}
-            </Button>
-            <Button htmlType="submit" type="primary" onClick={this.handleSearchBtnClick}>
-              {intl.get('hzero.common.button.search').d('查询')}
-            </Button>
-          </FormItem>
+        <Form>
+          <Row type="flex" gutter={24} align="bottom" {...SEARCH_FORM_ROW_LAYOUT}>
+            <Col {...FORM_COL_3_LAYOUT}>
+              <FormItem
+                {...SEARCH_FORM_ITEM_LAYOUT}
+                label={intl.get('hiam.subAccount.model.role.name').d('角色名称')}
+              >
+                {getFieldDecorator('name')(<Input />)}
+              </FormItem>
+            </Col>
+            <Col {...FORM_COL_3_LAYOUT}>
+              <FormItem
+                {...SEARCH_FORM_ITEM_LAYOUT}
+                label={intl.get('hiam.subAccount.model.role.labels').d('角色标签')}
+              >
+                {getFieldDecorator('labels')(
+                  <Select mode="multiple">
+                    {labelList.map((n) => (
+                      <Select.Option key={n.name} value={n.name}>
+                        {n.name}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                )}
+              </FormItem>
+            </Col>
+            <Col {...FORM_COL_3_LAYOUT}>
+              <FormItem>
+                <Button style={{ marginRight: 8 }} onClick={this.handleResetBtnClick}>
+                  {intl.get('hzero.common.button.reset').d('重置')}
+                </Button>
+                <Button htmlType="submit" type="primary" onClick={this.handleSearchBtnClick}>
+                  {intl.get('hzero.common.button.search').d('查询')}
+                </Button>
+              </FormItem>
+            </Col>
+          </Row>
+          <Row type="flex" gutter={24} {...SEARCH_FORM_ROW_LAYOUT}>
+            <Col {...FORM_COL_3_LAYOUT}>
+              <FormItem
+                {...SEARCH_FORM_ITEM_LAYOUT}
+                label={intl.get('hiam.subAccount.model.user.tenant').d('所属租户')}
+              >
+                {getFieldDecorator('tenantId')(<Lov code="HPFM.TENANT" textField="tenantName" />)}
+              </FormItem>
+            </Col>
+          </Row>
         </Form>
         <Table
           bordered

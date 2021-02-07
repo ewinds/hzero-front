@@ -107,7 +107,17 @@ const CommonLayout: React.FC<CommonLayoutProps> = ({
       type: 'user/queryDataHierarchies',
       payload: { organizationId: getCurrentOrganizationId() },
     });
+    dispatch({
+      type: 'global/changeLayoutCollapsed',
+      payload: { collapsed: false },
+    });
   }, []);
+  React.useEffect(() => {
+    dispatch({
+      type: 'global/changeLayoutCollapsed',
+      payload: { collapsed },
+    });
+  }, [collapsed]);
   return <DocumentTitle title={title || ''}>{layout}</DocumentTitle>;
 };
 

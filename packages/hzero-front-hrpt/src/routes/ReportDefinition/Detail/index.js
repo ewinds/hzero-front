@@ -14,6 +14,7 @@ import { filter, isEmpty, isFinite, isUndefined } from 'lodash';
 import { Bind } from 'lodash-decorators';
 
 import { Content, Header } from 'components/Page';
+import TLEditor from 'components/TLEditor';
 import Switch from 'components/Switch';
 import Lov from 'components/Lov';
 
@@ -84,6 +85,9 @@ export default class Detail extends Component {
     templateListSelectedRowKeys: [], // 模板列表选中行
     isCreateMetaColumn: false, // 是否新建列信息
     isChangeContent: false, // 是否改变内容
+    isColumnFlag: true, // 是否显示报表列
+    exportTypeCode: {}, // 导出类型
+    exportTypeList: [], // 导出类型列表
   };
 
   /**
@@ -138,11 +142,15 @@ export default class Detail extends Component {
         },
       }).then((res) => {
         // 如果是模板报表
-        if (res && res.reportTypeCode === 'D') {
-          dispatch({
-            type: 'reportDefinition/fetchTemplateDetail',
-            payload: { reportId: match.params.id },
-          });
+        if (res) {
+          if (res.reportTypeCode === 'D') {
+            dispatch({
+              type: 'reportDefinition/fetchTemplateDetail',
+              payload: { reportId: match.params.id },
+            });
+          }
+          this.setState({ isColumnFlag: res.reportTypeCode !== 'U' });
+          this.setExportTypeList(res.reportTypeCode, res.templateTypeCode);
         }
       });
     } else {
@@ -167,6 +175,11 @@ export default class Detail extends Component {
       payload: {
         lovCodes,
       },
+    });
+    dispatch({ type: 'reportDefinition/fetchExportType' }).then((res) => {
+      if (res) {
+        this.setState({ exportTypeCode: res });
+      }
     });
     this.setState({ isChangeContent: false });
   }
@@ -604,9 +617,44 @@ export default class Detail extends Component {
    * 改变报表类型
    */
   @Bind()
-  changeReportTypeCode() {
-    const { setFieldsValue } = this.props.form;
+  changeReportTypeCode(value) {
+    const { setFieldsValue, getFieldValue } = this.props.form;
+    const templateTypeCode = getFieldValue('templateTypeCode');
     setFieldsValue({ datasetId: undefined });
+    this.setExportTypeList(value, templateTypeCode);
+    this.setState({
+      isColumnFlag: value !== 'U',
+    });
+  }
+
+  @Bind()
+  setExportTypeList(reportTypeCode, templateTypeCode) {
+    let list = [];
+    const { exportTypeCode = {} } = this.state;
+    if (reportTypeCode) {
+      if (reportTypeCode === 'D' && templateTypeCode) {
+        const data = exportTypeCode[reportTypeCode] || {};
+        list = data[templateTypeCode] || [];
+      } else if (reportTypeCode !== 'D') {
+        list = exportTypeCode[reportTypeCode] || [];
+      }
+    }
+    this.setState({ exportTypeList: list });
+  }
+
+  // 改变模板类型
+  @Bind()
+  changeTemplateTypeCode(value) {
+    const { exportTypeCode = {} } = this.state;
+    const { getFieldValue } = this.props.form;
+    const reportTypeCode = getFieldValue('reportTypeCode');
+    if (reportTypeCode === 'D') {
+      const data = exportTypeCode[reportTypeCode] || {};
+      const list = data[value] || [];
+      this.setState({
+        exportTypeList: value ? list : [],
+      });
+    }
     this.handleUpdateState();
   }
 
@@ -634,7 +682,11 @@ export default class Detail extends Component {
       tenantRoleLevel,
     } = this.props;
     const { options = {}, metaColumns = [] } = header;
+    const reportTypeCodeList = tenantRoleLevel
+      ? reportTypeCode.filter((item) => item.tag !== 'SITE') // 租户级值集不显示tag为"SITE"的值
+      : reportTypeCode;
     const isTemplateTab = form.getFieldValue('reportTypeCode') === 'D';
+    const { exportTypeList = [] } = this.state;
     return (
       <Form className={DETAIL_EDIT_FORM_CLASSNAME}>
         <Row {...EDIT_FORM_ROW_LAYOUT}>
@@ -711,7 +763,14 @@ export default class Detail extends Component {
                   },
                 ],
                 initialValue: header.reportName,
-              })(<Input onChange={this.handleUpdateState} />)}
+              })(
+                <TLEditor
+                  label={intl.get('hrpt.common.report.reportName').d('报表名称')}
+                  field="reportName"
+                  token={header ? header._token : null}
+                  onChange={this.handleUpdateState}
+                />
+              )}
             </Form.Item>
           </Col>
           <Col {...FORM_COL_3_LAYOUT}>
@@ -739,8 +798,8 @@ export default class Detail extends Component {
                   disabled={metaColumns.length !== 0}
                   onChange={this.changeReportTypeCode}
                 >
-                  {reportTypeCode &&
-                    reportTypeCode.map((item) => (
+                  {reportTypeCodeList &&
+                    reportTypeCodeList.map((item) => (
                       <Option key={item.value} value={item.value}>
                         {item.meaning}
                       </Option>
@@ -760,7 +819,7 @@ export default class Detail extends Component {
                 initialValue: header.datasetId,
                 rules: [
                   {
-                    required: true,
+                    required: getFieldValue('reportTypeCode') !== 'U', // U:UReport类型
                     message: intl.get('hzero.common.validation.notNull', {
                       name: intl
                         .get('hrpt.reportDefinition.model.reportDefinition.datasetId')
@@ -774,6 +833,7 @@ export default class Detail extends Component {
                   disabled={
                     !isUndefined(header.datasetId) ||
                     metaColumns.length !== 0 ||
+                    getFieldValue('reportTypeCode') === 'U' ||
                     (isUndefined(getFieldValue('tenantId')) && !tenantRoleLevel) ||
                     isUndefined(getFieldValue('reportTypeCode'))
                   }
@@ -825,9 +885,10 @@ export default class Detail extends Component {
                       (!isTemplateTab || (isTemplateTab && template.length !== 0))) ||
                     getFieldValue('reportTypeCode') === 'ST' ||
                     getFieldValue('reportTypeCode') === 'C' ||
-                    getFieldValue('reportTypeCode') === 'T' // st: 简单报表，c:图形报表，t:复杂报表
+                    getFieldValue('reportTypeCode') === 'T' ||
+                    getFieldValue('reportTypeCode') === 'U' // st: 简单报表，c:图形报表，t:复杂报表,u: ureport报表
                   }
-                  onChange={this.handleUpdateState}
+                  onChange={this.changeTemplateTypeCode}
                 >
                   {templateTypeCode &&
                     templateTypeCode.map((item) => (
@@ -854,7 +915,8 @@ export default class Detail extends Component {
                   disabled={
                     getFieldValue('reportTypeCode') === 'ST' ||
                     getFieldValue('reportTypeCode') === 'C' ||
-                    getFieldValue('reportTypeCode') === 'D'
+                    getFieldValue('reportTypeCode') === 'D' ||
+                    getFieldValue('reportTypeCode') === 'U'
                   }
                   onChange={this.handleUpdateState}
                 >
@@ -884,7 +946,8 @@ export default class Detail extends Component {
                   disabled={
                     getFieldValue('reportTypeCode') === 'ST' ||
                     getFieldValue('reportTypeCode') === 'C' ||
-                    getFieldValue('reportTypeCode') === 'D'
+                    getFieldValue('reportTypeCode') === 'D' ||
+                    getFieldValue('reportTypeCode') === 'U'
                   }
                   allowClear
                   onChange={this.handleUpdateState}
@@ -958,12 +1021,42 @@ export default class Detail extends Component {
                     !getFieldValue('reportTypeCode') === 'ST' ||
                     !getFieldValue('reportTypeCode') === 'TS1' ||
                     getFieldValue('reportTypeCode') === 'C' ||
-                    getFieldValue('reportTypeCode') === 'D'
+                    getFieldValue('reportTypeCode') === 'D' ||
+                    getFieldValue('reportTypeCode') === 'U'
                   }
                   min={0}
                   style={{ width: '50%' }}
                   onChange={this.handleUpdateState}
                 />
+              )}
+            </Form.Item>
+          </Col>
+          <Col {...FORM_COL_3_LAYOUT}>
+            <Form.Item
+              label={intl
+                .get('hrpt.reportDefinition.model.reportDefinition.exportType')
+                .d('导出类型')}
+              {...EDIT_FORM_ITEM_LAYOUT}
+            >
+              {getFieldDecorator('exportTypeList', {
+                initialValue: header.exportTypeList || [],
+              })(
+                <Select
+                  mode="multiple"
+                  disabled={
+                    !getFieldValue('reportTypeCode') ||
+                    getFieldValue('reportTypeCode') === 'C' ||
+                    (getFieldValue('reportTypeCode') === 'D' && !getFieldValue('templateTypeCode'))
+                  }
+                  allowClear
+                >
+                  {exportTypeList &&
+                    exportTypeList.map((item) => (
+                      <Option key={item} value={item}>
+                        {item}
+                      </Option>
+                    ))}
+                </Select>
               )}
             </Form.Item>
           </Col>
@@ -980,6 +1073,8 @@ export default class Detail extends Component {
               })(<Switch onChange={this.handleUpdateState} />)}
             </Form.Item>
           </Col>
+        </Row>
+        <Row {...EDIT_FORM_ROW_LAYOUT}>
           <Col {...FORM_COL_3_LAYOUT}>
             <Form.Item
               label={intl.get('hzero.common.status.asyncFlag').d('异步标识')}
@@ -987,11 +1082,9 @@ export default class Detail extends Component {
             >
               {getFieldDecorator('asyncFlag', {
                 initialValue: header.asyncFlag || 0,
-              })(<Switch />)}
+              })(<Switch disabled={getFieldValue('reportTypeCode') === 'U'} />)}
             </Form.Item>
           </Col>
-        </Row>
-        <Row {...EDIT_FORM_ROW_LAYOUT}>
           <Col {...FORM_COL_3_LAYOUT}>
             <Form.Item
               label={intl.get('hzero.common.status.enable').d('启用')}
@@ -1041,6 +1134,7 @@ export default class Detail extends Component {
       templateListSelectedRowKeys = [],
       isCreateMetaColumn,
       isChangeContent,
+      isColumnFlag,
     } = this.state;
     const isTemplateTab = form.getFieldValue('reportTypeCode') === 'D';
     const metaColumnsRowSelection = {
@@ -1138,55 +1232,57 @@ export default class Detail extends Component {
           >
             {this.renderHeaderForm()}
           </Card>
-          <Card
-            key="report-definition-line"
-            bordered={false}
-            title={
-              <h3>{intl.get('hrpt.reportDefinition.view.message.reportColumn').d('报表列')}</h3>
-            }
-            className={DETAIL_CARD_TABLE_CLASSNAME}
-            loading={spinning}
-          >
-            <div className="table-list-operator">
-              <Button
-                type="primary"
-                onClick={isTemplateTab ? this.handleInitTemplate : this.handleAddMetaColumns}
-                disabled={isTemplateTab && match.params.id === undefined}
-              >
-                {intl.get('hzero.common.button.create').d('新建')}
-              </Button>
-              <Button
-                onClick={isTemplateTab ? this.handleDeleteTemplate : this.handleDeleteMetaColumns}
-                disabled={
-                  isTemplateTab
-                    ? templateSelectedRowKeys.length === 0
-                    : metaColumnsSelectedRowKeys.length === 0
-                }
-              >
-                {intl.get('hzero.common.button.delete').d('删除')}
-              </Button>
-            </div>
-            {form.getFieldValue('reportTypeCode') !== 'D' ? (
-              <Tabs defaultActiveKey="initColumn" animated={false}>
-                <Tabs.TabPane
-                  tab={intl.get('hrpt.reportDefinition.view.tab.initColumn').d('列信息')}
-                  key="initColumn"
+          {isColumnFlag && (
+            <Card
+              key="report-definition-line"
+              bordered={false}
+              title={
+                <h3>{intl.get('hrpt.reportDefinition.view.message.reportColumn').d('报表列')}</h3>
+              }
+              className={DETAIL_CARD_TABLE_CLASSNAME}
+              loading={spinning}
+            >
+              <div className="table-list-operator">
+                <Button
+                  type="primary"
+                  onClick={isTemplateTab ? this.handleInitTemplate : this.handleAddMetaColumns}
+                  disabled={isTemplateTab && match.params.id === undefined}
                 >
-                  <MetaColumnsTable {...metaColumnsProps} />
-                </Tabs.TabPane>
-              </Tabs>
-            ) : (
-              <Tabs defaultActiveKey="template" animated={false}>
-                <Tabs.TabPane
-                  forceRender
-                  tab={intl.get('hrpt.reportDefinition.view.tab.template').d('模板分配')}
-                  key="template"
+                  {intl.get('hzero.common.button.create').d('新建')}
+                </Button>
+                <Button
+                  onClick={isTemplateTab ? this.handleDeleteTemplate : this.handleDeleteMetaColumns}
+                  disabled={
+                    isTemplateTab
+                      ? templateSelectedRowKeys.length === 0
+                      : metaColumnsSelectedRowKeys.length === 0
+                  }
                 >
-                  <TemplateTable {...templateProps} />
-                </Tabs.TabPane>
-              </Tabs>
-            )}
-          </Card>
+                  {intl.get('hzero.common.button.delete').d('删除')}
+                </Button>
+              </div>
+              {form.getFieldValue('reportTypeCode') !== 'D' ? (
+                <Tabs defaultActiveKey="initColumn" animated={false}>
+                  <Tabs.TabPane
+                    tab={intl.get('hrpt.reportDefinition.view.tab.initColumn').d('列信息')}
+                    key="initColumn"
+                  >
+                    <MetaColumnsTable {...metaColumnsProps} />
+                  </Tabs.TabPane>
+                </Tabs>
+              ) : (
+                <Tabs defaultActiveKey="template" animated={false}>
+                  <Tabs.TabPane
+                    forceRender
+                    tab={intl.get('hrpt.reportDefinition.view.tab.template').d('模板分配')}
+                    key="template"
+                  >
+                    <TemplateTable {...templateProps} />
+                  </Tabs.TabPane>
+                </Tabs>
+              )}
+            </Card>
+          )}
           <MetaColumnsDrawer {...metaColumnsDrawerProps} />
           <TemplateDrawer {...templateDrawerProps} />
         </Content>

@@ -14,9 +14,22 @@ import {
   isTenantRoleLevel,
 } from 'utils/utils';
 
-const { HZERO_IAM, HZERO_PLATFORM, TOP_MENU_LABELS, TOP_MENU_UNION_LABEL } = getEnvConfig();
+const {
+  HZERO_IAM,
+  HZERO_PLATFORM,
+  HZERO_MNT,
+  TOP_MENU_LABELS,
+  TOP_MENU_UNION_LABEL,
+} = getEnvConfig();
 
 // primary 私有的api(组件, 页面无关的api)
+
+export interface HistoryParams {
+  auditDocumentId: string;
+  businessKey: string;
+  page: number;
+  size: number;
+}
 
 /**
  * 查询菜单.
@@ -58,18 +71,31 @@ export async function queryPromptLocale(organizationId, language, promptKey) {
 }
 
 /**
+ * public路由下查询平台多语言国际化
+ * {HZERO_PLATFORM}/v1/{organizationId}/prompt/{language}
+ * @param {Number} organizationId
+ * @param {String} language
+ * @param {String} promptKey - 这里只用到了 hzero.common
+ */
+export async function queryPublicPromptLocale(language, promptKey) {
+  return request(`${HZERO_PLATFORM}/v1/prompt/${language}?promptKey=${promptKey}`);
+}
+
+/**
  * 查询 LOV 配置.
  * {HZERO_PLATFORM}/v1/lov-view/info
  * @param {Object} params 参数
  */
 export async function queryLov(params) {
+  const { publicMode, ...otherParams } = params;
   const res = request(
     `${HZERO_PLATFORM}/v1/${
-      isTenantRoleLevel() ? `${getCurrentOrganizationId()}/` : ''
+      // eslint-disable-next-line no-nested-ternary
+      publicMode ? 'pub/' : isTenantRoleLevel() ? `${getCurrentOrganizationId()}/` : ''
     }lov-view/info`,
     {
       method: 'GET',
-      query: params,
+      query: otherParams,
     }
   );
   // FIXME: @WJC utils need fix
@@ -82,10 +108,24 @@ export async function queryLov(params) {
  * @param {string} url URL
  * @param {Object} params 参数
  */
-export async function queryLovData(url, params) {
-  const res = request(url, {
-    query: params,
-  });
+export async function queryLovData(url, params, method) {
+  const options: {
+    method?: string;
+    body?: any;
+    query?: any;
+  } = {};
+  if (method) {
+    options.method = method.toUpperCase();
+    if (method.toUpperCase() !== 'GET') {
+      options.body = params;
+    } else {
+      options.query = params;
+    }
+  } else {
+    options.query = params;
+  }
+  const res = request(url, options);
+
   // FIXME: @WJC utils need fix
   // @ts-ignore
   return getResponse(res);
@@ -99,6 +139,20 @@ export async function queryLovData(url, params) {
 export async function queryUiTables(query = {}) {
   const organizationId = getCurrentOrganizationId();
   return request(`${HZERO_PLATFORM}/v1/${organizationId}/ui-table`, {
+    method: 'GET',
+    query,
+  });
+}
+
+/**
+ * 查询动态表格
+ * @param {object} query
+ * @returns {Promise<void>}
+ */
+export async function queryHistoryData(query: HistoryParams) {
+  const organizationId = getCurrentOrganizationId();
+  const url = `${HZERO_MNT}/v1/${organizationId}/audit-documents/log/detail`;
+  return request(url, {
     method: 'GET',
     query,
   });

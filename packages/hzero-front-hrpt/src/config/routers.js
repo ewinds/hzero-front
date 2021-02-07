@@ -39,6 +39,11 @@ module.exports = [
         component: () => import('../routes/ReportDefinition/Detail'),
         models: [() => import('../models/reportDefinition')],
       },
+      {
+        path: '/hrpt/report-definition/u-report',
+        component: () => import('../routes/ReportDefinition/Detail/UReportEditor'),
+        models: [() => import('../models/reportDefinition')],
+      },
     ],
   },
   // 报表详情菜单1

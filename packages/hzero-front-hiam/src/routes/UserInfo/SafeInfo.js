@@ -15,7 +15,13 @@ import CountDown from 'components/CountDown';
 
 import intl from 'utils/intl';
 import { AUTH_HOST } from 'utils/config';
-import { getAccessToken, getUserOrganizationId, getSession, encryptPwd } from 'utils/utils';
+import {
+  getAccessToken,
+  getUserOrganizationId,
+  getSession,
+  setSession,
+  encryptPwd,
+} from 'utils/utils';
 import { EMAIL, PHONE } from 'utils/regExp';
 import notification from 'utils/notification';
 import { validatePasswordRule } from '@/utils/validator';
@@ -90,6 +96,9 @@ export default class SafeInfo extends React.Component {
         break;
       case 'validateOldPhone':
         editFormModalOkBtnProps.disabled = !getSession('user-info-oldPhone');
+        break;
+      case 'validatePhone':
+        editFormModalOkBtnProps.disabled = !getSession('user-info-verifyPhone');
         break;
       case 'validateNewEmail':
       case 'validateNewPhone':
@@ -178,6 +187,7 @@ export default class SafeInfo extends React.Component {
 
   @Bind()
   handleModalFormCancelDefault() {
+    setSession(`user-info-verifyPhone`, 0);
     this.renderModalFormItems = undefined;
     this.handleModalFormOk = this.handleModalFormOkDefault;
     this.setState({
@@ -232,52 +242,126 @@ export default class SafeInfo extends React.Component {
 
   @Bind()
   handlePasswordEdit() {
-    const { dispatch } = this.props;
+    const {
+      dispatch,
+      userInfo: { phoneCheckFlag },
+      modalProps,
+    } = this.props;
     this.renderModalFormItems = this.renderPasswordFormItems;
     this.handleModalFormOk = this.handlePasswordUpdate;
-    this.setState({
-      modalProps: {
-        title: intl.get('hiam.userInfo.view.message.title.form.password').d('更改密码'),
-        visible: true,
-        onCancel: this.handleModalFormCancelDefault,
-      },
-    });
     dispatch({
       type: 'userInfo/getPasswordRule',
       payload: { organizationId: getUserOrganizationId() },
+    }).then((res) => {
+      if (res && res.forceCodeVerify) {
+        if (res && phoneCheckFlag) {
+          this.setState({
+            modalProps: {
+              title: intl.get('hiam.userInfo.view.message.title.form.password').d('更改密码'),
+              visible: true,
+              onCancel: this.handleModalFormCancelDefault,
+            },
+          });
+        } else {
+          notification.warning({
+            message: intl
+              .get('hiam.userInfo.view.confirmBindPhone')
+              .d('当前用户未绑定手机号，请先绑定手机号。'),
+          });
+        }
+      } else {
+        this.setState({
+          modalProps: {
+            title: intl.get('hiam.userInfo.view.message.title.form.password').d('更改密码'),
+            visible: true,
+            onCancel: this.handleModalFormCancelDefault,
+          },
+        });
+      }
+    });
+    dispatch({
+      type: 'userInfo/updateState',
+      payload: {
+        modalProps: {
+          ...modalProps.validCache?.validatePhone,
+          ...modalProps,
+        },
+      },
     });
   }
 
   @Bind()
   handlePasswordUpdate(fieldsValue) {
-    const { publicKey, dispatch } = this.props;
+    const { publicKey, dispatch, passwordTipMsg = {} } = this.props;
     const { onPasswordUpdate } = this.props;
-    onPasswordUpdate({
-      password: encryptPwd(fieldsValue.password, publicKey),
-      originalPassword: encryptPwd(fieldsValue.originalPassword, publicKey),
-    }).then((res) => {
-      if (res && res.failed) {
-        notification.warning({
-          message: res.message,
-        });
-        if (res.message === '您的密码错误，还可以尝试0次') {
-          dispatch({
-            type: 'login/logout',
+    const captchaKey = getSession('user-info-verifyPhone');
+    if (passwordTipMsg.loginAgain) {
+      Modal.confirm({
+        title: `${intl
+          .get('hiam.userInfo.view.confirmLoginAgain')
+          .d('修改密码后需要重新登录，是否确认？')}`,
+        onOk() {
+          onPasswordUpdate({
+            password: encryptPwd(fieldsValue.password, publicKey),
+            originalPassword: encryptPwd(fieldsValue.originalPassword, publicKey),
+            phone: passwordTipMsg.forceCodeVerify ? fieldsValue.phone : undefined,
+            captcha: passwordTipMsg.forceCodeVerify ? fieldsValue.captcha : undefined,
+            captchaKey: passwordTipMsg.forceCodeVerify ? captchaKey : undefined,
+            businessScope: passwordTipMsg.forceCodeVerify ? 'UPDATE_PASSWORD' : undefined,
+          }).then((res) => {
+            if (res && res.failed) {
+              notification.warning({
+                message: res.message,
+              });
+              if (res.message === '您的密码错误，还可以尝试0次') {
+                dispatch({
+                  type: 'login/logout',
+                });
+              }
+            } else {
+              dispatch({
+                type: 'login/logout',
+              });
+            }
           });
+        },
+      });
+    } else {
+      onPasswordUpdate({
+        password: encryptPwd(fieldsValue.password, publicKey),
+        originalPassword: encryptPwd(fieldsValue.originalPassword, publicKey),
+        phone: passwordTipMsg.forceCodeVerify ? fieldsValue.phone : undefined,
+        captcha: passwordTipMsg.forceCodeVerify ? fieldsValue.captcha : undefined,
+        captchaKey: passwordTipMsg.forceCodeVerify ? captchaKey : undefined,
+        businessScope: passwordTipMsg.forceCodeVerify ? 'UPDATE_PASSWORD' : undefined,
+      }).then((res) => {
+        if (res && res.failed) {
+          notification.warning({
+            message: res.message,
+          });
+          if (res.message === '您的密码错误，还可以尝试0次') {
+            dispatch({
+              type: 'login/logout',
+            });
+          }
+        } else {
+          this.handleModalFormCancelDefault();
         }
-      } else {
-        this.handleModalFormCancelDefault();
-      }
-    });
+      });
+    }
   }
 
   @Bind()
   renderPasswordFormItems(form) {
     const {
-      userInfo: { loginName },
+      userInfo: { loginName, phone },
       passwordTipMsg = {},
+      modalProps,
+      modalProps: { validCodeSendLimitFlag, validCodeLimitTimeEnd },
+      postCaptchaLoading = false,
     } = this.props;
     const { getFieldDecorator } = form;
+    const { forceCodeVerify } = passwordTipMsg;
     const { validateNewPasswordNotSame, validatePasswordAnther } = this; // 验证改变了 this
     return [
       <FormItem
@@ -378,7 +462,55 @@ export default class SafeInfo extends React.Component {
           ],
         })(<Input type="password" />)}
       </FormItem>,
-    ];
+      forceCodeVerify && (
+        <FormItem
+          required
+          label={intl.get('hiam.userInfo.model.user.phone').d('手机号码')}
+          {...formItemLayout}
+        >
+          {getFieldDecorator('phone', {
+            initialValue: phone,
+          })(<Input disabled />)}
+        </FormItem>
+      ),
+      forceCodeVerify && (
+        <FormItem
+          required
+          label={intl.get('hiam.userInfo.model.user.phoneCaptcha').d('短信验证码')}
+          {...formItemLayout}
+        >
+          {getFieldDecorator('captcha', {
+            validateTrigger: 'onBlur',
+            rules: [
+              {
+                required: true,
+                message: intl.get('hzero.common.validation.notNull', {
+                  name: intl.get('hiam.userInfo.model.userInfo.phoneCaptcha').d('短信验证码'),
+                }),
+              },
+            ],
+          })(<Input style={{ width: 257, marginRight: 10 }} />)}
+          <Button
+            style={{ width: 90 }}
+            disabled={validCodeSendLimitFlag}
+            loading={postCaptchaLoading}
+            onClick={() => {
+              this.handleGainValidCodeBtnClick({
+                type: 'verifyPhone',
+                value: phone,
+                modalProps: { ...modalProps, step: 'validatePhone' },
+              });
+            }}
+          >
+            {validCodeSendLimitFlag ? (
+              <CountDown target={validCodeLimitTimeEnd} onEnd={this.handleValidCodeLimitEnd} />
+            ) : (
+              intl.get('hiam.userInfo.view.option.gainCaptcha').d('获取验证码')
+            )}
+          </Button>
+        </FormItem>
+      ),
+    ].filter(Boolean);
   }
 
   // phone
@@ -576,11 +708,11 @@ export default class SafeInfo extends React.Component {
    * @param {Object} ...params - 其他参数
    */
   @Bind()
-  handleGainValidCodeBtnClick({ type = 'oldPhone', value, ...params }) {
+  handleGainValidCodeBtnClick({ type = 'oldPhone', value, businessScope = 'self', ...params }) {
     const { dispatch, modalProps = {} } = this.props;
     dispatch({
       type: 'userInfo/postCaptcha',
-      payload: { type, value, modalProps, ...params },
+      payload: { type, value, modalProps, businessScope, ...params },
     });
   }
 
@@ -1343,7 +1475,6 @@ export default class SafeInfo extends React.Component {
             captcha,
             captchaKey: phoneCaptchaKey,
             userInfo,
-            businessScope: 'self',
           },
         }).then((res) => {
           if (res) {

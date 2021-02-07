@@ -31,6 +31,7 @@ import NormalDataHierarchies from '../NormalDataHierarchies';
 import NormalDataHierarchiesSelect from '../NormalDataHierarchiesSelect';
 
 import ThemeButton from './ThemeButton';
+import MarketClientButton from './MarketClientButton';
 
 import defaultUserAvatar from '../../../../assets/logo-usercenter-default.png';
 import trialInfo from '../../../../assets/trial-info.png';
@@ -303,6 +304,7 @@ class NormalHeader extends Component {
               );
             })}
           {isTraceLog && <DefaultTraceLog dispatch={dispatch} />}
+          {isUed && <MarketClientButton />}
           {isUed && <ThemeButton />}
           <DefaultNoticeIcon
             className={classNames(

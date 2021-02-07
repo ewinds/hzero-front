@@ -8,8 +8,9 @@
 
 import request from 'utils/request';
 import { HZERO_PLATFORM } from 'utils/config';
-import { parseParameters, isTenantRoleLevel } from 'utils/utils';
+import { parseParameters, isTenantRoleLevel, getCurrentOrganizationId } from 'utils/utils';
 
+const tenantId = getCurrentOrganizationId();
 function urlPrefix(params) {
   return `${HZERO_PLATFORM}/v1${isTenantRoleLevel() ? `/${params.tenantId}/` : '/'}`;
 }
@@ -53,7 +54,7 @@ export async function insertLovHeaders(params) {
  * @param {Array} params - 删除值集头
  */
 export async function deleteLovHeaders(params) {
-  return request(`${urlPrefix(params)}lov-headers`, {
+  return request(`${urlPrefix({ tenantId })}lov-headers/delete`, {
     method: 'DELETE',
     body: params,
   });

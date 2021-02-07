@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import React, { Fragment, PureComponent } from 'react';
 import { Form, Input, Modal, Popconfirm, Table } from 'hzero-ui';
 import { isEmpty, isUndefined } from 'lodash';
@@ -185,6 +186,12 @@ export default class Drawer extends PureComponent {
                     .get('hzero.common.validation.code')
                     .d('大小写及数字，必须以字母、数字开头，可包含“-”、“_”、“.”、“/”'),
                 },
+                {
+                  max: 150,
+                  message: intl.get('hzero.common.validation.max', {
+                    max: 150,
+                  }),
+                },
               ],
               initialValue: tableRecord ? tableRecord.databaseCode : '',
             })(<Input trim inputChinese={false} disabled={!isCreate} />)}
@@ -199,6 +206,12 @@ export default class Drawer extends PureComponent {
                   required: true,
                   message: intl.get('hzero.common.validation.notNull', {
                     name: intl.get('hpfm.database.model.database.dataSourceName').d('数据库描述'),
+                  }),
+                },
+                {
+                  max: 150,
+                  message: intl.get('hzero.common.validation.max', {
+                    max: 150,
                   }),
                 },
               ],
@@ -258,6 +271,12 @@ export default class Drawer extends PureComponent {
                     name: intl.get('hpfm.database.model.database.tablePrefix').d('表前缀'),
                   }),
                 },
+                {
+                  max: 30,
+                  message: intl.get('hzero.common.validation.max', {
+                    max: 30,
+                  }),
+                },
               ],
               initialValue: tableRecord ? tableRecord.tablePrefix : '',
             })(<Input />)}
@@ -304,7 +323,7 @@ export default class Drawer extends PureComponent {
               dataSource={tenantData.content}
               rowKey="databaseTenantId"
               pagination={tenantPagination}
-              onChange={page => onChangeTenant(page)}
+              onChange={(page) => onChangeTenant(page)}
               loading={loading}
             />
           </Fragment>

@@ -8,7 +8,7 @@
 
 import { getResponse, isTenantRoleLevel, createPagination } from 'utils/utils';
 import { VERSION_IS_OP } from 'utils/config';
-import { queryIdpValue, queryUnifyIdpValue } from 'hzero-front/lib/services/api';
+import { queryUnifyIdpValue, queryMapIdpValue } from 'hzero-front/lib/services/api';
 import {
   queryLovHeadersList,
   updateLovHeaders,
@@ -31,24 +31,31 @@ export default {
     lovType: [], // 值集类型快码
     lovTypeFilter: [], // 屏蔽SQL的值集类型编码
     lovId: null,
+    requestMethods: [], // 请求方式值集
     pagination: {}, // 列表分页数据
   },
 
   effects: {
     // 查询值集头列表
     *queryLovHeadersList({ payload }, { call, put, all }) {
-      const params = [call(queryLovHeadersList, payload), call(queryIdpValue, 'HPFM.LOV.LOV_TYPE')];
+      const params = [
+        call(queryLovHeadersList, payload),
+        call(queryMapIdpValue, {
+          lovType: 'HPFM.LOV.LOV_TYPE',
+          requestMethods: 'HPFM.REQUEST_METHOD',
+        }),
+      ];
       if (!VERSION_IS_OP && isTenantRoleLevel()) {
         params.push(call(queryUnifyIdpValue, 'HPFM.LOV.LOV_TYPE', { tag: 'permit_all' }));
       }
       const [listResult, lovTypeResult, lovTypeFilterResult] = yield all(params);
       const list = getResponse(listResult);
-      const lovType = getResponse(lovTypeResult);
+      const { lovType, requestMethods } = getResponse(lovTypeResult);
       const lovTypeFilter = getResponse(lovTypeFilterResult);
       const pagination = createPagination(list);
       yield put({
         type: 'updateState',
-        payload: { list, lovType, lovTypeFilter, pagination },
+        payload: { list, lovType, requestMethods, lovTypeFilter, pagination },
       });
     },
     // 根据 ID 查询值集头

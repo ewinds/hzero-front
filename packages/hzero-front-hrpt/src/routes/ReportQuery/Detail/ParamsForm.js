@@ -1,9 +1,20 @@
 import React, { PureComponent } from 'react';
-import { Form, Input, Spin, Row, Col, Button, DatePicker, InputNumber } from 'hzero-ui';
+import {
+  Form,
+  Input,
+  Spin,
+  Row,
+  Col,
+  DatePicker,
+  InputNumber,
+  Button,
+  Select,
+  Radio,
+  Checkbox,
+} from 'hzero-ui';
 import { Bind } from 'lodash-decorators';
 import moment from 'moment';
 
-import Checkbox from 'components/Checkbox';
 import Lov from 'components/Lov';
 import ValueList from 'components/ValueList';
 
@@ -21,6 +32,7 @@ const formLayout = {
   wrapperCol: { span: 16 },
 };
 
+const CheckboxGroup = Checkbox.Group;
 /**
  * 数据集查询表单
  * @extends {PureComponent} - React.PureComponent
@@ -57,64 +69,69 @@ export default class FilterForm extends PureComponent {
   getCurrentComponent(item) {
     const { dateTimeFormat } = this.state;
     let component;
+    const style = {
+      width: `${item.width}px`,
+      height: `${item.height}px`,
+    };
+    const list = item.value || [];
     switch (item.type) {
       case 'Lov': // Lov
         component = (
           <Lov
             code={item.valueSource}
             originTenantId={organizationId}
-            style={{ width: `${item.width}px`, height: `${item.height}px` }}
+            style={style}
+            queryParams={{ tenantId: organizationId }}
           />
         );
         break;
       case 'Input': // 文本
-        component = <Input style={{ width: `${item.width}px`, height: `${item.height}px` }} />;
+        component = <Input style={style} />;
         break;
-      case 'Checkbox': // 勾选框
-        component = <Checkbox />;
+      case 'Checkbox': // 多选框
+        component = (
+          <CheckboxGroup>
+            {list.map((n) => {
+              return <Checkbox value={n.value}>{n.meaning}</Checkbox>;
+            })}
+          </CheckboxGroup>
+        );
         break;
       case 'Select': // 下拉框
         component = item.multipled ? (
           <ValueList
             mode="multiple"
-            style={{ width: `${item.width}px`, height: `${item.height}px` }}
+            style={style}
             options={item.value}
             allowClear={!item.isRequired}
           />
         ) : (
-          <ValueList
-            style={{ width: `${item.width}px`, height: `${item.height}px` }}
-            options={item.value}
-            allowClear={!item.isRequired}
-          />
+          <ValueList style={style} options={item.value} allowClear={!item.isRequired} />
+        );
+        break;
+      case 'Radiobox': // 单择框
+        component = (
+          <Radio.Group>
+            {list.map((n) => {
+              return <Radio value={n.value}>{n.meaning}</Radio>;
+            })}
+          </Radio.Group>
         );
         break;
       case 'DatePicker': // 日期选择框
-        component = (
-          <DatePicker
-            style={{ width: `${item.width}px`, height: `${item.height}px` }}
-            placeholder=""
-            format={this.props.dateFormat}
-          />
-        );
+        component = <DatePicker style={style} placeholder="" format={this.props.dateFormat} />;
         break;
       case 'DatetimePicker': // 日期时间选择框
-        component = (
-          <DatePicker
-            style={{ width: `${item.width}px`, height: `${item.height}px` }}
-            showTime
-            placeholder=""
-            format={dateTimeFormat}
-          />
-        );
+        component = <DatePicker style={style} showTime placeholder="" format={dateTimeFormat} />;
         break;
       case 'InputNumber': // 数字框
-        component = (
-          <InputNumber style={{ width: `${item.width}px`, height: `${item.height}px` }} />
-        );
+        component = <InputNumber style={style} />;
+        break;
+      case 'MulInput': // 多值文本框
+        component = <Select style={style} mode="tags" open={false} allowClear bordered={false} />;
         break;
       default:
-        component = <Input style={{ width: `${item.width}px`, height: `${item.height}px` }} />;
+        component = <Input style={style} />;
         break;
     }
     return component;
@@ -129,17 +146,17 @@ export default class FilterForm extends PureComponent {
     } = this.props;
     return paramList.map((item) => {
       let { defaultValue } = item;
-      if (item.type === 'Select' || item.type === 'Lov') {
+      if (item.type === 'Select' || item.type === 'Lov' || item.type === 'Checkbox') {
         const newValue = Array.isArray(item.value) ? item.value : item.value.split(',');
         const defaultFlag = newValue.some((items) => items.value === item.defaultValue);
         if (item.multipled) {
           defaultValue = item.defaultValue && defaultFlag ? item.defaultValue.split(',') : [];
         }
         defaultValue = defaultFlag ? item.defaultValue : undefined;
-      } else if (item.type === 'Checkbox') {
-        defaultValue = item.defaultValue ? parseInt(item.defaultValue, 10) : undefined;
       } else if (item.type === 'DatePicker') {
         defaultValue = item.defaultValue ? moment(item.defaultValue, dateFormat) : undefined;
+      } else if (item.type === 'MulInput') {
+        defaultValue = item.defaultValue ? item.defaultValue.split(',') : [];
       }
 
       return (
@@ -186,16 +203,14 @@ export default class FilterForm extends PureComponent {
                 <Col span={18}>{this.renderParamGroup(formElements.slice(0, 3))}</Col>
                 {formElements.length !== 0 && (
                   <Col span={6}>
-                    <div style={{ marginTop: 5 }}>
-                      <Button onClick={this.toggleForm} style={{ marginRight: 10 }}>
-                        {expandForm
-                          ? intl.get('hzero.common.button.collected').d('收起查询')
-                          : intl.get('hzero.common.button.viewMore').d('更多查询')}
-                      </Button>
-                      <Button onClick={this.handleReset}>
-                        {intl.get('hzero.common.button.reset').d('重置')}
-                      </Button>
-                    </div>
+                    <Button onClick={this.toggleForm} style={{ marginRight: 10 }}>
+                      {expandForm
+                        ? intl.get('hzero.common.button.collected').d('收起查询')
+                        : intl.get('hzero.common.button.viewMore').d('更多查询')}
+                    </Button>
+                    <Button onClick={this.handleReset}>
+                      {intl.get('hzero.common.button.reset').d('重置')}
+                    </Button>
                   </Col>
                 )}
               </Row>

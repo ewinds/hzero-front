@@ -106,7 +106,7 @@ export default class Drawer extends React.Component {
                       <Lov
                         code="HPFM.TENANT"
                         textValue={tenantName}
-                        disabled={!!tenantId || tenantId === 0}
+                        disabled={!!tenantId || String(tenantId) === '0'}
                       />
                     )}
                   </Form.Item>
@@ -193,7 +193,7 @@ export default class Drawer extends React.Component {
                     ],
                   })(
                     <Select>
-                      {typeList.map(item => {
+                      {typeList.map((item) => {
                         return (
                           <Option label={item.meaning} value={item.value} key={item.value}>
                             {item.meaning}

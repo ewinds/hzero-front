@@ -7,14 +7,10 @@
 import React from 'react';
 import { Form, Modal, Spin, Input, Row, Col, Select } from 'hzero-ui';
 import { Bind } from 'lodash-decorators';
-import { isNil } from 'lodash';
-
-import Lov from 'components/Lov';
 
 import intl from 'utils/intl';
 import { MODAL_FORM_ITEM_LAYOUT } from 'utils/constants';
-import { getCurrentOrganizationId } from 'utils/utils';
-import { CODE_UPPER } from 'utils/regExp';
+import { CODE } from 'utils/regExp';
 
 const FormItem = Form.Item;
 const { Option } = Select;
@@ -24,7 +20,6 @@ export default class Drawer extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      tenantId: getCurrentOrganizationId(),
       visible: true,
       ouathVisible: true,
     };
@@ -75,16 +70,11 @@ export default class Drawer extends React.Component {
       form,
       typeList,
       editflag,
-      isSiteFlag,
       initData = {},
     } = this.props;
     const { visible, ouathVisible } = this.state;
     const { getFieldDecorator } = form;
     const {
-      tenantName,
-      companyId,
-      tenantId,
-      companyName,
       domainUrl,
       ssoTypeCode,
       samlMetaUrl,
@@ -112,66 +102,6 @@ export default class Drawer extends React.Component {
         <Spin spinning={initLoading}>
           <Form>
             <Row>
-              <Col>
-                {isSiteFlag && (
-                  <FormItem
-                    label={intl.get('hiam.ssoConfig.model.ssoConfig.tenantName').d('租户名称')}
-                    {...MODAL_FORM_ITEM_LAYOUT}
-                  >
-                    {getFieldDecorator('tenantId', {
-                      initialValue: tenantId,
-                      rules: [
-                        {
-                          required: true,
-                          message: intl.get('hzero.common.validation.notNull', {
-                            name: intl
-                              .get('hiam.ssoConfig.model.ssoConfig.tenantName')
-                              .d('租户名称'),
-                          }),
-                        },
-                      ],
-                    })(
-                      <Lov
-                        code="HPFM.TENANT"
-                        textValue={tenantName}
-                        onChange={(val) => {
-                          this.setState({ tenantId: val });
-                          form.setFieldsValue({
-                            companyId: undefined,
-                          });
-                        }}
-                        disabled={editflag}
-                        allowClear
-                      />
-                    )}
-                  </FormItem>
-                )}
-                <FormItem
-                  label={intl.get('hiam.ssoConfig.model.ssoConfig.companyName').d('公司名称')}
-                  {...MODAL_FORM_ITEM_LAYOUT}
-                >
-                  {getFieldDecorator('companyId', {
-                    initialValue: companyId,
-                  })(
-                    <Lov
-                      textValue={companyName}
-                      queryParams={{
-                        tenantId: this.state.tenantId,
-                      }}
-                      code="HPFM.COMPANY"
-                      disabled={
-                        // eslint-disable-next-line no-nested-ternary
-                        !isSiteFlag
-                          ? false
-                          : editflag
-                          ? true
-                          : isNil(form.getFieldValue('tenantId'))
-                      }
-                      allowClear
-                    />
-                  )}
-                </FormItem>
-              </Col>
               <Col>
                 <FormItem
                   label={intl.get('hiam.ssoConfig.model.ssoConfig.domainUrl').d('单点登录域名')}
@@ -514,13 +444,13 @@ export default class Drawer extends React.Component {
                         }),
                       },
                       {
-                        pattern: CODE_UPPER,
+                        pattern: CODE,
                         message: intl
-                          .get('hzero.common.validation.codeUpper')
-                          .d('全大写及数字，必须以字母、数字开头，可包含“-”、“_”、“.”、“/”'),
+                          .get('hzero.common.validation.code')
+                          .d('大小写及数字，必须以字母、数字开头，可包含“-”、“_”、“.”、“/”'),
                       },
                     ],
-                  })(<Input typeCase="upper" />)}
+                  })(<Input />)}
                 </FormItem>
               </Col>
             </Row>

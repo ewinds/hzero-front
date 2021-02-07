@@ -11,6 +11,7 @@ import { Bind } from 'lodash-decorators';
 import { isUndefined } from 'lodash';
 
 import Upload from 'components/Upload/UploadButton';
+import TLEditor from 'components/TLEditor';
 import Switch from 'components/Switch';
 import Lov from 'components/Lov';
 
@@ -131,6 +132,7 @@ export default class CreateDrawer extends Component {
       driverPath = '',
       description = '',
       enabledFlag = 1,
+      _token,
     } = initData;
     const { getFieldDecorator } = form;
     const { uploadLoading } = this.state;
@@ -212,7 +214,16 @@ export default class CreateDrawer extends Component {
                     }),
                   },
                 ],
-              })(<Input disabled={!isUndefined(driverId)} />)}
+              })(
+                <TLEditor
+                  label={intl
+                    .get('hpfm.dataSourceDriver.model.dataSourceDriver.driverName')
+                    .d('驱动名称')}
+                  field="driverName"
+                  token={_token}
+                  disabled={!isUndefined(driverId)}
+                />
+              )}
             </Form.Item>
             <Form.Item
               {...MODAL_FORM_ITEM_LAYOUT}

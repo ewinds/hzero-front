@@ -7,6 +7,8 @@
  */
 import { notification } from 'hzero-ui';
 import { isArray, isEmpty, sortBy, uniq } from 'lodash';
+import moment from 'moment';
+import uuid from 'uuid/v4';
 
 import { GLOBAL_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '../constants';
 import intl from '../intl';
@@ -51,7 +53,7 @@ export function tableScrollWidth(columns: any[] = [], fixWidth = 0) {
 export function filterNullValueObject(obj) {
   const result = {};
   if (obj && Object.keys(obj).length >= 1) {
-    Object.keys(obj).forEach(key => {
+    Object.keys(obj).forEach((key) => {
       if (key && obj[key] !== undefined && obj[key] !== '' && obj[key] !== null) {
         // 如果查询的条件不为空
         if (isArray(obj[key]) && obj[key].length === 0) {
@@ -113,8 +115,8 @@ export function parseParameters(params: any = {}) {
   let size = pageSize;
   const sourceSize = [...PAGE_SIZE_OPTIONS];
   if (!sourceSize.includes(`${pageSize}`)) {
-    const sizes = sortBy(uniq([...sourceSize, `${pageSize}`]), i => +i);
-    const index = sizes.findIndex(item => +item === pageSize);
+    const sizes = sortBy(uniq([...sourceSize, `${pageSize}`]), (i) => +i);
+    const index = sizes.findIndex((item) => +item === pageSize);
     size = +sizes[index];
   }
   return {
@@ -161,7 +163,7 @@ export function getResponse(response, errorCallback?) {
  */
 export function listenDownloadError(errorCode = '', msg = '', noticeType = 'error') {
   // 监听表单下载错误时 postMessage 事件
-  window.addEventListener('message', e => {
+  window.addEventListener('message', (e) => {
     const {
       data: { type, message },
     } = e;
@@ -180,7 +182,7 @@ export function listenDownloadError(errorCode = '', msg = '', noticeType = 'erro
 export function getCodeMeaning(value, code: any[] = []) {
   let result;
   if (value && !isEmpty(code)) {
-    const codeList = code.filter(n => n.value === value);
+    const codeList = code.filter((n) => n.value === value);
     if (!isEmpty(codeList)) {
       result = codeList[0].meaning;
     }
@@ -228,7 +230,7 @@ export function getRefFormData(ref) {
 
 export function getPlainNode(nodeList, parentPath = '') {
   const arr: any = [];
-  nodeList.forEach(node => {
+  nodeList.forEach((node) => {
     const item = node;
     item.path = `${parentPath}/${item.path || ''}`.replace(/\/+/g, '/');
     item.exact = true;
@@ -252,7 +254,7 @@ export function getEditTableForm(dataSource) {
   const formList = [];
   const fetchForm = (source, list) => {
     if (Array.isArray(source)) {
-      source.forEach(item => {
+      source.forEach((item) => {
         if (item.$form) {
           list.push(item.$form);
         }
@@ -320,4 +322,16 @@ export function getEditTableData(
   };
   fetchForm(dataSource, paramsList);
   return errList.length > 0 ? [] : paramsList;
+}
+
+export function getRequestId() {
+  const time = moment().format('x').split('').reverse().join('');
+  const time1 = time.substring(0, 3);
+  const time2 = time.substring(3, 7);
+  const time3 = time.substring(7);
+  const id = uuid().replace(/-/g, '');
+  const uuid1 = id.substring(0, 12);
+  const uuid2 = id.substring(12);
+
+  return time1 + uuid1 + time2 + uuid2 + time3;
 }

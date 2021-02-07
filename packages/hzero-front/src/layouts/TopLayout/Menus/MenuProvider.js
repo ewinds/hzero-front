@@ -76,7 +76,7 @@ class MenuProvider extends Component {
   }
 
   render() {
-    const { language, children, menuLoad } = this.props;
+    const { language, children, menuLoad, menuQuickIndex } = this.props;
     const { menus, leafMenus, activeMenus, mainMenu } = this.state;
     return (
       <MenuContext.Provider
@@ -87,6 +87,7 @@ class MenuProvider extends Component {
           language,
           mainMenu,
           menuLoad,
+          menuQuickIndex,
           onMainMenuChange: this.handleMainMenuChange,
         }}
       >
@@ -101,4 +102,5 @@ export default connect(({ global = {} }) => ({
   menus: global.menu,
   menuLoad: global.menuLoad,
   activeTabKey: global.activeTabKey,
+  menuQuickIndex: global.menuQuickIndex,
 }))(MenuProvider);

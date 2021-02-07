@@ -7,6 +7,7 @@
 
 import * as React from 'react';
 import { connect } from 'dva';
+import queryString from 'querystring';
 
 import { getCurrentLanguage } from 'utils/utils';
 import { loadLayout } from '../../customize/layout';
@@ -38,7 +39,7 @@ export class DefaultLayout extends React.Component {
       },
       () => {
         loadLayout(layoutName)()
-          .then(Layout => {
+          .then((Layout) => {
             const { language = '' } = this.state;
             // 设置中文时的表单样式处理
             if (language && language !== 'zh_CN') {
@@ -58,9 +59,16 @@ export class DefaultLayout extends React.Component {
 
   componentDidUpdate(prevProps) {
     const { menuLayout } = this.props;
-    const { menuLayout: prevMenuLayout } = prevProps;
+    const { menuLayout: prevMenuLayout, location, dispatch, menuQuickIndex } = prevProps;
     if (menuLayout !== prevMenuLayout) {
       this.loadCurrentLayout(menuLayout);
+    }
+    if ((location.pathname === '/' || location.pathname === '/workplace') && !menuQuickIndex) {
+      const { menu } = queryString.parse(location.search.substring(1));
+      dispatch({
+        type: 'global/updateState',
+        payload: { menuQuickIndex: menu },
+      });
     }
   }
 
@@ -78,10 +86,12 @@ export class DefaultLayout extends React.Component {
   }
 }
 
-export default connect(({ user = {} }) => {
+export default connect(({ user = {}, global = {} }) => {
   const { currentUser = {} } = user;
-  const { menuLayout = 'default-layout' } = currentUser;
+  const { menuLayout = 'inline' } = currentUser;
+  const { menuQuickIndex } = global;
   return {
     menuLayout,
+    menuQuickIndex,
   };
 })(DefaultLayout);

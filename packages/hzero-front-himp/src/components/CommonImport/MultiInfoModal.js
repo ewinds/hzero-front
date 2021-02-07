@@ -51,7 +51,7 @@ export default class MultiInfoModal extends React.Component {
             <FormItem label={item.meaning || item.lang} key={item.lang} {...formItemLayout}>
               {getFieldDecorator(item.lang, {
                 initialValue: item.value,
-              })(<Input />)}
+              })(<Input dbc2sbc={false} />)}
             </FormItem>
           ))}
         </Form>

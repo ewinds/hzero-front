@@ -10,7 +10,7 @@ import { Spin } from 'hzero-ui';
 import { connect } from 'dva';
 import { routerRedux } from 'dva/router';
 import { stringify } from 'qs';
-import { isArray, isEmpty, isFunction, isNumber, isObject, isString } from 'lodash';
+import { isArray, isEmpty, isFunction, isNumber, isObject, isString, isUndefined } from 'lodash';
 import { Bind } from 'lodash-decorators';
 import queryString from 'query-string';
 
@@ -147,6 +147,11 @@ function isJSON(str) {
       loading.effects['roleManagement/queryRoleChildren'] ||
       loading.effects['roleManagement/queryRoleAll'],
     fetchRoleChildrenLoading: loading.effects['roleManagement/queryRoleChildren'],
+    // 修改角色管理树形页面 Modify by Nemo @2020119
+    fetchTreeRoleRootLoading:
+      loading.effects['roleManagement/fetchTreeRoleRoot'] ||
+      loading.effects['roleManagement/fetchTreeRoleChildren'],
+    fetchTreeRoleChildrenLoading: loading.effects['roleManagement/fetchTreeRoleChildren'],
   })
 )
 @formatterCollections({ code: ['hiam.roleManagement', 'hiam.authority', 'hiam.securityGroup'] })
@@ -157,7 +162,7 @@ export default class RoleManagement extends React.Component {
     this.fetchRoleSourceCode = this.fetchRoleSourceCode.bind(this);
     this.fetchAssignLevelCode = this.fetchAssignLevelCode.bind(this);
     this.fetchMemberRolesUsers = this.fetchMemberRolesUsers.bind(this);
-    this.fetchCurrentRole = this.fetchCurrentRole.bind(this);
+    // this.fetchCurrentRole = this.fetchCurrentRole.bind(this);
     this.redirectCreate = this.redirectCreate.bind(this);
     this.setClientsDrawerVisible = this.setClientsDrawerVisible.bind(this);
     this.openMembersDrawer = this.openMembersDrawer.bind(this);
@@ -195,8 +200,8 @@ export default class RoleManagement extends React.Component {
    * render后请求页面数据
    */
   componentDidMount() {
-    const { roleManagement = {}, location = {}, dispatch } = this.props;
-    const { code, list = {} } = roleManagement;
+    const { roleManagement = {}, dispatch } = this.props;
+    const { code } = roleManagement;
 
     const isTenant = isTenantRoleLevel();
     if (isTenant) {
@@ -213,26 +218,67 @@ export default class RoleManagement extends React.Component {
       type: 'roleManagement/init',
     });
 
-    this.fetchCurrentRole();
+    // this.fetchCurrentRole();
+    // dispatch({
+    //   type: 'roleManagement/updateState',
+    //   payload: {
+    //     list: {},
+    //   },
+    // });
     dispatch({
-      type: 'roleManagement/updateState',
-      payload: {
-        list: {},
-      },
+      type: 'roleManagement/fetchPasswordPolicyList',
     });
-    this.fetchRoleRoot({ parentRoleId: null });
+    // 修改角色管理树形页面接口 Modify by Nemo @2020119
+    this.fetchTreeRoleRoot();
+    // this.fetchRoleRoot({ parentRoleId: null, enabled: 1 });
     this.fetchSearchLabels();
     // if (isEmpty(list.dataSource) || (location.state || {}).refresh) {
     //   this.fetchRoleRoot({ parentRoleId: -1 });
     // }
-    if (isEmpty(list.dataSource) || (location.state || {}).refresh) {
-      this.fetchList();
-    }
+    // if (isEmpty(list.dataSource) || (location.state || {}).refresh) {
+    //   this.fetchList();
+    // }
 
     if (isEmpty(code['HIAM.ROLE_SOURCE'])) {
       this.fetchRoleSourceCode();
     }
   }
+
+  @Bind()
+  fetchTreeRoleRoot(params) {
+    const { dispatch } = this.props;
+    this.setState(
+      {
+        expandedRowKeys: [],
+        isExpandAll: false,
+      },
+      () => {
+        dispatch({
+          type: 'roleManagement/fetchTreeRoleRoot',
+          payload: {
+            ...params,
+            enabled: 1,
+            ...this.queryForm?.getFieldsValue(),
+          },
+        });
+      }
+    );
+  }
+
+  @Bind()
+  fetchTreeRoleChildren(params) {
+    const { dispatch } = this.props;
+    const { getFieldsValue = (e) => e } = this.queryForm;
+    dispatch({
+      type: 'roleManagement/fetchTreeRoleChildren',
+      payload: {
+        ...params,
+        ...getFieldsValue(),
+      },
+    });
+  }
+
+  // END
 
   // 树形列表相关
 
@@ -275,12 +321,15 @@ export default class RoleManagement extends React.Component {
       isExpandAll: !isEmpty(filterNullValueObject(params)),
     });
     const fieldValues = isEmpty(params) ? {} : filterNullValueObject(params);
-    if (isEmpty(fieldValues)) {
+    if (
+      isEmpty(fieldValues) ||
+      (Object.keys(fieldValues).length === 1 && !isUndefined(fieldValues.enabled))
+    ) {
       this.setState({
         isHaveParams: false,
       });
       // 无查询条件则只展示树形列表根节点
-      this.fetchRoleRoot({ parentRoleId: null });
+      this.fetchRoleRoot({ parentRoleId: null, ...fieldValues });
     } else {
       this.setState({
         isHaveParams: true,
@@ -332,10 +381,10 @@ export default class RoleManagement extends React.Component {
         payload: {
           treeList: {
             list: treeList.list,
-            pagination: {},
+            // pagination: {},
             defaultTreeExpandedRowKeys: expanded
-              ? nextDefaultTreeExpandedRowKeys.concat(record.id)
-              : nextDefaultTreeExpandedRowKeys.filter((o) => o !== record.id),
+              ? nextDefaultTreeExpandedRowKeys.concat(record.levelPath)
+              : nextDefaultTreeExpandedRowKeys.filter((o) => o !== record.levelPath),
           },
         },
       });
@@ -343,12 +392,18 @@ export default class RoleManagement extends React.Component {
       this.setState({
         currentRoleId: record.id,
         expandedRowKeys: expanded
-          ? expandedRowKeys.concat(record.id)
-          : expandedRowKeys.filter((o) => o !== record.id),
+          ? expandedRowKeys.concat(record.levelPath)
+          : expandedRowKeys.filter((o) => o !== record.levelPath),
       });
 
       if (expanded && isEmpty(record.children)) {
-        this.fetchRoleChildren({ parentRoleId: record.id, levelPath: record.levelPath });
+        const { getFieldsValue = (e) => e } = this.queryForm;
+        this.fetchTreeRoleChildren({
+          // tempParentRoleId:
+          parentRoleId: record.id,
+          levelPath: record.levelPath,
+          enabled: getFieldsValue()?.enabled,
+        });
       }
     }
   }
@@ -358,20 +413,25 @@ export default class RoleManagement extends React.Component {
    */
   @Bind()
   handleListRequest() {
-    const { getFieldsValue = (e) => e } = this.queryForm;
-    const { dispatch } = this.props;
-    const formValues = getFieldsValue();
-    const isEmptyForm = isEmpty(formValues) || isEmpty(filterNullValueObject(formValues));
-    if (isEmptyForm) {
-      // 无查询条件则只展示树形列表根节点
-      this.fetchRoleRoot({ parentRoleId: null });
-    } else {
-      // 有查询条件则全量查询无分页
-      dispatch({
-        type: 'roleManagement/queryRoleAll',
-        payload: getFieldsValue(),
-      });
-    }
+    // const { getFieldsValue = (e) => e } = this.queryForm;
+    // const { dispatch } = this.props;
+    // const formValues = getFieldsValue();
+    // const isEmptyForm = isEmpty(formValues) || isEmpty(filterNullValueObject(formValues));
+    // if (
+    //   isEmptyForm ||
+    //   (Object.keys(filterNullValueObject(formValues)).length === 1 &&
+    //     !isUndefined(filterNullValueObject(formValues).enabled))
+    // ) {
+    //   // 无查询条件则只展示树形列表根节点
+    //   this.fetchTreeRoleRoot();
+    // } else {
+    //   // 有查询条件则全量查询无分页
+    //   dispatch({
+    //     type: 'roleManagement/queryRoleAll',
+    //     payload: getFieldsValue(),
+    //   });
+    // }
+    this.fetchTreeRoleRoot();
   }
 
   // #region fetch data
@@ -482,16 +542,16 @@ export default class RoleManagement extends React.Component {
     return dispatch({ type: 'roleManagement/queryPermissionMenus', roleId, params });
   }
 
-  fetchCurrentRole() {
-    const { dispatch } = this.props;
-    return dispatch({ type: 'roleManagement/queryCurrentRole' }).then((res) => {
-      if (res) {
-        this.setState({
-          currentRole: res,
-        });
-      }
-    });
-  }
+  // fetchCurrentRole() {
+  //   const { dispatch } = this.props;
+  //   return dispatch({ type: 'roleManagement/queryCurrentRole' }).then((res) => {
+  //     if (res) {
+  //       this.setState({
+  //         currentRole: res,
+  //       });
+  //     }
+  //   });
+  // }
 
   // #endregion
 
@@ -786,6 +846,14 @@ export default class RoleManagement extends React.Component {
    */
   handleAction(action, record) {
     const { dispatch = (e) => e } = this.props;
+    let parentRecord;
+    if (record.rootElement) {
+      parentRecord = record;
+    } else {
+      // eslint-disable-next-line prefer-destructuring
+      parentRecord = record.rootParentInfo;
+    }
+    // const { rootParentInfo: parentRecord } = record;
     const openDetail = (actionType, options = {}) => {
       if (!isEmpty(actionType)) {
         dispatch({
@@ -794,11 +862,37 @@ export default class RoleManagement extends React.Component {
         });
         this.setState({
           actionType,
+          // currentRowData:
+          //   // eslint-disable-next-line no-nested-ternary
+          //   actionType === 'create'
+          //     ? { ...record, parentRoleName: record.name, parentRoleTenantName: record.tenantName }
+          //     : // eslint-disable-next-line no-nested-ternary
+          //     actionType === 'edit' || actionType === 'copy'
+          //     ? { ...record }
+          //     : actionType === 'inherit'
+          //     ? {
+          //         ...record,
+          //         inheritedRoleName: record.name,
+          //         inheritedRoleTenantName: record.tenantName,
+          //       }
+          //     : {},
           currentRowData:
-            actionType === 'create' ||
-            actionType === 'edit' ||
-            actionType === 'copy' ||
-            actionType === 'inherit'
+            // eslint-disable-next-line no-nested-ternary
+            actionType === 'create' || actionType === 'copy' || actionType === 'inherit'
+              ? {
+                  ...record,
+                  parentRoleId: parentRecord.id,
+                  parentRoleName: parentRecord.name,
+                  parentRoleTenantId: parentRecord.tenantId,
+                  parentRoleTenantName: parentRecord.tenantName,
+                  parentRoleAdminFlag: parentRecord.adminFlag,
+                  inheritRoleId: record.id,
+                  inheritRoleLevel: record.level,
+                  inheritedRoleName: record.name,
+                  inheritedRoleTenantName: record.tenantName,
+                  inheritedRoleTenantId: record.tenantId,
+                }
+              : actionType === 'edit'
               ? record
               : {},
           detailDrawerVisible: true,
@@ -1023,6 +1117,27 @@ export default class RoleManagement extends React.Component {
     });
   }
 
+  @Bind()
+  fetchUserList(payload) {
+    const { dispatch } = this.props;
+    return dispatch({
+      type: 'roleManagement/fetchUserList',
+      payload,
+    });
+  }
+
+  @Bind()
+  clearMemberList() {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'roleManagement/updateState',
+      payload: {
+        memberModalList: [],
+        memberModalPagination: {},
+      },
+    });
+  }
+
   /**
    * 角色取消分配安全组
    * @param {array} selectedRows - 选中的安全组集合
@@ -1195,16 +1310,16 @@ export default class RoleManagement extends React.Component {
   handleSaveMembers(data, isEdit = false, cb) {
     const {
       dispatch,
-      roleManagement: { list },
+      // roleManagement: { list },
     } = this.props;
-    const { getFieldsValue = (e) => e } = this.queryForm;
+    // const { getFieldsValue = (e) => e } = this.queryForm;
     dispatch({
       type: 'roleManagement/saveMembers',
       data,
       isEdit,
     }).then((res) => {
       if (res) {
-        this.fetchList({ page: list.pagination, ...getFieldsValue() } || {});
+        // this.fetchList({ page: list.pagination, ...getFieldsValue() } || {});
         if (isFunction(cb)) {
           cb();
         }
@@ -1354,7 +1469,7 @@ export default class RoleManagement extends React.Component {
   @Bind()
   onListChange(page) {
     const { getFieldsValue = (e) => e } = this.queryForm;
-    this.fetchRoleRoot({ page, ...getFieldsValue() });
+    this.fetchTreeRoleRoot({ page, ...getFieldsValue() });
   }
 
   // 角色分配卡片
@@ -1602,6 +1717,51 @@ export default class RoleManagement extends React.Component {
   }
 
   @Bind()
+  fetchClientListModal(payload) {
+    const { dispatch } = this.props;
+    return dispatch({
+      type: 'roleManagement/fetchClientList',
+      payload,
+    });
+  }
+
+  @Bind()
+  handleModalClientSave(data = []) {
+    const {
+      dispatch,
+      roleManagement: { clientList = [], clientPagination = {} },
+    } = this.props;
+    const { currentRowData } = this.state;
+    const newData = data.map((i) => ({
+      ...i,
+      _status: 'create',
+      memberId: i.id,
+      assignLevel: currentRowData.assignLevel,
+      assignLevelMeaning: currentRowData.assignLevelMeaning,
+      assignLevelValueMeaning: currentRowData.assignLevelValueMeaning,
+    }));
+    dispatch({
+      type: 'roleManagement/updateState',
+      payload: {
+        clientList: [...newData, ...clientList],
+        clientPagination: addItemToPagination(clientList.length, clientPagination),
+      },
+    });
+  }
+
+  @Bind()
+  clearClientModalList() {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'roleManagement/updateState',
+      payload: {
+        clientModalList: [],
+        clientModalPagination: {},
+      },
+    });
+  }
+
+  @Bind()
   handleAddCard(params = {}) {
     const {
       dispatch,
@@ -1684,8 +1844,8 @@ export default class RoleManagement extends React.Component {
       addDataGroupLoading,
       fetchDataGroupLoading,
       fetchModalDataGroupLoading,
-      fetchTreeListLoading,
-      fetchRoleChildrenLoading,
+      // fetchTreeListLoading,
+      // fetchRoleChildrenLoading,
       querySecGrpLoading,
       queryAssignableSecGrpLoading,
       assignSecGrpLoading,
@@ -1722,7 +1882,14 @@ export default class RoleManagement extends React.Component {
         secGrpDimensionPagination = {},
         secGrpDataPermissionTabList = [],
         labelList = [],
+        passwordPolicyList = {},
+        memberModalList = [],
+        memberModalPagination = {},
+        clientModalList = [],
+        clientModalPagination = {},
       },
+      fetchTreeRoleRootLoading,
+      fetchTreeRoleChildrenLoading,
     } = this.props;
     const {
       membersDrawerVisible,
@@ -1762,9 +1929,10 @@ export default class RoleManagement extends React.Component {
       ref: (node) => {
         this.queryForm = node;
       },
-      onQueryAll: this.fetchRoleAll,
+      onQueryAll: this.fetchTreeRoleRoot,
       code: code['HIAM.ROLE_SOURCE'] || [],
       roleLevel: code['HIAM.RESOURCE_LEVEL'] || [],
+      flagList: code['HPFM.ENABLED_FLAG'] || [],
       loading: queryListLoading,
       tenantRoleLevel,
       searchLabels,
@@ -1774,7 +1942,7 @@ export default class RoleManagement extends React.Component {
       path,
       dataSource: treeList.list || [],
       pagination: isEmpty(treeList.pagination) ? false : treeList.pagination,
-      loading: fetchTreeListLoading,
+      loading: fetchTreeRoleRootLoading,
       code: code['HIAM.ROLE_SOURCE'],
       handleAction: this.handleAction.bind(this),
       onExpand: this.onExpand.bind(this),
@@ -1784,10 +1952,11 @@ export default class RoleManagement extends React.Component {
       tenantRoleLevel,
       onListChange: this.onListChange,
       tenantsMulti,
-      childrenLoading: fetchRoleChildrenLoading,
+      childrenLoading: fetchTreeRoleChildrenLoading,
       currentRoleId,
-      onFetchChildren: this.fetchRoleChildren,
+      onFetchChildren: this.fetchTreeRoleChildren,
       isHaveParams,
+      passwordPolicyList,
     };
     const membersDrawerProps = {
       path,
@@ -1816,6 +1985,10 @@ export default class RoleManagement extends React.Component {
       onDeleteMember: this.handleDeleteMember,
       dataSource: membersDrawerDataSource,
       pagination: membersDrawerPagination,
+      fetchUserList: this.fetchUserList,
+      clearMemberList: this.clearMemberList,
+      memberModalList,
+      memberModalPagination,
     };
 
     const clientsDrawerProps = {
@@ -1839,6 +2012,11 @@ export default class RoleManagement extends React.Component {
       onSave: this.handleSaveClient,
       onClientPageChange: this.handleClientPageChange,
       onFormSearch: this.handleClientSearch,
+      onModalSearch: this.fetchClientListModal,
+      clientModalList,
+      clientModalPagination,
+      onModalSave: this.handleModalClientSave,
+      clearClientModalList: this.clearClientModalList,
     };
 
     const secGrpDrawerProps = {

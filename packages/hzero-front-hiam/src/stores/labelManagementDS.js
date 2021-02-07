@@ -72,7 +72,7 @@ const initDS = () => ({
     },
     {
       name: 'action',
-      label: intl.get('hiam.labelManagement.model.kc.action').d('操作'),
+      label: intl.get('hzero.common.button.action').d('操作'),
     },
     {
       name: 'presetFlag',
@@ -173,6 +173,7 @@ const drawerDS = () => ({
       name: 'description',
       type: 'intl',
       label: intl.get('hiam.labelManagement.model.labelManagement.description').d('描述'),
+      maxLength: 128,
     },
   ],
   transport: {

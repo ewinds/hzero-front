@@ -9,9 +9,9 @@ function sourceApi() {
   return isTenantRoleLevel() ? `${tenantId}/datasources` : `datasources`;
 }
 
-function serviceApi() {
-  return isSiteFlag ? `datasource-services` : `${tenantId}/datasource-services`;
-}
+// function serviceApi() {
+//   return isSiteFlag ? `datasource-services` : `${tenantId}/datasource-services`;
+// }
 
 /**
  * 查询数据源列表数据
@@ -146,52 +146,52 @@ export async function getDriverClass(params) {
   });
 }
 
-/**
- * 查询服务
- * @async
- * @function fetchServiceList
- * @param {object} params - 查询条件
- * @param {!number} [params.page = 0] - 数据页码
- * @param {!number} [params.size = 10] - 分页大小
- * @returns {object} fetch Promise
- */
-export async function fetchServiceList(params) {
-  return request(`${HZERO_PLATFORM}/v1/${serviceApi()}`, {
-    method: 'GET',
-    query: params,
-  });
-}
+// /**
+//  * 查询服务
+//  * @async
+//  * @function fetchServiceList
+//  * @param {object} params - 查询条件
+//  * @param {!number} [params.page = 0] - 数据页码
+//  * @param {!number} [params.size = 10] - 分页大小
+//  * @returns {object} fetch Promise
+//  */
+// export async function fetchServiceList(params) {
+//   return request(`${HZERO_PLATFORM}/v1/${serviceApi()}`, {
+//     method: 'GET',
+//     query: params,
+//   });
+// }
 
-/**
- * 添加服务
- * @async
- * @function addService
- * @param {object} params - 请求参数
- * @param {!object} params.datasourceId - 数据库id
- * @param {!string} params.tenantId - 租户id
- * @returns {object} fetch Promise
- */
-export async function addService(params) {
-  return request(`${HZERO_PLATFORM}/v1/${serviceApi()}`, {
-    method: 'POST',
-    body: params,
-  });
-}
+// /**
+//  * 添加服务
+//  * @async
+//  * @function addService
+//  * @param {object} params - 请求参数
+//  * @param {!object} params.datasourceId - 数据库id
+//  * @param {!string} params.tenantId - 租户id
+//  * @returns {object} fetch Promise
+//  */
+// export async function addService(params) {
+//   return request(`${HZERO_PLATFORM}/v1/${serviceApi()}`, {
+//     method: 'POST',
+//     body: params,
+//   });
+// }
 
-/**
- * 删除服务
- * @async
- * @function deleteService
- * @param {object} params,datasourceId - 请求参数
- * @param {number} datasourceServiceId - datasourceServiceId
- * @returns {object} fetch Promise
- */
-export async function deleteService(params) {
-  return request(`${HZERO_PLATFORM}/v1/${serviceApi()}`, {
-    method: 'DELETE',
-    body: params,
-  });
-}
+// /**
+//  * 删除服务
+//  * @async
+//  * @function deleteService
+//  * @param {object} params,datasourceId - 请求参数
+//  * @param {number} datasourceServiceId - datasourceServiceId
+//  * @returns {object} fetch Promise
+//  */
+// export async function deleteService(params) {
+//   return request(`${HZERO_PLATFORM}/v1/${serviceApi()}`, {
+//     method: 'DELETE',
+//     body: params,
+//   });
+// }
 
 /**
  * 表单配置

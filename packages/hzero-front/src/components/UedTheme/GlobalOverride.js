@@ -148,6 +148,7 @@ export default css`
         }
       }
     }
+
     .ant-btn.ant-btn-circle {
       padding: 0;
     }
@@ -155,7 +156,9 @@ export default css`
       box-shadow: none;
     }
     .c7n-pro-table-content {
-      overflow: visible;
+      /* FIXME: 是否需要这个样式 */
+      /* 因为modal中table存在滚动，暂时去除 */
+      /* overflow: visible; */
     }
     .c7n-pro-table-cell-editable {
       padding: 0 8px !important;

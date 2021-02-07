@@ -123,6 +123,8 @@ export default class ApiLimit extends React.Component {
   @Bind()
   async handleFlowLimit(record) {
     const { monitorRuleId, urlPattern, timeWindowSize } = record.toData();
+    this.displayFormDS.create({});
+    this.flowLimitFormDS.create({});
     this.displayFormDS.create({ urlPattern, timeWindowSize });
     this.flowLimitFormDS.setQueryParameter('monitorRuleId', monitorRuleId);
     this.flowLimitFormDS.query();
@@ -243,7 +245,7 @@ export default class ApiLimit extends React.Component {
   openModal() {
     this.formDS.create({});
     Modal.open({
-      title: intl.get('hadm.apiLimit.view.title.Create').d('新建'),
+      title: intl.get('hzero.common.view.title.create').d('新建'),
       drawer: true,
       width: 520,
       children: (

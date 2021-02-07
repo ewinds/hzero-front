@@ -10,6 +10,7 @@ import {
   Lov,
   Spin,
   NumberField,
+  IntlField,
 } from 'choerodon-ui/pro';
 
 import intl from 'utils/intl';
@@ -68,7 +69,7 @@ export default class Drawer extends React.PureComponent {
           <Form dataSet={modalDS} labelWidth={110}>
             {!isTenantRoleLevel() && <Lov name="tenantIdLov" disabled={isEdit} />}
             <TextField name="serverCode" disabled={isEdit} />
-            <TextField name="serverName" />
+            <IntlField name="serverName" />
             <Select name="authType" />
             <TextField name="corpid" />
             <NumberField name="agentId" step={1} min={0} />

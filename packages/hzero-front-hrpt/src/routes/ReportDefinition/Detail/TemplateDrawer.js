@@ -181,7 +181,7 @@ export default class TemplateDrawer extends PureComponent {
                 htmlType="submit"
                 onClick={this.handleSearch}
               >
-                {intl.get('hzero.common.status.search').d('查询')}
+                {intl.get('hzero.common.button.search').d('查询')}
               </Button>
             </Form.Item>
           </Col>

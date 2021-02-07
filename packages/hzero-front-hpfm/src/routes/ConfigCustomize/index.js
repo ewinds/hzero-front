@@ -9,7 +9,7 @@ import {
   Col,
   Form,
   Spin,
-  // InputNumber,
+  InputNumber,
   Table,
   Icon,
   Popconfirm,
@@ -33,6 +33,7 @@ import {
 } from '@/utils/constConfig.js';
 import { yesOrNoRender } from 'utils/renderer';
 import ConfigModal from './ConfigModal';
+import CopyFieldModal from './CopyFieldModal';
 import styles from './index.less';
 
 const FormItem = Form.Item;
@@ -78,16 +79,22 @@ export default class configCustomize extends Component {
     currentGroup: {},
     currentRecord: { field: {}, widget: {} },
     visible: false,
+    copyFieldModalVisible: false,
     expandedKeys: [],
     unitList: [],
     fieldList: {},
+    selectedRows: [],
   };
 
   componentDidMount() {
     const { dispatch } = this.props;
     dispatch({
       type: 'configCustomize/queryTree',
-    });
+    })
+      .then(this.parseTreeData)
+      .then((originTreeData) => {
+        this.setState({ originTreeData });
+      });
     dispatch({
       type: 'configCustomize/queryCodes',
       payload: {
@@ -103,6 +110,18 @@ export default class configCustomize extends Component {
         condOptions: 'HPFM.CUST.UNIT_COND_OPTIONS',
       },
     });
+  }
+
+  @Bind()
+  parseTreeData(data) {
+    let result = [];
+    data.forEach((item) => {
+      result.push(item);
+      if (item.subMenus) {
+        result = [...result, ...this.parseTreeData(item.subMenus)];
+      }
+    });
+    return result;
   }
 
   queryRelatedUnits(id) {
@@ -290,6 +309,7 @@ export default class configCustomize extends Component {
   onSelect(key, { node }) {
     if (node.isLeaf()) {
       this.setState({
+        selectedRows: [], // 切换菜单后重置已勾选字段
         classifyCode: key,
       });
       const { dispatch } = this.props;
@@ -324,6 +344,10 @@ export default class configCustomize extends Component {
   @Bind()
   clickUnit(e) {
     if (e.target && e.target.id) {
+      // 切换单元时重置table seleted
+      if (this.props.currentUnit && this.props.currentUnit.id !== e.target.id) {
+        this.setState({ selectedRows: [] });
+      }
       this.queryUnitDetails(e.target.id);
     }
   }
@@ -332,6 +356,10 @@ export default class configCustomize extends Component {
   clickGroup(e) {
     const { unitGroup } = this.props;
     if (e.target && e.target.id) {
+      // 切换单元组时重置table seleted
+      if (this.state.currentGroup && this.state.currentGroup.unitGroupId !== e.target.id) {
+        this.setState({ selectedRows: [] });
+      }
       // eslint-disable-next-line eqeqeq
       const currentGroup = unitGroup.find((i) => i.unitGroupId == e.target.id) || { units: [] };
       this.setState({ currentGroup });
@@ -364,9 +392,39 @@ export default class configCustomize extends Component {
     });
   }
 
+  @Bind()
+  handleSelectRows(_, selectedRows) {
+    this.setState({ selectedRows });
+  }
+
+  @Bind()
+  handleToggleCopyFieldModal() {
+    this.setState({ copyFieldModalVisible: !this.state.copyFieldModalVisible });
+  }
+
+  @Bind()
+  handleSaveUnitConfig() {
+    const { form, dispatch, currentUnit = {} } = this.props;
+    const { id, config = {} } = currentUnit;
+    const showLines = form.getFieldValue('showLines');
+    dispatch({
+      type: 'configCustomize/saveUnitConfigHeader',
+      payload: {
+        unitId: id,
+        id: config.id,
+        showLines,
+      },
+    }).then((res) => {
+      if (res) {
+        notification.success();
+      }
+    });
+  }
+
   renderContent() {
-    const { classifyCode, currentGroup } = this.state;
+    const { classifyCode, currentGroup, selectedRows } = this.state;
     const {
+      form,
       lineData,
       unitGroup = [],
       loadingGroup,
@@ -467,6 +525,11 @@ export default class configCustomize extends Component {
                 <div className={styles.title}>
                   {intl.get('hpfm.individual.view.message.title.unitConfig').d('单元配置')}
                 </div>
+                {currentUnit.unitType === 'FORM' && (
+                  <Button type="primary" onClick={this.handleSaveUnitConfig}>
+                    {intl.get('hzero.common.button.save').d('保存')}
+                  </Button>
+                )}
               </div>
               {/* <section className="table-container">
                   <div className="table-row">
@@ -507,52 +570,100 @@ export default class configCustomize extends Component {
                 </Col> */}
               </Row>
               {isFormType && (
-                <Row gutter={48} className="read-row">
-                  <Col span={8}>
-                    <FormItem
-                      label={intl.get('hpfm.individual.model.config.formColumns').d('表单列数')}
-                      {...formLayout}
-                    >
-                      {currentUnit.formMaxCol}
-                      {/* {form.getFieldDecorator('maxCol', {
-                      initialValue: (currentUnit.config || {}).maxCol,
-                    })(<InputNumber precision={0} min={1} style={{ width: '100%' }} />)} */}
-                    </FormItem>
-                  </Col>
-                  <Col span={8}>
-                    <FormItem
-                      label={intl.get('hpfm.individual.model.config.labelCol').d('标签比例')}
-                      {...formLayout}
-                    >
-                      {currentUnit.labelCol}
-                    </FormItem>
-                  </Col>
-                  <Col span={8}>
-                    <FormItem
-                      label={intl.get('hpfm.individual.model.config.wrapperCol').d('组件比例')}
-                      {...formLayout}
-                    >
-                      {currentUnit.wrapperCol}
-                    </FormItem>
-                  </Col>
-                </Row>
+                <>
+                  <Row gutter={48} className="read-row">
+                    <Col span={8}>
+                      <FormItem
+                        label={intl.get('hpfm.individual.model.config.labelCol').d('标签比例')}
+                        {...formLayout}
+                      >
+                        {currentUnit.labelCol}
+                      </FormItem>
+                    </Col>
+                    <Col span={8}>
+                      <FormItem
+                        label={intl.get('hpfm.individual.model.config.wrapperCol').d('组件比例')}
+                        {...formLayout}
+                      >
+                        {currentUnit.wrapperCol}
+                      </FormItem>
+                    </Col>
+                  </Row>
+                  <Row gutter={48} className="read-row">
+                    <Col span={8}>
+                      <FormItem
+                        label={intl.get('hpfm.individual.model.config.formColumns').d('表单列数')}
+                        {...formLayout}
+                      >
+                        {currentUnit.formMaxCol}
+                        {/* {form.getFieldDecorator('maxCol', {
+                          initialValue: (currentUnit.config || {}).maxCol,
+                        })(<InputNumber precision={0} min={1} style={{ width: '100%' }} />)} */}
+                      </FormItem>
+                    </Col>
+                    {currentUnit.unitType === 'FORM' && (
+                      <Col span={8}>
+                        <FormItem
+                          className={styles['input-number-item']}
+                          label={
+                            <>
+                              {intl.get('hpfm.individual.model.config.showLines').d('显示行数')}
+                              <Tooltip
+                                title={intl
+                                  .get('hpfm.individual.view.message.onlyUseForCollapseForm')
+                                  .d('仅适用于折叠表单')}
+                              >
+                                <Icon
+                                  type="info-circle"
+                                  style={{ verticalAlign: 'middle', margin: '0 4px' }}
+                                />
+                              </Tooltip>
+                            </>
+                          }
+                          {...formLayout}
+                        >
+                          {form.getFieldDecorator('showLines', {
+                            initialValue: (currentUnit.config || {}).showLines,
+                          })(<InputNumber precision={0} min={1} style={{ width: '100%' }} />)}
+                        </FormItem>
+                      </Col>
+                    )}
+                  </Row>
+                </>
               )}
             </div>
             <div className="right-box">
               <div style={{ display: 'flex', justifyContent: 'space-between', margin: '10px 0' }}>
                 <div className={styles.title}>{getFieldConfigAlias(currentUnit.unitType)}</div>
-                <Button
-                  icon="plus"
-                  type="primary"
-                  onClick={() => this.toggleConfigModal({}, 'new')}
-                  disabled={!currentUnit.id}
-                  style={{ display: pureVirtual ? 'none' : 'block' }}
-                >
-                  {intl.get('hpfm.individual.model.config.addExtraField').d('添加扩展字段')}
-                </Button>
+                <div>
+                  <Button
+                    onClick={this.handleToggleCopyFieldModal}
+                    disabled={selectedRows.length < 1}
+                    style={{ display: pureVirtual ? 'none' : 'inline-block', marginRight: '8px' }}
+                  >
+                    {intl.get('hpfm.individual.model.config.copyField').d('拷贝字段')}
+                  </Button>
+                  <Button
+                    icon="plus"
+                    type="primary"
+                    onClick={() => this.toggleConfigModal({}, 'new')}
+                    disabled={!currentUnit.id}
+                    style={{ display: pureVirtual ? 'none' : 'inline-block' }}
+                  >
+                    {intl.get('hpfm.individual.model.config.addExtraField').d('添加扩展字段')}
+                  </Button>
+                </div>
               </div>
               <Table
+                rowKey="configFieldId"
                 bordered
+                rowSelection={{
+                  selectedRowKeys: selectedRows.map((n) => n.configFieldId),
+                  onChange: this.handleSelectRows,
+                  getCheckboxProps: (record) => ({
+                    disabled: isNil(record.configFieldId),
+                  }),
+                }}
                 pagination={false}
                 columns={this.renderColumns()}
                 dataSource={noUnits ? [] : lineData}
@@ -582,7 +693,16 @@ export default class configCustomize extends Component {
   }
 
   render() {
-    const { visible, currentRecord, modalType, expandedKeys, unitList, fieldList } = this.state;
+    const {
+      visible,
+      copyFieldModalVisible,
+      currentRecord,
+      modalType,
+      expandedKeys,
+      unitList,
+      fieldList,
+      selectedRows,
+    } = this.state;
     const { loadTree = false, treeData, currentUnit } = this.props;
     return (
       <>
@@ -631,6 +751,14 @@ export default class configCustomize extends Component {
           record={currentRecord}
           onClose={() => this.toggleConfigModal({})}
         />
+        {copyFieldModalVisible && (
+          <CopyFieldModal
+            visible={copyFieldModalVisible}
+            currentUnit={currentUnit}
+            copyFields={selectedRows}
+            handleClose={this.handleToggleCopyFieldModal}
+          />
+        )}
       </>
     );
   }

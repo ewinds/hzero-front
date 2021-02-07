@@ -373,6 +373,20 @@ const config = {
     },
     route: true,
   },
+  // horc 模块
+  HZERO_HORC: {
+    init: () => {
+      return "'/horc'";
+    },
+    route: true,
+  },
+  // hfnt 模块
+  HZERO_HFNT: {
+    init: () => {
+      return "'/hfnt'";
+    },
+    route: true,
+  },
 
   //
   AUTH_HOST: {
@@ -400,7 +414,7 @@ const config = {
   AUTH_SELF_URL: {
     deps: ['API_HOST', 'HZERO_IAM'],
     get: (API_HOST, HZERO_IAM) => {
-      return `${API_HOST}${HZERO_IAM}/hzero/v1/users/self`;
+      return `${process.env.AUTH_SELF_URL || `${API_HOST}${HZERO_IAM}/hzero/v1/users/self`}`;
     },
   },
   // 是否是 OP 版本
@@ -456,6 +470,12 @@ const config = {
   },
   BKT_HIOT: {
     init: () => "`${process.env.BKT_HFILE || 'hiot'}`",
+  },
+  BKT_HORC: {
+    init: () => "`${process.env.BKT_HORC || 'horc'}`",
+  },
+  BKT_HFNT: {
+    init: () => "`${process.env.BKT_HFNT || 'hfnt'}`",
   },
 };
 

@@ -45,8 +45,8 @@ export default class DetailDrawer extends PureComponent {
     anchor: 'right',
     title: '',
     visible: false,
-    onOk: e => e,
-    onCancel: e => e,
+    onOk: (e) => e,
+    onCancel: (e) => e,
   };
 
   /**
@@ -56,7 +56,7 @@ export default class DetailDrawer extends PureComponent {
   setRemark(rowKey) {
     const { propertyNameList, form } = this.props;
     let propertyRemark = '';
-    propertyNameList.forEach(n => {
+    propertyNameList.forEach((n) => {
       if (n.value === rowKey) {
         propertyRemark = n.meaning;
       }
@@ -96,7 +96,7 @@ export default class DetailDrawer extends PureComponent {
         confirmLoading={addLoading}
         visible={visible}
         onOk={this.saveBtn}
-        okText={intl.get('hzero.common.button.sure').d('确定')}
+        okText={intl.get('hzero.common.button.ok').d('确定')}
         onCancel={onCancel}
         cancelText={intl.get('hzero.common.button.cancel').d('取消')}
         destroyOnClose
@@ -118,7 +118,7 @@ export default class DetailDrawer extends PureComponent {
               ],
             })(
               <Select onChange={this.setRemark} showSearch>
-                {map(propertyNameList, e => (
+                {map(propertyNameList, (e) => (
                   <Option value={e.value} key={e.value}>
                     {e.value}
                   </Option>
@@ -152,7 +152,7 @@ export default class DetailDrawer extends PureComponent {
           </Form.Item>
           <Form.Item
             {...MODAL_FORM_ITEM_LAYOUT}
-            label={intl.get(`hadm.hystrix.model.hystrix.enableFlag`).d('启用')}
+            label={intl.get('hzero.common.status.enable').d('启用')}
           >
             {form.getFieldDecorator('enabledFlag', {
               initialValue: data.enabledFlag,
@@ -160,7 +160,7 @@ export default class DetailDrawer extends PureComponent {
           </Form.Item>
           <Form.Item
             {...MODAL_FORM_ITEM_LAYOUT}
-            label={intl.get(`hadm.hystrix.model.hystrix.remark`).d('描述')}
+            label={intl.get(`hzero.common.view.description`).d('描述')}
           >
             {form.getFieldDecorator('remark', {
               initialValue: data.remark,

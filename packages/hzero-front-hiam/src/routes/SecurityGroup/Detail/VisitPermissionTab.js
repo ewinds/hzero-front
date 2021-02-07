@@ -64,7 +64,7 @@ export default class VisitPermission extends Component {
    */
   @Bind()
   assignListData(collections = []) {
-    return collections.map(n => {
+    return collections.map((n) => {
       const m = n;
       m.key = n.id;
       if (isEmpty(m.subMenus)) {
@@ -72,12 +72,14 @@ export default class VisitPermission extends Component {
       } else {
         m.subMenus = this.assignListData(m.subMenus);
         this.defaultExpandedRowKeys.push(m.id);
-        const checkedCount = m.subMenus.filter(o => o.checkedFlag === 'Y').length;
-        const indeterminateCount = m.subMenus.filter(o => o.checkedFlag === 'P').length;
+        const checkedCount = m.subMenus.filter((o) => o.checkedFlag === 'Y').length;
+        const indeterminateCount = m.subMenus.filter((o) => o.checkedFlag === 'P').length;
         m.checkedFlag =
+          // eslint-disable-next-line no-nested-ternary
           checkedCount === m.subMenus.length
             ? 'Y'
-            : checkedCount === 0
+            : // eslint-disable-next-line no-nested-ternary
+            checkedCount === 0
             ? indeterminateCount === 0
               ? null
               : 'P'
@@ -95,7 +97,7 @@ export default class VisitPermission extends Component {
   onCheckboxChange(record) {
     const setIdList = [];
     const getSubSetIdList = (collections = []) => {
-      collections.forEach(n => {
+      collections.forEach((n) => {
         if (n.type === 'ps') {
           setIdList.push(n.id);
         }
@@ -182,7 +184,7 @@ export default class VisitPermission extends Component {
     this.setState({
       expandedRowKeys: expanded
         ? expandedRowKeys.concat(record.key)
-        : expandedRowKeys.filter(o => o !== record.key),
+        : expandedRowKeys.filter((o) => o !== record.key),
     });
   }
 
@@ -190,9 +192,7 @@ export default class VisitPermission extends Component {
     const { isSelf } = this.props;
     return [
       {
-        title: intl
-          .get('hiam.roleManagement.model.roleManagement.permissionSetName')
-          .d('权限层级名称'),
+        title: intl.get('hiam.roleManagement.model.roleManagement.permissionName').d('权限名称'),
         dataIndex: 'name',
       },
       {
@@ -208,7 +208,7 @@ export default class VisitPermission extends Component {
             formField: intl.get('hiam.roleManagement.view.message.formField').d('表单域'),
           };
           const valueList = value.split(',') || [];
-          const text = valueList.map(item => (texts[item] ? texts[item] : '')) || [];
+          const text = valueList.map((item) => (texts[item] ? texts[item] : '')) || [];
           return (
             record.type === 'ps' && (
               <Tag color={value === 'api' ? 'green' : 'orange'}>{text.join()}</Tag>

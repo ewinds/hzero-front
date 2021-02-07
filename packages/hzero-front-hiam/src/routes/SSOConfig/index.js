@@ -9,7 +9,7 @@ import { connect } from 'dva';
 import { Form, Table, Popconfirm } from 'hzero-ui';
 import { Link } from 'dva/router';
 import { Bind } from 'lodash-decorators';
-// import { indexOf } from 'lodash';
+import { isEmpty } from 'lodash';
 import queryString from 'querystring';
 
 import { Content, Header } from 'components/Page';
@@ -23,6 +23,7 @@ import { tableScrollWidth, isTenantRoleLevel, getCurrentOrganizationId } from 'u
 
 import FilterForm from './FilterForm';
 import Drawer from './Drawer';
+import DistributeDrawer from './DistributeModal';
 
 @connect(({ ssoConfig, loading }) => ({
   ssoConfig,
@@ -31,6 +32,8 @@ import Drawer from './Drawer';
   getConfigDetailLoading: loading.effects['ssoConfig/getConfigDetail'],
   createConfigDetailLoading: loading.effects['ssoConfig/createConfig'],
   editConfigListLoading: loading.effects['ssoConfig/editConfig'],
+  queryDistributeLoading: loading.effects['ssoConfig/queryDistributeList'],
+  deleteDistributeLoading: loading.effects['ssoConfig/deleteDistribute'],
 }))
 @Form.create({ fieldNameProp: null })
 @formatterCollections({
@@ -43,6 +46,8 @@ export default class SSOConfig extends React.Component {
     this.state = {
       modalVisible: false,
       editflag: false,
+      distributeVisible: false,
+      currentRecord: {},
     };
   }
 
@@ -134,7 +139,7 @@ export default class SSOConfig extends React.Component {
       dispatch({
         type: 'ssoConfig/editConfig',
         payload: fieldValues,
-      }).then(res => {
+      }).then((res) => {
         if (res) {
           this.setState({ editflag: false });
           notification.success();
@@ -152,7 +157,7 @@ export default class SSOConfig extends React.Component {
       dispatch({
         type: 'ssoConfig/createConfig',
         payload: fieldValues,
-      }).then(res => {
+      }).then((res) => {
         this.setState({ editflag: false });
         if (res) {
           notification.success();
@@ -172,7 +177,7 @@ export default class SSOConfig extends React.Component {
     dispatch({
       type: 'ssoConfig/deleteConfig',
       payload: record,
-    }).then(res => {
+    }).then((res) => {
       this.setState({ editflag: false });
       if (res) {
         notification.success();
@@ -181,32 +186,102 @@ export default class SSOConfig extends React.Component {
     });
   }
 
+  // 保存分配租户/公司
+  @Bind()
+  handleSaveDistribute(record) {
+    const { currentRecord = {} } = this.state;
+    if (!isEmpty(record)) {
+      const { dispatch } = this.props;
+      dispatch({
+        type: 'ssoConfig/saveDistribute',
+        payload: { domainId: currentRecord.domainId, body: record },
+      }).then((res) => {
+        // this.setState({ editflag: false });
+        if (res) {
+          notification.success();
+          this.handleQueryDistribute(currentRecord);
+        }
+      });
+    }
+  }
+
+  // 设置分配模态框
+  @Bind()
+  handleDistributeModalVisible(flag) {
+    this.setState({
+      distributeVisible: !!flag,
+    });
+  }
+
+  // 展示分配模态框
+  @Bind()
+  showDistributeModal(record) {
+    this.handleDistributeModalVisible(true);
+    this.setState({
+      currentRecord: record,
+    });
+    this.handleQueryDistribute(record);
+  }
+
+  // 查询分配列表
+  @Bind()
+  handleQueryDistribute(record, params = { page: 0, size: 10 }) {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'ssoConfig/queryDistributeList',
+      payload: {
+        domainId: record.domainId,
+        params,
+      },
+    });
+  }
+
+  // 删除分配租户/公司
+  @Bind()
+  handleDeleteDistribute(list) {
+    const { currentRecord } = this.state;
+    if (!isEmpty(list)) {
+      const { dispatch } = this.props;
+      dispatch({
+        type: 'ssoConfig/deleteDistribute',
+        payload: { domainId: currentRecord.domainId, body: list },
+      }).then((res) => {
+        // this.setState({ editflag: false });
+        if (res) {
+          notification.success();
+          this.handleQueryDistribute(currentRecord);
+        }
+      });
+    }
+  }
+
   render() {
     const {
       fetchConfigListLoading = false,
       getConfigDetailLoading = false,
       createConfigDetailLoad = false,
       editConfigListLoading = false,
+      queryDistributeLoading = false,
+      deleteDistributeLoading = false,
       match: { path },
       location: { search },
       isSiteFlag,
-      ssoConfig: { pagination = {}, ssoConfigList = [], typeList = [], ssoConfigDetail = {} },
+      ssoConfig: {
+        pagination = {},
+        ssoConfigList = [],
+        typeList = [],
+        ssoConfigDetail = {},
+        distributeList = [],
+        distributePagination = {},
+      },
+      dispatch,
     } = this.props;
-    const { modalVisible, editflag } = this.state;
+    const { modalVisible, editflag, distributeVisible, currentRecord = {} } = this.state;
+
     const { access_token: accessToken } = queryString.parse(search.substring(1));
     const columns = [
-      isSiteFlag && {
-        title: intl.get('hiam.ssoConfig.model.ssoConfig.tenantName').d('租户名称'),
-        width: 180,
-        dataIndex: 'tenantName',
-      },
-      {
-        title: intl.get('hiam.ssoConfig.model.ssoConfig.companyName').d('公司名称'),
-        dataIndex: 'companyName',
-      },
       {
         title: intl.get('hiam.ssoConfig.model.ssoConfig.domainUrl').d('单点登录域名'),
-        width: 200,
         dataIndex: 'domainUrl',
       },
       {
@@ -282,47 +357,98 @@ export default class SSOConfig extends React.Component {
               len: 2,
               title: intl.get('hzero.common.button.edit').d('编辑'),
             },
-            {
-              key: 'detail',
+          ];
+          if (isSiteFlag) {
+            operators.push({
+              key: 'distributeTenant',
               ele: (
-                <Link
-                  to={
-                    path.indexOf('/private') === 0
-                      ? `/private/hiam/domain-config/template/${record.domainId}/${record.tenantId}?access_token=${accessToken}`
-                      : `/hiam/domain-config/template/${record.domainId}/${record.tenantId}`
-                  }
+                <ButtonPermission
+                  type="text"
+                  permissionList={[
+                    {
+                      code: `${path}.button.distributeTenant`,
+                      type: 'button',
+                      meaning: '域名配置-分配租户',
+                    },
+                  ]}
+                  onClick={() => {
+                    this.showDistributeModal(record);
+                  }}
                 >
-                  {intl.get('hiam.ssoConfig.view.message.title.detail').d('分配模板')}
-                </Link>
+                  {intl.get('hiam.ssoConfig.view.message.title.distributeTenant').d('分配租户')}
+                </ButtonPermission>
               ),
               len: 4,
-              title: intl.get('hiam.ssoConfig.view.message.title.detail').d('分配模板'),
-            },
-            {
-              key: 'delete',
+              title: intl.get('hiam.ssoConfig.view.message.title.distributeTenant').d('分配租户'),
+            });
+          } else {
+            operators.push({
+              key: 'distributeCompany',
               ele: (
-                <Popconfirm
-                  title={intl.get('hzero.common.message.confirm.delete').d('是否删除此条记录？')}
-                  onConfirm={() => this.handleDelete(record)}
+                <ButtonPermission
+                  type="text"
+                  permissionList={[
+                    {
+                      code: `${path}.button.distributeCompany`,
+                      type: 'button',
+                      meaning: '域名配置-分配公司',
+                    },
+                  ]}
+                  onClick={() => {
+                    this.showDistributeModal(record);
+                  }}
                 >
-                  <ButtonPermission
-                    type="text"
-                    permissionList={[
-                      {
-                        code: `${path}.button.delete`,
-                        type: 'button',
-                        meaning: '域名配置-删除',
-                      },
-                    ]}
-                  >
-                    {intl.get('hzero.common.button.delete').d('删除')}
-                  </ButtonPermission>
-                </Popconfirm>
+                  {intl.get('hiam.ssoConfig.view.message.title.distributeCompany').d('分配公司')}
+                </ButtonPermission>
               ),
-              len: 2,
-              title: intl.get('hzero.common.button.delete').d('删除'),
-            },
-          ];
+              len: 4,
+              title: intl.get('hiam.ssoConfig.view.message.title.distributeCompany').d('分配公司'),
+            });
+          }
+          operators.push(
+            ...[
+              {
+                key: 'detail',
+                ele: (
+                  <Link
+                    to={
+                      path.indexOf('/private') === 0
+                        ? `/private/hiam/domain-config/template/${record.domainId}/${record.tenantId}?access_token=${accessToken}`
+                        : `/hiam/domain-config/template/${record.domainId}/${record.tenantId}`
+                    }
+                  >
+                    {intl.get('hiam.ssoConfig.view.message.title.detail').d('分配模板')}
+                  </Link>
+                ),
+                len: 4,
+                title: intl.get('hiam.ssoConfig.view.message.title.detail').d('分配模板'),
+              },
+              {
+                key: 'delete',
+                ele: (
+                  <Popconfirm
+                    title={intl.get('hzero.common.message.confirm.delete').d('是否删除此条记录？')}
+                    onConfirm={() => this.handleDelete(record)}
+                  >
+                    <ButtonPermission
+                      type="text"
+                      permissionList={[
+                        {
+                          code: `${path}.button.delete`,
+                          type: 'button',
+                          meaning: '域名配置-删除',
+                        },
+                      ]}
+                    >
+                      {intl.get('hzero.common.button.delete').d('删除')}
+                    </ButtonPermission>
+                  </Popconfirm>
+                ),
+                len: 2,
+                title: intl.get('hzero.common.button.delete').d('删除'),
+              },
+            ]
+          );
           return operatorRender(operators);
         },
       },
@@ -361,23 +487,48 @@ export default class SSOConfig extends React.Component {
             pagination={pagination}
             onChange={this.handlePagination}
           />
-          <Drawer
-            title={
-              editflag
-                ? intl.get('hiam.ssoConfig.view.message.modal.edit').d('编辑单点登录页面')
-                : intl.get('hiam.ssoConfig.view.message.modal.create').d('新建单点登录页面')
-            }
-            editflag={editflag}
-            modalVisible={modalVisible}
-            onOk={this.handleConfirm}
-            onCancel={this.hideModal}
-            initData={ssoConfigDetail}
-            typeList={typeList}
-            initLoading={getConfigDetailLoading}
-            loading={createConfigDetailLoad || editConfigListLoading}
-            isSiteFlag={isSiteFlag}
-            tenantId={getCurrentOrganizationId()}
-          />
+          {modalVisible && (
+            <Drawer
+              title={
+                editflag
+                  ? intl.get('hiam.ssoConfig.view.message.modal.edit').d('编辑单点登录页面')
+                  : intl.get('hiam.ssoConfig.view.message.modal.create').d('新建单点登录页面')
+              }
+              editflag={editflag}
+              modalVisible={modalVisible}
+              onOk={this.handleConfirm}
+              onCancel={this.hideModal}
+              initData={ssoConfigDetail}
+              typeList={typeList}
+              initLoading={getConfigDetailLoading}
+              loading={createConfigDetailLoad || editConfigListLoading}
+              isSiteFlag={isSiteFlag}
+              tenantId={getCurrentOrganizationId()}
+            />
+          )}
+          {distributeVisible && (
+            <DistributeDrawer
+              title={
+                isSiteFlag
+                  ? intl.get('hiam.ssoConfig.view.message.title.distributeTenant').d('分配租户')
+                  : intl.get('hiam.ssoConfig.view.message.title.distributeCompany').d('分配公司')
+              }
+              path={path}
+              dispatch={dispatch}
+              modalVisible={distributeVisible}
+              onOk={this.handleSaveDistribute}
+              onCancel={() => this.handleDistributeModalVisible(false)}
+              initData={distributeList}
+              loading={queryDistributeLoading}
+              deleteDistributeLoading={deleteDistributeLoading}
+              isSiteFlag={isSiteFlag}
+              tenantId={getCurrentOrganizationId()}
+              pagination={distributePagination}
+              currentRecord={currentRecord}
+              handleQuery={this.handleQueryDistribute}
+              handleDeleteDistribute={this.handleDeleteDistribute}
+            />
+          )}
         </Content>
       </>
     );

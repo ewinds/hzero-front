@@ -190,7 +190,7 @@ export default class PermissionSet extends React.Component {
                 ]}
                 onClick={() => handleEnable(record, 'disable', this.fetchDataSource)}
               >
-                {intl.get('hzero.common.status.disable').d('禁用')}
+                {intl.get('hzero.common.button.disable').d('禁用')}
               </ButtonPermission>
             ) : (
               <ButtonPermission
@@ -204,14 +204,14 @@ export default class PermissionSet extends React.Component {
                 ]}
                 onClick={() => handleEnable(record, 'enable', this.fetchDataSource)}
               >
-                {intl.get('hzero.common.status.enable').d('启用')}
+                {intl.get('hzero.common.button.enable').d('启用')}
               </ButtonPermission>
             ),
           len: 2,
           title:
             record.enabledFlag === 1
-              ? intl.get('hzero.common.status.disable').d('禁用')
-              : intl.get('hzero.common.status.enable').d('启用'),
+              ? intl.get('hzero.common.button.disable').d('禁用')
+              : intl.get('hzero.common.button.enable').d('启用'),
         },
         {
           key: 'permissions',

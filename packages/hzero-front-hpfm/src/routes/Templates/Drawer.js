@@ -8,9 +8,10 @@ import { Form, Input, Modal, Select } from 'hzero-ui';
 import { isEmpty, isUndefined } from 'lodash';
 import { Bind } from 'lodash-decorators';
 
-import Switch from 'components/Switch';
-import Upload from 'components/Upload/UploadButton';
 import Lov from 'components/Lov';
+import Switch from 'components/Switch';
+import TLEditor from 'components/TLEditor';
+import Upload from 'components/Upload/UploadButton';
 
 import intl from 'utils/intl';
 import { CODE_UPPER } from 'utils/regExp';
@@ -171,7 +172,15 @@ export default class Drawer extends Component {
                 },
               ],
               initialValue: tableRecord.templateName ? tableRecord.templateName : '',
-            })(<Input />)}
+            })(
+              <TLEditor
+                label={intl
+                  .get('hpfm.hpfmTemplate.model.portalTemplate.templateName')
+                  .d('模板名称')}
+                field="templateName"
+                token={tableRecord ? tableRecord._token : ''}
+              />
+            )}
           </FormItem>
           <FormItem
             label={intl
@@ -261,7 +270,7 @@ export default class Drawer extends Component {
                 ],
               })(
                 <Select>
-                  {dataTenantLevel.map(item => {
+                  {dataTenantLevel.map((item) => {
                     return (
                       <Select.Option key={item.value} value={item.value}>
                         {item.meaning}
@@ -292,7 +301,7 @@ export default class Drawer extends Component {
                 ],
               })(
                 <Select>
-                  {dataTenantLevel.map(item => {
+                  {dataTenantLevel.map((item) => {
                     return (
                       <Select.Option key={item.value} value={item.value}>
                         {item.meaning}

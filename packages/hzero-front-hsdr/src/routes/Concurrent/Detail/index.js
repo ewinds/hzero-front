@@ -16,6 +16,7 @@ import { Bind } from 'lodash-decorators';
 
 import { Content, Header } from 'components/Page';
 import Switch from 'components/Switch';
+import TLEditor from 'components/TLEditor';
 import Lov from 'components/Lov';
 import { Button as ButtonPermission } from 'components/Permission';
 
@@ -23,7 +24,7 @@ import formatterCollections from 'utils/intl/formatterCollections';
 import intl from 'utils/intl';
 import notification from 'utils/notification';
 import { getCurrentOrganizationId } from 'utils/utils';
-import { CODE_UPPER } from 'utils/regExp';
+import { CODE_UPPER, EMAIL } from 'utils/regExp';
 import {
   DETAIL_CARD_CLASSNAME,
   DETAIL_CARD_TABLE_CLASSNAME,
@@ -416,6 +417,14 @@ export default class Detail extends Component {
                   >
                     {getFieldDecorator('alarmEmail', {
                       initialValue: concurrentDetail.alarmEmail,
+                      rules: [
+                        {
+                          pattern: EMAIL,
+                          message: intl
+                            .get('hsdr.concurrent.view.validation.alarmEmail')
+                            .d('格式有误'),
+                        },
+                      ],
                     })(<Input />)}
                   </Form.Item>
                 </Col>
@@ -439,7 +448,19 @@ export default class Detail extends Component {
                           }),
                         },
                       ],
-                    })(disabled ? <>{concurrentDetail.concName}</> : <Input />)}
+                    })(
+                      disabled ? (
+                        <>{concurrentDetail.concName}</>
+                      ) : (
+                        <TLEditor
+                          label={intl
+                            .get('hsdr.concurrent.model.concurrent.concName')
+                            .d('请求名称')}
+                          field="concName"
+                          token={concurrentDetail ? concurrentDetail._token : null}
+                        />
+                      )
+                    )}
                   </Form.Item>
                 </Col>
                 <Col {...FORM_COL_3_LAYOUT}>

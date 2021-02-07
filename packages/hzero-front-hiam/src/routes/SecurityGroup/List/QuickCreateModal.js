@@ -164,7 +164,7 @@ export default observer((props) => {
             <TextField name="secGrpCode" disabled />
             <IntlField name="secGrpName" />
             <IntlField name="remark" />
-            <TextField name="levelMeaning" disabled />
+            <TextField name="secGrpLevelMeaning" disabled />
             <Switch name="enabledFlag" />
           </Form>
         </Card>

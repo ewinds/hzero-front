@@ -1,11 +1,13 @@
 import React from 'react';
-import { Modal, Input, Form } from 'hzero-ui';
+import { Modal, Input, Form, Button } from 'hzero-ui';
 
 import { isFunction } from 'lodash';
 import { Bind } from 'lodash-decorators';
 
+import CountDown from 'components/CountDown';
+
 import intl from 'utils/intl';
-import { encryptPwd } from 'utils/utils';
+import { encryptPwd, getSession } from 'utils/utils';
 import { validatePasswordRule } from '@/utils/validator';
 
 const { Item: FormItem } = Form;
@@ -24,6 +26,10 @@ export default class EditPasswordModal extends React.Component {
         onOk({
           password: encryptPwd(values.password, publicKey),
           anotherPassword: encryptPwd(values.anotherPassword, publicKey),
+          phone: values.phone,
+          captcha: values.captcha,
+          captchaKey: values.phone ? getSession(`sub-account-phone`) : undefined,
+          businessScope: values.phone ? 'UPDATE_PASSWORD' : undefined,
         });
       }
     });
@@ -93,14 +99,38 @@ export default class EditPasswordModal extends React.Component {
     }
   }
 
+  /**
+   * 向对应的手机号发送验证码
+   * @param {Object} params 验证手机号
+   * @param {String} params.phone 手机号
+   */
+  @Bind()
+  sendCaptcha() {
+    const { onSend = (e) => e } = this.props;
+    onSend();
+  }
+
+  /**
+   * 停止计时
+   */
+  @Bind()
+  handleValidCodeLimitTimeEnd() {
+    const { onEnd = (e) => e } = this.props;
+    onEnd();
+  }
+
   render() {
     const {
       form,
       visible,
       onCancel,
       confirmLoading,
+      phone,
       editRecord: { loginName },
       passwordTipMsg = {},
+      validCodeSendLimitFlag = false,
+      validCodeLimitTimeEnd = 0,
+      postCaptchaLoading,
     } = this.props;
     const { getFieldDecorator } = form;
     const labelCol = { md: 6 };
@@ -180,6 +210,53 @@ export default class EditPasswordModal extends React.Component {
             ],
           })(<Input type="password" autoComplete="new-password" />)}
         </FormItem>
+        {passwordTipMsg.forceCodeVerify && (
+          <FormItem
+            required
+            labelCol={labelCol}
+            wrapperCol={wrapperCol}
+            label={intl.get('hiam.subAccount.model.user.phone').d('手机号码')}
+          >
+            {getFieldDecorator('phone', {
+              initialValue: phone,
+            })(<Input disabled />)}
+          </FormItem>
+        )}
+        {passwordTipMsg.forceCodeVerify && (
+          <FormItem
+            required
+            labelCol={labelCol}
+            wrapperCol={wrapperCol}
+            label={intl.get('hiam.subAccount.model.user.phoneCaptcha').d('短信验证码')}
+          >
+            {getFieldDecorator('captcha', {
+              validateTrigger: 'onBlur',
+              rules: [
+                {
+                  required: true,
+                  message: intl.get('hzero.common.validation.notNull', {
+                    name: intl.get('hiam.subAccount.model.userInfo.phoneCaptcha').d('短信验证码'),
+                  }),
+                },
+              ],
+            })(<Input style={{ width: 125, marginRight: 10 }} />)}
+            <Button
+              style={{ width: 90 }}
+              disabled={validCodeSendLimitFlag}
+              loading={postCaptchaLoading}
+              onClick={this.sendCaptcha}
+            >
+              {validCodeSendLimitFlag ? (
+                <CountDown
+                  target={validCodeLimitTimeEnd}
+                  onEnd={this.handleValidCodeLimitTimeEnd}
+                />
+              ) : (
+                intl.get('hiam.userInfo.view.option.gainCaptcha').d('获取验证码')
+              )}
+            </Button>
+          </FormItem>
+        )}
       </Modal>
     );
   }

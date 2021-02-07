@@ -28,7 +28,7 @@ function tableDS() {
         dynamicProps: {
           max: ({ record }) => record.get('endDate'),
         },
-        transformRequest: value => dateTimeRender(value),
+        transformRequest: (value) => dateTimeRender(value),
       },
       {
         name: 'endDate',
@@ -37,12 +37,12 @@ function tableDS() {
         dynamicProps: {
           min: ({ record }) => record.get('endDate'),
         },
-        transformRequest: value => dateTimeRender(value),
+        transformRequest: (value) => dateTimeRender(value),
       },
       {
         name: 'labelCondition',
         type: 'string',
-        label: intl.get('hadm.seataMonitor.model.seataMonitor.labelCondition').d('标签'),
+        label: intl.get('hadm.seataMonitor.model.seataMonitor.labelMap').d('标签'),
       },
     ],
     fields: [
@@ -73,7 +73,7 @@ function tableDS() {
       },
     ],
     transport: {
-      read: config => {
+      read: (config) => {
         const { data, params } = config;
         const url = isTenantRoleLevel()
           ? `${HZERO_ADM}/v1/${organizationId}/measurements`
@@ -85,7 +85,7 @@ function tableDS() {
           method: 'GET',
         };
       },
-      update: config => {
+      update: (config) => {
         const url = isTenantRoleLevel()
           ? `${HZERO_ADM}/v1/${organizationId}/measurements`
           : `${HZERO_ADM}/v1/measurements`;

@@ -1,15 +1,30 @@
 import { inject } from 'what-di';
+import { getConfig } from 'hzero-boot';
+
 import * as defaultConfig from '../config';
 import { ConfigProvider } from './init';
 import { UedProvider } from './UedProvider';
 
+let configureParams = 'false' as any;
 // 适配未引入新版hzero-boot的情况
 export function getEnvConfig<T>(): T {
+  if (configureParams === 'false') {
+    configureParams = {};
+    const result = getConfig('configureParams');
+    if (result) {
+      if (typeof result === 'function') {
+        configureParams = result();
+      } else {
+        configureParams = result;
+      }
+    }
+    configureParams = { configureParams };
+  }
   try {
     const _config = inject<ConfigProvider>('config') || {};
-    return (_config.config || defaultConfig) as T;
+    return Object.assign(_config.config || defaultConfig, configureParams) as T;
   } catch {
-    return defaultConfig as T;
+    return Object.assign(defaultConfig, configureParams) as T;
   }
 }
 

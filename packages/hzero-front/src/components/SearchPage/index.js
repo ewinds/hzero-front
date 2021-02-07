@@ -73,12 +73,12 @@ export default class SearchPage extends Component {
     const {
       pageConfig: {
         searchDispatch,
-        searchCallback = e => e,
-        paramsFilter = e => e,
+        searchCallback = (e) => e,
+        paramsFilter = (e) => e,
         otherParams = {},
       } = {},
     } = this;
-    const { dispatch = e => e } = this.props;
+    const { dispatch = (e) => e } = this.props;
     const form = this.filterForm.props && this.filterForm.props.form;
     const params = isUndefined(form) ? {} : form.getFieldsValue();
     const filterValues = filterNullValueObject({
@@ -92,7 +92,7 @@ export default class SearchPage extends Component {
         page: pagination,
         ...filterValues,
       },
-    }).then(res => {
+    }).then((res) => {
       searchCallback(res);
     });
   }
@@ -177,7 +177,7 @@ export default class SearchPage extends Component {
     const { rowKey = 'key' } = customTableProps;
     const columns = [];
     const rowSelection = {
-      selectedRowKeys: selectedRows.map(n => n[rowKey]),
+      selectedRowKeys: selectedRows.map((n) => n[rowKey]),
       onChange: this.handleRowSelectChange,
     };
     const filterProps = {
@@ -202,7 +202,7 @@ export default class SearchPage extends Component {
         <Content {...this.contentProps()}>
           <div className="table-list-search">
             <FilterForm {...filterProps}>
-              {form =>
+              {(form) =>
                 customSearch ? (
                   this.renderForm(form)
                 ) : (
@@ -215,18 +215,19 @@ export default class SearchPage extends Component {
                         htmlType="submit"
                         onClick={this.filterForm.handleSearch}
                       >
-                        {intl.get('hzero.common.status.search').d('查询')}
+                        {intl.get('hzero.common.button.search').d('查询')}
                       </Button>
                       <Button
                         data-code="reset"
                         style={{ marginLeft: 8 }}
                         onClick={this.filterForm.handleFormReset}
                       >
-                        {intl.get('hzero.common.status.reset').d('重置')}
+                        {intl.get('hzero.common.button.reset').d('重置')}
                       </Button>
                     </Form.Item>
                   </Form>
-                )}
+                )
+              }
             </FilterForm>
           </div>
           {editTable ? <EditTable {...tableProps} /> : <CustomTable {...tableProps} />}

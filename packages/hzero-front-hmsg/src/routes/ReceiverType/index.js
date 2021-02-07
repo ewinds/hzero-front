@@ -17,7 +17,7 @@ import { Button as ButtonPermission } from 'components/Permission';
 import notification from 'utils/notification';
 import formatterCollections from 'utils/intl/formatterCollections';
 import intl from 'utils/intl';
-import { isTenantRoleLevel } from 'utils/utils';
+import { isTenantRoleLevel, getEditTableData } from 'utils/utils';
 
 import ListTable from './ListTable';
 import Drawer from './Drawer';
@@ -66,6 +66,9 @@ export default class ReceiverType extends Component {
     const { dispatch } = this.props;
     dispatch({
       type: 'receiverType/init',
+    });
+    dispatch({
+      type: 'receiverType/initExtType',
     });
     this.handleSearch();
   }
@@ -141,24 +144,87 @@ export default class ReceiverType extends Component {
   handleDrawerOk(values) {
     const {
       dispatch,
-      receiverType: { pagination = {} },
+      receiverType: { pagination = {}, assignDataSource = [] },
     } = this.props;
+    const { tableRecord = {} } = this.state;
+    const { receiverTypeId, typeModeCode } = tableRecord;
+    const validData = assignDataSource.filter(
+      (item) => item.receiverTypeLineId && item.receiverTypeLineId.toString().startsWith('create-')
+    );
+    const data = getEditTableData(validData);
     let type = 'receiverType/addType'; // 默认新增
     if (values.receiverTypeId) {
       type = 'receiverType/updateType'; // 修改
     }
-    dispatch({
-      type,
-      payload: {
-        ...values,
-      },
-    }).then(res => {
-      if (res) {
-        notification.success();
-        this.handleDrawerCancel();
-        this.handleSearch(pagination);
+    /**
+     * 类型为外部用户时，需要在确定时调两次接口，一次保存头，一次保存行，优先处理保存行
+     */
+    if (typeModeCode === 'EXT_USER') {
+      if (values.receiverTypeId) {
+        if ((Array.isArray(data) && data.length > 0) || !validData) {
+          // 含有新建的数据，并且校验通过了，调保存行的接口
+          this.assignListToReceiverType({
+            records: data.map((item) => {
+              return {
+                receiverDetail: {
+                  accountNum: item.accountNum,
+                  accountTypeCode: item.accountTypeCode,
+                  description: item.description,
+                  receiverTypeId,
+                },
+                receiverTypeId,
+                receiverTargetCode: typeModeCode,
+              };
+            }),
+            id: values.receiverTypeId,
+          }).then((r) => {
+            if (r) {
+              // 行保存成功后保存头
+              dispatch({
+                type,
+                payload: {
+                  ...values,
+                },
+              }).then((res) => {
+                if (res) {
+                  notification.success();
+                  this.handleDrawerCancel();
+                  this.handleSearch(pagination);
+                }
+              });
+            }
+          });
+        } else if ((data && data.length) === (validData && validData.length)) {
+          // 不含有新建数据，单独保存头
+          dispatch({
+            type,
+            payload: {
+              ...values,
+            },
+          }).then((res) => {
+            if (res) {
+              notification.success();
+              this.handleDrawerCancel();
+              this.handleSearch(pagination);
+            }
+          });
+        }
       }
-    });
+    } else {
+      // 其他类型，单独保存行
+      dispatch({
+        type,
+        payload: {
+          ...values,
+        },
+      }).then((res) => {
+        if (res) {
+          notification.success();
+          this.handleDrawerCancel();
+          this.handleSearch(pagination);
+        }
+      });
+    }
   }
 
   /**
@@ -223,13 +289,23 @@ export default class ReceiverType extends Component {
     const {
       loading,
       saveLoading,
-      receiverType: { list = [], pagination = {}, typeModes, newTypeModes },
+      receiverType: {
+        list = [],
+        pagination = {},
+        typeModes,
+        newTypeModes,
+        extTypeList = [],
+        assignDataSource = [],
+        assignPagination = {},
+      },
       match: { path },
       queryAssignedListLoading,
       assignListToReceiverTypeLoading,
       removeReceiverTypeListLoading,
       queryNoAssignUnitListLoading,
       queryNoAssignUserGroupListLoading,
+      dispatch,
+      receiverType,
     } = this.props;
     const { tableRecord = {}, drawerVisible = false } = this.state;
     const filterProps = {
@@ -268,6 +344,11 @@ export default class ReceiverType extends Component {
       queryNoAssignUnitListLoading,
       queryNoAssignUserGroupList: this.queryNoAssignUserGroupList,
       queryNoAssignUserGroupListLoading,
+      extTypeList,
+      dispatch,
+      assignDataSource,
+      assignPagination,
+      receiverType,
     };
     return (
       <>

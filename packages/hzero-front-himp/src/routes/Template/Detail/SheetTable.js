@@ -8,6 +8,7 @@ import { Bind } from 'lodash-decorators';
 import EditTable from 'components/EditTable';
 import Lov from 'components/Lov';
 import Checkbox from 'components/Checkbox';
+import TLEditor from 'components/TLEditor';
 
 import {
   addItemToPagination,
@@ -62,14 +63,14 @@ export default class SheetTable extends React.Component {
   handleDeleteSheet(record) {
     const {
       dispatch,
-      template: { templateTargetList = [], pagination },
+      template: { templateTargetList = [], templateTargetPagination },
     } = this.props;
     const newList = templateTargetList.filter((item) => item.id !== record.id);
     dispatch({
       type: 'template/updateState',
       payload: {
         templateTargetList: newList,
-        pagination: delItemToPagination(templateTargetList.length, pagination),
+        pagination: delItemToPagination(templateTargetList.length, templateTargetPagination),
       },
     });
   }
@@ -100,7 +101,7 @@ export default class SheetTable extends React.Component {
 
   render() {
     const {
-      template: { templateTargetList = [], templateTargetPagination = {}, code = {} },
+      template: { templateTargetList = [], code = {} },
       queryLines = false,
       detailId,
       templateType,
@@ -160,7 +161,13 @@ export default class SheetTable extends React.Component {
                       }),
                     },
                   ],
-                })(<Input />)}
+                })(
+                  <TLEditor
+                    label={intl.get('himp.template.view.title.pageName').d('页名称')}
+                    field="sheetName"
+                    token={record._token}
+                  />
+                )}
               </Form.Item>
             );
           } else {
@@ -382,7 +389,7 @@ export default class SheetTable extends React.Component {
           columns={columns}
           scroll={{ x: tableScrollWidth(columns) }}
           dataSource={templateTargetList}
-          pagination={templateTargetPagination}
+          pagination={false}
           // FIXME: 这边没有 loadLines 方法, 也没有继承
           onChange={(page) => this.loadLines(page)}
         />

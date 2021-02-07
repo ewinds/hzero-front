@@ -121,7 +121,6 @@ export default class Menus extends Component {
     const { selectedKeys = [], openMenuKeys = [] } = this.state;
     // theme 变为 dark
     // arrow 样式 要是 白色的
-    console.log(menuLoad);
     if (menuLoad) {
       return (
         <Menu

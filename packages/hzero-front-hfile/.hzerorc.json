@@ -2,6 +2,6 @@
   "package": {
     "initLoad": true,
     "indexRouter": "/hfile/edit-log",
-    "registerRegex": "\\/hzero-front-hfile\\/"
+    "registerRegex": "(\\/(private|public|pub))?\\/hfile\\/"
   }
 }

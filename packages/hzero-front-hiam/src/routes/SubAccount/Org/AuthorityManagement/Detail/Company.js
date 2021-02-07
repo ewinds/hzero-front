@@ -9,12 +9,12 @@ import React from 'react';
 import { connect } from 'dva';
 import lodash from 'lodash';
 import { Bind } from 'lodash-decorators';
-import { Button, Form, Input, Table, Row, Col } from 'hzero-ui';
+import { Button, Form, Input, Row, Col } from 'hzero-ui';
 
 import { Button as ButtonPermission } from 'components/Permission';
+import VirtualTable from 'components/VirtualTable';
 
 import notification from 'utils/notification';
-import { tableScrollWidth } from 'utils/utils';
 import intl from 'utils/intl';
 
 import styles from './index.less';
@@ -52,6 +52,7 @@ export default class Company extends React.Component {
     this.state = {
       expanded: true,
       queryParams: {},
+      checkListState: [],
     };
   }
 
@@ -72,6 +73,13 @@ export default class Company extends React.Component {
         userId,
         ...queryParams,
       },
+    }).then(() => {
+      const {
+        authorityCompany: { checkList = [] },
+      } = this.props;
+      this.setState({
+        checkListState: checkList,
+      });
     });
   }
 
@@ -79,19 +87,37 @@ export default class Company extends React.Component {
    *保存
    */
   @Bind()
-  campanySave() {
+  companySave() {
     const {
       dispatch,
       authorityCompany: { checkList = [] },
       userId,
     } = this.props;
+    const { checkListState } = this.state;
+    const newCheckList = lodash.xorWith(
+      checkList,
+      checkListState,
+      lodash.isEqualWith((cl, cls) => cl.id === cls.id)
+    );
+    const newList = newCheckList.map((e) => {
+      if (checkList.find((v) => v.id === e.id)) {
+        return {
+          ...e,
+          checkedFlag: 1,
+        };
+      }
+      return {
+        ...e,
+        checkedFlag: 0,
+      };
+    });
     dispatch({
       type: 'authorityCompany/updateAuthorityCompany',
       payload: {
-        checkList,
+        checkList: lodash.uniqBy(newList, 'id'),
         userId,
       },
-    }).then(response => {
+    }).then((response) => {
       if (response) {
         this.refreshValue();
         notification.success();
@@ -117,6 +143,13 @@ export default class Company extends React.Component {
             ...fieldsValue,
             userId,
           },
+        }).then(() => {
+          const {
+            authorityCompany: { checkList = [] },
+          } = this.props;
+          this.setState({
+            checkListState: checkList,
+          });
         });
       }
     });
@@ -159,11 +192,12 @@ export default class Company extends React.Component {
       dispatch,
       authorityCompany: { expandedRowKeys = [] },
     } = this.props;
+
     dispatch({
       type: 'authorityCompany/updateExpanded',
       payload: expanded
         ? expandedRowKeys.concat(record.id)
-        : expandedRowKeys.filter(o => o !== record.id),
+        : expandedRowKeys.filter((o) => o !== record.id),
     });
   }
 
@@ -179,7 +213,7 @@ export default class Company extends React.Component {
     const { expanded } = this.state;
     dispatch({
       type: 'authorityCompany/updateExpanded',
-      payload: expanded ? originList.map(list => list.id) : [],
+      payload: expanded ? originList.map((list) => list.id) : [],
     });
     this.setState({
       expanded: !expanded,
@@ -220,14 +254,14 @@ export default class Company extends React.Component {
     const childType = this.findChildType(record.typeCode);
     let grandsonList = [];
     const childLists = originList.filter(
-      list => list.parentId === record.dataId && list.typeCode && list.typeCode === childType
+      (list) => list.parentId === record.dataId && list.typeCode && list.typeCode === childType
     );
-    childLists.map(childList => {
+    childLists.map((childList) => {
       const grandsonType = this.findChildType(childList.typeCode);
       grandsonList = lodash.unionWith(
         grandsonList,
         originList.filter(
-          list =>
+          (list) =>
             list.parentId === childList.dataId && list.typeCode && list.typeCode === grandsonType
         )
       );
@@ -258,7 +292,7 @@ export default class Company extends React.Component {
       return oldList;
     }
     const obj = originList.find(
-      list => parentId === list.dataId && list.typeCode && list.typeCode === parentTypeCode
+      (list) => parentId === list.dataId && list.typeCode && list.typeCode === parentTypeCode
     );
     let resArr = oldList;
     if (obj) {
@@ -288,6 +322,12 @@ export default class Company extends React.Component {
     return parentType;
   }
 
+  @Bind()
+  handleReset() {
+    const { form } = this.props;
+    form.resetFields();
+  }
+
   /**
    *渲染查询结构
    *
@@ -306,6 +346,9 @@ export default class Company extends React.Component {
           {getFieldDecorator('dataCode')(<Input typeCase="upper" trim inputChinese={false} />)}
         </FormItem>
         <FormItem>
+          <Button onClick={this.handleReset} style={{ marginRight: 8 }}>
+            {intl.get('hzero.common.button.reset').d('重置')}
+          </Button>
           <Button type="primary" onClick={() => this.queryValue()} htmlType="submit">
             {intl.get('hzero.common.button.search').d('查询')}
           </Button>
@@ -328,7 +371,7 @@ export default class Company extends React.Component {
                 ]}
                 type="primary"
                 loading={updateLoading}
-                onClick={() => this.campanySave()}
+                onClick={() => this.companySave()}
               >
                 {intl.get('hzero.common.button.save').d('保存')}
               </ButtonPermission>
@@ -356,6 +399,7 @@ export default class Company extends React.Component {
           .get('hiam.authority.model.authorityCompany.dataName')
           .d('公司/业务单元/库存组织'),
         dataIndex: 'dataName',
+        flexGrow: 1,
       },
       {
         title: intl.get('hiam.authority.model.authorityCompany.dataCode').d('代码'),
@@ -364,27 +408,36 @@ export default class Company extends React.Component {
       },
     ];
     const rowSelection = {
-      selectedRowKeys: checkList.map(n => n.id),
+      selectedRowKeys: checkList.map((n) => n.id),
       onChange: this.handleSelectRows,
       onSelect: this.selectChilds,
     };
     return (
       <div>
         <div className="table-list-search">{this.renderForm()}</div>
-        <Table
+        <VirtualTable
+          isTree
+          virtualized
           bordered
           rowKey="id"
           pagination={false}
           loading={fetchLoading || refreshLoading}
-          dataSource={data}
+          data={data}
+          autoInitHeight
+          height={400}
+          minHeight={400}
           rowSelection={rowSelection}
           expandedRowKeys={expandedRowKeys}
           columns={columns}
-          scroll={{ x: tableScrollWidth(columns) }}
-          rowClassName={record =>
-            checkList.find(list => list.id === record.id) ? 'row-active' : 'row-noactive'
-          }
-          onExpand={this.onExpand}
+          // scroll={{ x: tableScrollWidth(columns) }}
+          rowClassName={(record) => {
+            if (record) {
+              return checkList.find((list) => list.id === record.id)
+                ? 'row-active'
+                : 'row-noactive';
+            }
+          }}
+          onExpandChange={this.onExpand}
         />
       </div>
     );

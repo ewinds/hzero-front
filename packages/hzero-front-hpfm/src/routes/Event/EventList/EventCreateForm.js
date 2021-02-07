@@ -11,6 +11,7 @@ import { Bind } from 'lodash-decorators';
 
 import SideBar from 'components/Modal/SideBar';
 import Lov from 'components/Lov';
+import TLEditor from 'components/TLEditor';
 
 import intl from 'utils/intl';
 import { CODE_UPPER } from 'utils/regExp';
@@ -33,7 +34,14 @@ export default class EventCreateForm extends React.Component {
   }
 
   render() {
-    const { modalVisible, hideModal, confirmLoading = false, title, isSiteFlag, ...otherProps } = this.props;
+    const {
+      modalVisible,
+      hideModal,
+      confirmLoading = false,
+      title,
+      isSiteFlag,
+      ...otherProps
+    } = this.props;
     const { form } = this.props;
     return (
       <SideBar
@@ -46,31 +54,25 @@ export default class EventCreateForm extends React.Component {
         {...otherProps}
       >
         <Row>
-          {
-            isSiteFlag && (
-              <Col>
-                <Form.Item
-                  {...MODAL_FORM_ITEM_LAYOUT}
-                  label={intl.get('hzero.common.model.common.tenantId').d('租户')}
-                >
-                  {form.getFieldDecorator('tenantId', {
-                    rules: [
-                      {
-                        required: true,
-                        message: intl.get('hzero.common.validation.notNull', {
-                          name: intl.get('hzero.common.model.common.tenantId').d('租户'),
-                        }),
-                      },
-                    ],
-                  })(
-                    <Lov
-                      code="HPFM.TENANT"
-                    />
-                  )}
-                </Form.Item>
-              </Col>
-            )
-          }
+          {isSiteFlag && (
+            <Col>
+              <Form.Item
+                {...MODAL_FORM_ITEM_LAYOUT}
+                label={intl.get('hzero.common.model.common.tenantId').d('租户')}
+              >
+                {form.getFieldDecorator('tenantId', {
+                  rules: [
+                    {
+                      required: true,
+                      message: intl.get('hzero.common.validation.notNull', {
+                        name: intl.get('hzero.common.model.common.tenantId').d('租户'),
+                      }),
+                    },
+                  ],
+                })(<Lov code="HPFM.TENANT" />)}
+              </Form.Item>
+            </Col>
+          )}
           <Col>
             <Form.Item
               {...MODAL_FORM_ITEM_LAYOUT}
@@ -90,6 +92,12 @@ export default class EventCreateForm extends React.Component {
                       .get('hzero.common.validation.codeUpper')
                       .d('全大写及数字，必须以字母、数字开头，可包含“-”、“_”、“.”、“/”'),
                   },
+                  {
+                    max: 30,
+                    message: intl.get('hzero.common.validation.max', {
+                      max: 30,
+                    }),
+                  },
                 ],
               })(<Input trim typeCase="upper" inputChinese={false} />)}
             </Form.Item>
@@ -107,8 +115,19 @@ export default class EventCreateForm extends React.Component {
                       name: intl.get('hpfm.event.model.event.description').d('事件描述'),
                     }),
                   },
+                  {
+                    max: 80,
+                    message: intl.get('hzero.common.validation.max', {
+                      max: 80,
+                    }),
+                  },
                 ],
-              })(<Input />)}
+              })(
+                <TLEditor
+                  label={intl.get('hcuz.custButton.view.title.description').d('事件描述')}
+                  field="eventDescription"
+                />
+              )}
             </Form.Item>
           </Col>
         </Row>

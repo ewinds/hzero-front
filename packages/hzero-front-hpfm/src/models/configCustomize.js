@@ -13,6 +13,9 @@ import {
   querySelfValidator,
   saveSelfValidator,
   saveHeaderIndividual,
+  querySameModelUnit,
+  copyFiled,
+  saveUnitConfigHeader,
 } from '@/services/customizeConfigService';
 import { queryMapIdpValue } from 'services/api';
 import { omit } from 'lodash';
@@ -93,8 +96,11 @@ export default {
       if (res) {
         yield put({
           type: 'updateState',
-          payload: { treeData: res },
+          payload: {
+            treeData: res,
+          },
         });
+        return res;
       }
     },
     *queryCode({ payload }, { call, put }) {
@@ -196,6 +202,15 @@ export default {
     },
     *saveSelfValidator({ payload }, { call }) {
       return getResponse(yield call(saveSelfValidator, payload));
+    },
+    *fetchSameModelUnit({ params }, { call }) {
+      return getResponse(yield call(querySameModelUnit, params));
+    },
+    *copyFiled({ payload }, { call }) {
+      return getResponse(yield call(copyFiled, payload));
+    },
+    *saveUnitConfigHeader({ payload }, { call }) {
+      return getResponse(yield call(saveUnitConfigHeader, payload));
     },
   },
   reducers: {

@@ -180,7 +180,7 @@ export default class List extends React.Component {
   getInput(type, record, dataIndex, _tls) {
     switch (type) {
       case 'String':
-        return <Input />;
+        return <Input dbc2sbc={false} />;
       case 'Decimal':
         return <InputNumber />;
       case 'Long':
@@ -191,6 +191,7 @@ export default class List extends React.Component {
       case 'Multi':
         return (
           <Input
+            dbc2sbc={false}
             className="multi-info-input"
             readOnly
             style={{ cursor: 'pointer' }}
@@ -203,7 +204,7 @@ export default class List extends React.Component {
       // case 'Date':
       //   return <Switch />;
       default:
-        return <Input />;
+        return <Input dbc2sbc={false} />;
     }
   }
 

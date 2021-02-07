@@ -152,6 +152,7 @@ class DefaultDataHierarchies extends PureComponent {
           dataHierarchyMeaning: e[displayField],
         });
         notification.success();
+        window.location.reload();
       }
     });
   }
