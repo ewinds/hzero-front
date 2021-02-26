@@ -157,7 +157,7 @@ module.exports = [
       {
         path: '/hpfm/dynamic-form/list',
         models: [() => import('../models/dynamicForm/header')],
-        component: () => import('../routes/DynamicForm/Header/index'),
+        component: () => import('../routes/DynamicForm/Header'),
       },
       {
         path: '/hpfm/dynamic-form/detail/:formHeaderId',
@@ -165,7 +165,7 @@ module.exports = [
           () => import('../models/dynamicForm/header'),
           () => import('../models/dynamicForm/line'),
         ],
-        component: () => import('../routes/DynamicForm/Line/index'),
+        component: () => import('../routes/DynamicForm/Line'),
       },
     ],
   },
